@@ -1,0 +1,93 @@
+name: reusable check
+
+# The full check -- tests, lint, types, and the packaging assertions -- factored
+# into one reusable job so `check.yml` (on push / PR) and any future release gate
+# run the *identical* thing. One definition is what makes "publish gates on the
+# full check" true; a second hand-maintained copy would drift, and a check added
+# here silently would not gate releases.
+
+on:
+  workflow_call:
+
+# The floor lives on the shared body, not only on `check.yml`: a release gate
+# calling this same workflow would otherwise run it with the repo-default
+# (possibly write) token. Declared here, the check is read-only from every
+# caller. A reusable workflow can only downscope from the caller, so this never
+# widens anyone's token.
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        # requires-python says >=3.11, so 3.11 is the version that claim has to
+        # hold on.
+        python-version: ["3.11", "3.12", "3.13", "3.14"]
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+
+      - name: Install
+        # A venv per matrix version, not `uv pip --system`: the runner's system
+        # Python is externally managed and is one fixed version whatever the matrix
+        # says. This is also what the README tells a person to run.
+        run: |
+          uv venv --python ${{ matrix.python-version }}
+          uv pip install -e ".[dev]"
+          .venv/bin/python -c "import sys; print('testing on', sys.version)"
+
+      - name: Test
+        run: .venv/bin/pytest -q
+
+      - name: Lint
+        run: .venv/bin/ruff check src tests
+
+      - name: Types
+        run: .venv/bin/mypy
+
+      - name: Confirm the package has zero runtime dependencies
+        # The zero-dependency claim is documented in the pyproject comment; a claim
+        # nothing checks quietly stops being true. Installed into a bare
+        # environment, data-go-kr must import with the standard library alone, and
+        # the console script must run.
+        run: |
+          uv venv /tmp/bare --python ${{ matrix.python-version }}
+          uv pip install --python /tmp/bare/bin/python .
+          /tmp/bare/bin/python -c "
+          import importlib.metadata as md
+          requires = md.requires('data-go-kr') or []
+          runtime = [r for r in requires if 'extra ==' not in r]
+          assert runtime == [], f'unexpected runtime dependencies: {runtime}'
+          import data_go_kr
+          print('data-go-kr imports with the standard library alone')
+          "
+          # The console script runs, and its top-level --version prints (not shoved
+          # into a required subcommand).
+          /tmp/bare/bin/gokr --version
+
+      - name: Confirm a user's type checker can see the hints
+        # Every hint in this package is invisible to a user unless py.typed ships
+        # alongside it (PEP 561), and the source cannot answer whether it did:
+        # src/data_go_kr/py.typed can sit in git while the built wheel omits it. So
+        # ask it the way a user does -- install the built package into a clean
+        # environment and run their checker over their code.
+        run: |
+          uv venv /tmp/typed --python ${{ matrix.python-version }}
+          uv pip install --python /tmp/typed/bin/python . mypy
+          cat > /tmp/user_code.py <<'PY'
+          from data_go_kr import DataGoKr
+
+          # timeout takes a float; a str is not one, so a checker that can see the
+          # shipped hints must reject it and name the expected type.
+          DataGoKr(timeout="soon")
+          PY
+          /tmp/typed/bin/mypy /tmp/user_code.py > /tmp/mypy_out 2>&1 || true
+          cat /tmp/mypy_out
+          grep -q 'float' /tmp/mypy_out

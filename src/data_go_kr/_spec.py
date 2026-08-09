@@ -1,0 +1,177 @@
+"""Table specs -- vendor token -> clean column + type -- and the typed row cleaner.
+
+The package's anti-corruption layer: a data.go.kr field vocabulary (``invrDpsgAmt``,
+``crdTrFingWhl``, ...) is translated to clean snake_case column names in ONE place, next
+to the service surface that speaks it, so a consumer never re-authors the mapping (or the
+number parsing, or the vendor date-filter names). Each :class:`Table` is the single
+source of truth a store can derive its schema and upsert from.
+
+Two key shapes: a daily flow series is keyed by the date alone; a category-dimensioned
+series keys on the date *and* its dimensions. :func:`clean` turns raw rows into
+clean-named rows: 원화·건수는 exact int (bigint-safe -- float loses integers above 2^53),
+비율은 float, 차원은 text, ``basDt`` (YYYYMMDD) / ``basYm`` (YYYYMM) as ISO date strings.
+A row is dropped if its date is missing, or -- for a composite-key table -- any key
+dimension is missing (a NULL cannot sit in a primary key). A wide-key table keeps such a
+row with the dimension ``None``: its surrogate id needs no key, and the row's measures
+are worth keeping.
+"""
+
+from __future__ import annotations
+
+import math
+from collections.abc import Callable
+from dataclasses import dataclass
+from datetime import date, datetime
+from typing import Literal
+
+from .types import Row
+
+__all__ = ["CleanRow", "CleanValue", "Field", "FieldKind", "Table", "clean"]
+
+FieldKind = Literal["date_ymd", "date_ym", "text", "int", "ratio"]
+DateToken = Literal["basDt", "basYm", "year"]
+CleanValue = str | int | float | None
+CleanRow = dict[str, CleanValue]
+
+
+@dataclass(frozen=True, slots=True)
+class Field:
+    """One response field: the API token, the clean column, its type, and whether it is
+    part of the natural key."""
+
+    token:  str
+    column: str
+    kind:   FieldKind
+    is_key: bool = False
+
+
+@dataclass(frozen=True, slots=True)
+class Table:
+    """One operation's clean table: its name, the vendor operation path, the API date
+    field (and filter base), whether the cycle is monthly (begin/end are YYYYMM not
+    YYYYMMDD), its fields, and whether the natural key is too wide for a composite PK
+    (so a store uses a surrogate id + per-period replace)."""
+
+    name:        str
+    operation:   str
+    date_token:  DateToken
+    monthly:     bool
+    fields:      tuple[Field, ...]
+    is_wide_key: bool = False   # True -> surrogate id + delete-by-date, not a composite PK
+
+    @property
+    def columns(self) -> tuple[str, ...]:
+        return tuple(field.column for field in self.fields)
+
+    @property
+    def key_columns(self) -> tuple[str, ...]:
+        return tuple(field.column for field in self.fields if field.is_key)
+
+    @property
+    def date_column(self) -> str:
+        return next(field.column for field in self.fields if field.kind.startswith("date"))
+
+
+def clean(rows: list[Row], table: Table) -> list[CleanRow]:
+    """Raw vendor rows -> clean-named rows (``table.columns`` in order): dates parsed to
+    ISO strings, dimensions as text, 원화·건수는 int, 비율은 float. A row is dropped if
+    its date is missing, or -- for a composite-key table -- any key dimension is missing
+    (a NULL cannot key it); a wide-key table keeps the row with that dimension ``None``.
+    A pure function: no I/O, no third-party frames -- the result is a ``list[dict]`` that
+    ``pandas.DataFrame`` / ``polars.DataFrame`` accept directly."""
+    # Resolve each field's parser and required-ness once, not per row.
+    plan = [
+        (field.token, field.column, _PARSER_BY_KIND[field.kind],
+         field.kind.startswith("date") or (field.is_key and not table.is_wide_key))
+        for field in table.fields
+    ]
+    cleaned: list[CleanRow] = []
+    for row in rows:
+        values: CleanRow = {}
+        keep = True
+        for token, column, parser, required in plan:
+            value = parser(row.get(token))
+            if value is None and required:
+                keep = False
+                break
+            values[column] = value
+        if keep:
+            cleaned.append(values)
+    return cleaned
+
+
+def _date_ymd(raw: object) -> str | None:
+    """An 8-digit YYYYMMDD to an ISO date string (``"2024-01-05"``); anything else -> None."""
+    text = str(raw).strip()
+    if len(text) != 8 or not text.isdigit():
+        return None
+    try:
+        parsed = datetime.strptime(text, "%Y%m%d").date()
+    except ValueError:
+        return None
+    return parsed.isoformat()
+
+
+def _date_ym(raw: object) -> str | None:
+    """A 6-digit YYYYMM to an ISO year-month string (``"2024-01"``); anything else -> None."""
+    text = str(raw).strip()
+    if len(text) != 6 or not text.isdigit():
+        return None
+    try:
+        date(int(text[:4]), int(text[4:6]), 1)   # validates the month
+    except ValueError:
+        return None
+    return f"{text[:4]}-{text[4:6]}"
+
+
+def _text(raw: object) -> str | None:
+    """A dimension value as text; blank or the missing-markers (``"None"``, ``"nan"``) ->
+    None, symmetric with ``_integer``/``_ratio``, so a missing key dimension is truly
+    absent rather than a literal marker string."""
+    text = str(raw).strip()
+    if not text or text in ("nan", "None"):
+        return None
+    return text
+
+
+def _integer(raw: object) -> int | None:
+    """An amount or count string to an exact int (blank/``"-"``/``"nan"`` -> None). The
+    plain integer path is exact for any magnitude; a decimal-formatted value
+    (``"1234.0"``) is accepted only if integral, and a genuinely fractional one
+    (``"3.8"``) -- a contract breach, these are integer won/counts -- becomes None rather
+    than a lossy round."""
+    text = str(raw).replace(",", "").strip()
+    if not text or text in ("-", "None", "nan"):
+        return None
+    try:
+        return int(text)                       # exact for any size (the common path)
+    except ValueError:
+        pass
+    try:
+        number = float(text)                   # a decimal-formatted integer like '1234.0'?
+    except ValueError:
+        return None
+    # A non-finite float ("NaN"/"inf"/"Infinity") is not an integer won/count -> None.
+    return int(number) if math.isfinite(number) and number.is_integer() else None
+
+
+def _ratio(raw: object) -> float | None:
+    """A percent string to a float (blank/``"-"``/``"nan"``/non-finite -> None)."""
+    text = str(raw).replace(",", "").strip()
+    if not text or text in ("-", "None", "nan"):
+        return None
+    try:
+        value = float(text)
+    except ValueError:
+        return None
+    # A non-finite float ("NaN"/"inf"/"Infinity") is not a real ratio -> None.
+    return value if math.isfinite(value) else None
+
+
+_PARSER_BY_KIND: dict[FieldKind, Callable[[object], CleanValue]] = {
+    "date_ymd": _date_ymd,
+    "date_ym":  _date_ym,
+    "int":      _integer,
+    "ratio":    _ratio,
+    "text":     _text,
+}

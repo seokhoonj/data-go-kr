@@ -1,0 +1,286 @@
+"""DataGoKrSession -- the neutral data.go.kr transport: key injection, paging, envelopes.
+
+One session speaks to one service base URL and turns an operation + filters into rows: a
+``list[dict[str, str]]``, the vendor's items passed through with their own field names.
+No third-party HTTP client -- ``urllib`` carries it, so the package has zero runtime
+dependencies.
+
+The transport is *neutral*: it knows the portal's two envelope shapes and its paging
+protocol, and nothing about any particular dataset. The success and error-A shape is
+``response.header.resultCode`` (``00`` ok, ``03`` no-data) with rows at
+``response.body.items.item``; the error-B shape is the portal fault
+``OpenAPI_ServiceResponse.cmmMsgHeader`` with a ``returnReasonCode``. ``fetch`` pages
+through ``pageNo``/``numOfRows`` until ``totalCount`` rows are collected (or a page
+comes back empty, for services that omit the count).
+
+**The secret-safety invariant lives here.** The portal takes the service key as the
+``serviceKey`` query parameter, so the request URL contains it. A transport exception's
+string, its ``.url`` attribute, and a chained traceback all embed that URL -- so this
+module never builds a message from a transport exception's text and never chains one
+(``raise ... from None``). Error messages are built from the HTTP status, redacted
+vendor-controlled JSON fields, and the operation path *without* its query string.
+``__repr__`` never shows the key.
+
+The key must be the portal's **decoding** (raw) form: parameters are url-encoded exactly
+once here, so the pre-escaped encoding form would go out double-encoded and be rejected.
+"""
+
+from __future__ import annotations
+
+import http.client
+import json
+import math
+import urllib.error
+import urllib.parse
+import urllib.request
+from typing import IO, Any, Protocol, cast
+
+from ._config import resolve_api_key
+from .errors import (
+    DataGoKrError,
+    DataGoKrNetworkError,
+    DataGoKrRateLimitError,
+    _error_for,
+)
+from .types import JsonParam, Row
+
+__all__ = ["DataGoKrSession"]
+
+_USER_AGENT = "data-go-kr"
+_RATE_LIMIT_STATUS = 429
+_OK_CODE = "00"
+_NO_DATA_CODE = "03"
+_PAGE_CAP = 1000   # runaway guard: 1000 pages x default 1000 rows covers any series
+
+
+class _NoRedirect(urllib.request.HTTPRedirectHandler):
+    """Refuse every redirect instead of following it.
+
+    ``urllib`` follows a 3xx automatically and reissues the request to the new location
+    -- carrying the key-bearing query string to whatever host the server names, in
+    cleartext on an https -> http downgrade. Refusing turns any redirect into an
+    ``HTTPError`` that the session surfaces as :class:`DataGoKrNetworkError`; the key
+    never leaves the original https host.
+    """
+
+    def redirect_request(
+        self,
+        req: urllib.request.Request,
+        fp: IO[bytes],
+        code: int,
+        msg: str,
+        headers: http.client.HTTPMessage,
+        newurl: str,
+    ) -> urllib.request.Request | None:
+        # The redirect target is server-controlled -- keep it out of the error so nothing
+        # it carries can surface through the chained exception.
+        raise urllib.error.HTTPError(req.full_url, code, "redirect refused", headers, fp)
+
+
+# One private opener for the package: the default global opener follows redirects, so a
+# private opener with the no-redirect handler is what actually closes the leak.
+_OPENER = urllib.request.build_opener(_NoRedirect)
+
+
+class _Response(Protocol):
+    """What the opener's ``open`` must return: a context manager whose body is bytes."""
+
+    def read(self) -> bytes: ...
+    def __enter__(self) -> _Response: ...
+    def __exit__(self, *exc: object) -> object: ...
+
+
+class _Opener(Protocol):
+    """The one seam the session lets a caller substitute -- anything that opens a request
+    and returns a :class:`_Response`. The package's no-redirect opener satisfies it; an
+    offline test hands in a fake returning canned bytes with no network."""
+
+    def open(self, request: urllib.request.Request, timeout: float) -> _Response: ...
+
+
+class DataGoKrSession:
+    """Holds the service key and one base URL; fetches operations as raw rows.
+
+    ``base_url`` is the service root (e.g. the KOFIA statistics service URL) and
+    ``operation`` in :meth:`fetch` is the path segment under it. ``json_param`` is the
+    service's "answer in JSON" parameter name -- ``resultType`` for older services,
+    ``_type`` for newer ones. The key comes from ``api_key``, then
+    ``$DATA_GO_KR_API_KEY``, then ``~/.config/data-go-kr/credentials.json``; construction
+    raises :class:`DataGoKrConfigError` when none of them supplies one.
+    """
+
+    def __init__(self, base_url: str, api_key: str | None = None, *,
+                 timeout: float = 30.0, json_param: JsonParam = "resultType",
+                 opener: _Opener | None = None) -> None:
+        if isinstance(timeout, bool) or not isinstance(timeout, (int, float)):
+            raise ValueError("timeout must be a finite positive number")
+        if not math.isfinite(timeout) or timeout <= 0:
+            raise ValueError("timeout must be a finite positive number")
+        self.base_url = base_url.rstrip("/")
+        self.timeout = float(timeout)
+        self.json_param: JsonParam = json_param
+        self._api_key = resolve_api_key(api_key)
+        self._opener = opener if opener is not None else cast(_Opener, _OPENER)
+
+    def __repr__(self) -> str:
+        # Never shows the service key, in whole or in part.
+        return "DataGoKrSession(...)"
+
+    def fetch(self, operation: str, *, num_of_rows: int = 1000,
+              **filters: str | None) -> list[Row]:
+        """Every row of ``operation`` over the given filters, with the vendor's own field
+        names. ``filters`` with a ``None`` value are dropped, so an unset date bound is
+        simply omitted. Pages until ``totalCount`` rows are collected, or until a page
+        comes back empty for a service that omits the count; a no-data result
+        (``resultCode`` 03) is an empty list, not an error. ``num_of_rows`` is the page
+        size, not a result cap.
+
+        Filter values (date bounds, an HS code, ...) are passed to the vendor unvalidated:
+        the vendor is the authority on its own filter grammar, so this transport checks
+        only its own inputs (e.g. the timeout) and forwards the filters as given.
+        """
+        rows: list[Row] = []
+        page = 1
+        while page <= _PAGE_CAP:
+            page_rows, total = self._fetch_page(operation, page, num_of_rows, filters)
+            rows.extend(page_rows)
+            if not page_rows or (total is not None and len(rows) >= total):
+                break
+            page += 1
+        return rows
+
+    def _fetch_page(self, operation: str, page: int, num_of_rows: int,
+                    filters: dict[str, str | None]) -> tuple[list[Row], int | None]:
+        """One page of ``operation``: ``(rows, totalCount-or-None)``."""
+        params: dict[str, str] = {
+            "serviceKey":    self._api_key,   # the raw decoding key, as a plain value
+            self.json_param: "json",
+            "numOfRows":     str(num_of_rows),
+            "pageNo":        str(page),
+        }
+        params.update({name: value for name, value in filters.items() if value is not None})
+        # urlencode exactly once: the raw key goes in as a plain value and comes out
+        # single-encoded. Never pre-encode it (the portal's "encoding key" form would be
+        # double-encoded here and rejected).
+        query = urllib.parse.urlencode(params)
+        request = urllib.request.Request(
+            f"{self.base_url}/{operation}?{query}", headers={"User-Agent": _USER_AGENT})
+        failure: DataGoKrError
+        try:
+            with self._opener.open(request, timeout=self.timeout) as response:
+                raw = response.read()
+        except urllib.error.HTTPError as err:
+            # Build the package error while the response is open, then raise it after
+            # leaving the except block: that releases the socket and detaches both
+            # __cause__ and __context__ from the key-bearing HTTPError.
+            with err:
+                if err.code == _RATE_LIMIT_STATUS:
+                    failure = DataGoKrRateLimitError(
+                        "429", f"data.go.kr rate-limited {operation} (HTTP 429)")
+                else:
+                    failure = DataGoKrNetworkError(
+                        f"HTTP {err.code} from data.go.kr for {operation}")
+        except urllib.error.URLError as err:
+            # A transport reason is external text and may contain the request URL. Keep
+            # only its type, then detach the original exception below.
+            failure = DataGoKrNetworkError(
+                f"request to data.go.kr failed for {operation}: {type(err.reason).__name__}")
+        except (http.client.HTTPException, OSError) as err:
+            # A failure during response.read() (IncompleteRead, a socket timeout or
+            # reset) is not an HTTPError/URLError; surface it through our error too.
+            failure = DataGoKrNetworkError(
+                f"data.go.kr response read failed for {operation}: {type(err).__name__}")
+        else:
+            return self._page_from_body(raw, operation)
+        raise failure from None
+
+    def _page_from_body(self, raw: bytes, operation: str) -> tuple[list[Row], int | None]:
+        """Apply the portal envelope contract to a raw 200 body."""
+        failure: DataGoKrError
+        try:
+            payload: Any = json.loads(raw.decode("utf-8"))
+        except (ValueError, UnicodeDecodeError, RecursionError):
+            # A 200 whose body is not JSON -- the portal's XML fault, or a
+            # proxy/maintenance page -- must surface through our error, cause detached.
+            failure = DataGoKrNetworkError(
+                f"non-JSON response from data.go.kr for {operation}")
+        else:
+            if isinstance(payload, dict):
+                return self._page_from_payload(payload, operation)
+            failure = DataGoKrNetworkError(
+                f"unexpected data.go.kr response shape for {operation}")
+        raise failure from None
+
+    def _page_from_payload(self, payload: dict[str, Any],
+                           operation: str) -> tuple[list[Row], int | None]:
+        # Error-B: the portal fault envelope, sent when the portal itself rejects the
+        # call (unregistered key, traffic limit) before the service ever runs.
+        fault = payload.get("OpenAPI_ServiceResponse")
+        if isinstance(fault, dict):
+            raise self._error_from_fault(fault, operation) from None
+
+        # Success and error-A share one envelope: response.header.resultCode.
+        envelope = payload.get("response")
+        if not isinstance(envelope, dict):
+            raise DataGoKrNetworkError(
+                f"unexpected data.go.kr response shape for {operation}") from None
+        raw_header = envelope.get("header")
+        header: dict[str, Any] = raw_header if isinstance(raw_header, dict) else {}
+        code = str(header.get("resultCode", "?")).strip()
+        if code == _NO_DATA_CODE:
+            return [], 0    # "no data" is an empty series, not an error
+        if code != _OK_CODE:
+            message = self._redact(str(header.get("resultMsg", "")).strip())
+            raise _error_for(code, message) from None
+
+        raw_body = envelope.get("body")
+        body: dict[str, Any] = raw_body if isinstance(raw_body, dict) else {}
+        return self._rows_from_items(body.get("items"), operation), _total_count(body)
+
+    def _rows_from_items(self, items: Any, operation: str) -> list[Row]:
+        """Normalize ``body.items.item`` -- a list of objects, a single object (a one-row
+        page), or an empty marker (``""``/absent) -- into a list of string rows."""
+        item = items.get("item") if isinstance(items, dict) else items
+        if item is None or item == "" or item == {}:
+            return []
+        raw_rows = item if isinstance(item, list) else [item]
+        rows: list[Row] = []
+        for row in raw_rows:
+            if not isinstance(row, dict):
+                raise DataGoKrNetworkError(
+                    f"a non-object row from data.go.kr for {operation}") from None
+            rows.append({str(key): "" if value is None else str(value)
+                         for key, value in row.items()})
+        return rows
+
+    def _error_from_fault(self, fault: dict[str, Any], operation: str) -> DataGoKrError:
+        """Map an ``OpenAPI_ServiceResponse.cmmMsgHeader`` fault to the right error."""
+        raw_header = fault.get("cmmMsgHeader")
+        header: dict[str, Any] = raw_header if isinstance(raw_header, dict) else {}
+        code = str(header.get("returnReasonCode", "?")).strip()
+        message = self._redact(
+            str(header.get("returnAuthMsg") or header.get("errMsg") or "").strip())
+        return _error_for(code, message or f"portal fault for {operation}")
+
+    def _redact(self, text: str) -> str:
+        """Remove raw and query-encoded forms of the key from external error text."""
+        redacted = text
+        for representation in {self._api_key,
+                               urllib.parse.quote_plus(self._api_key),
+                               urllib.parse.quote(self._api_key)}:
+            if representation:
+                redacted = redacted.replace(representation, "[REDACTED]")
+        return redacted
+
+
+def _total_count(body: dict[str, Any]) -> int | None:
+    """``body.totalCount`` as an int, or ``None`` when absent or unparsable -- the caller
+    then falls back to the empty-page stop rather than treating a missing count as
+    'done'."""
+    raw_total = body.get("totalCount")
+    if raw_total is None:
+        return None
+    try:
+        return int(raw_total)
+    except (TypeError, ValueError):
+        return None

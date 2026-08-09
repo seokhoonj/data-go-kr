@@ -1,0 +1,184 @@
+"""Command-line shell over ``DataGoKr``.
+
+``list`` browses the in-code catalog offline (no key) and ``fields`` shows one operation's
+clean column schema offline; ``kofia`` fetches one KOFIA 종합통계 operation over a date
+range; ``customs item_trade`` fetches one HS code's monthly 수출입실적. Each takes the same
+service and operation names the Python client uses.
+
+    $ gokr list                                                # offline
+    $ gokr fields kofia market_funds                           # offline
+    $ gokr kofia market_funds --begin 20240101 --end 20240131
+    $ gokr kofia credit_balance --begin 20240101 --end 20240131 --json
+    $ gokr customs item_trade 8542 --begin 202401 --end 202406
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import sys
+import unicodedata
+from collections.abc import Callable, Mapping, Sequence
+
+from . import __version__, catalog
+from .errors import DataGoKrError
+from .services.customs import Customs
+from .services.kofia import Kofia
+
+_PROG = "gokr"
+_ERROR_PREFIX = f"{_PROG}: "
+
+# How many rows the text view prints; the full result is always in --json.
+_MAX_SHOWN_ROWS = 20
+
+
+def main(argv: Sequence[str] | None = None) -> int:
+    """Parse ``argv``, run one call, and return a process exit code.
+
+    A failure -- a missing/rejected key, a vendor error, or a transport problem -- is
+    printed as a one-line ``gokr: <message>`` to stderr and returns 1. A usage error
+    caught here (an unknown operation, a ``ValueError`` from the client) returns 2;
+    argparse's own usage errors (a bad flag or subcommand) raise ``SystemExit(2)``.
+    """
+    args = _make_parser().parse_args(argv)
+    run: Callable[[argparse.Namespace], int] = args.run
+    try:
+        return run(args)
+    except DataGoKrError as err:
+        print(f"{_ERROR_PREFIX}{err}", file=sys.stderr)
+        return 1
+    except ValueError as err:
+        print(f"{_ERROR_PREFIX}{err}", file=sys.stderr)
+        return 2
+
+
+def _make_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        prog=_PROG, description="Read Korean government open data (data.go.kr) "
+                                "from the command line.")
+    parser.add_argument("--version", action="version", version=f"{_PROG} {__version__}")
+    commands = parser.add_subparsers(required=True)
+
+    # Registered list -> fields -> kofia -> customs: discovery first, then the key-gated
+    # fetches.
+    list_cmd = commands.add_parser("list", help="list services and operations (offline)")
+    list_cmd.add_argument("--json", action="store_true", help="emit JSON instead of text")
+    list_cmd.set_defaults(run=_run_list)
+
+    fields_cmd = commands.add_parser(
+        "fields", help="show one operation's clean column schema (offline)")
+    fields_cmd.add_argument("service", help="service name, e.g. kofia (see `gokr list`)")
+    fields_cmd.add_argument("operation", help="operation name, e.g. market_funds")
+    fields_cmd.add_argument("--json", action="store_true", help="emit JSON instead of text")
+    fields_cmd.set_defaults(run=_run_fields)
+
+    kofia_cmd = commands.add_parser("kofia", help="fetch one KOFIA 종합통계 operation")
+    kofia_cmd.add_argument("operation",
+                           help="operation name, e.g. market_funds (see `gokr list`)")
+    kofia_cmd.add_argument("--begin", default=None, metavar="YYYYMMDD",
+                           help="range start (YYYYMM for monthly operations)")
+    kofia_cmd.add_argument("--end", default=None, metavar="YYYYMMDD",
+                           help="range end (YYYYMM for monthly operations)")
+    kofia_cmd.add_argument("--json", action="store_true", help="emit JSON instead of text")
+    kofia_cmd.set_defaults(run=_run_kofia)
+
+    customs_cmd = commands.add_parser("customs", help="관세청 수출입 무역통계")
+    customs_ops = customs_cmd.add_subparsers(required=True)
+    item_trade_cmd = customs_ops.add_parser(
+        "item_trade", help="fetch one HS code's monthly 수출입실적")
+    item_trade_cmd.add_argument("hs_code", metavar="HS", help="HS code (hsSgn)")
+    item_trade_cmd.add_argument("--begin", required=True, metavar="YYYYMM",
+                                help="range start")
+    item_trade_cmd.add_argument("--end", required=True, metavar="YYYYMM",
+                                help="range end")
+    item_trade_cmd.add_argument("--json", action="store_true",
+                                help="emit JSON instead of text")
+    item_trade_cmd.set_defaults(run=_run_customs_item_trade)
+
+    return parser
+
+
+def _run_list(args: argparse.Namespace) -> int:
+    listed = catalog.services()
+    if args.json:
+        print(json.dumps(
+            {entry["service"]: catalog.operations(entry["service"]) for entry in listed},
+            ensure_ascii=False, indent=2))
+        return 0
+    lines = []
+    for entry in listed:
+        lines.append(f"{entry['service']} -- {entry['agency']}")
+        lines += [f"  {entry['service']} {name}"
+                  for name in catalog.operations(entry["service"])]
+    print("\n".join(lines))
+    return 0
+
+
+def _run_fields(args: argparse.Namespace) -> int:
+    # catalog.fields raises ValueError for an unknown service/operation, which main()
+    # turns into a usage error (exit 2) with the message it built.
+    _emit(catalog.fields(args.service, args.operation), args.json)
+    return 0
+
+
+def _run_kofia(args: argparse.Namespace) -> int:
+    # Validated before Kofia(), so a misused command is a usage error (exit 2)
+    # without needing a service key.
+    if args.operation not in catalog.operations("kofia"):
+        print(f"{_ERROR_PREFIX}unknown operation {args.operation!r} "
+              f"(try `{_PROG} list`)", file=sys.stderr)
+        return 2
+    rows = Kofia().fetch(args.operation, begin=args.begin, end=args.end)
+    _emit(rows, args.json)
+    return 0
+
+
+def _run_customs_item_trade(args: argparse.Namespace) -> int:
+    rows = Customs().item_trade(args.hs_code, begin=args.begin, end=args.end)
+    _emit(rows, args.json)
+    return 0
+
+
+def _emit(rows: Sequence[Mapping[str, object]], as_json: bool) -> None:
+    if as_json:
+        print(json.dumps(list(rows), ensure_ascii=False, indent=2))
+    else:
+        print(_render_rows(rows))
+
+
+def _render_rows(rows: Sequence[Mapping[str, object]]) -> str:
+    """Rows as an aligned table over the first row's keys (up to ``_MAX_SHOWN_ROWS``),
+    then a total count. Empty -> ``(no rows)``."""
+    if not rows:
+        return "(no rows)"
+    headers = list(rows[0].keys())
+    shown = rows[:_MAX_SHOWN_ROWS]
+    body = [[_cell(row.get(key)) for key in headers] for row in shown]
+    columns = list(zip(headers, *body, strict=True))
+    widths = [max(_display_width(cell) for cell in column) for column in columns]
+    head = "  ".join(_pad(h, w) for h, w in zip(headers, widths, strict=True))
+    lines = ["  ".join(_pad(cell, w) for cell, w in zip(row, widths, strict=True))
+             for row in body]
+    table = "\n".join([head, *lines])
+    if len(rows) > len(shown):
+        return f"{table}\n... ({len(rows)} rows total, showing {len(shown)})"
+    return f"{table}\n({len(rows)} rows)"
+
+
+def _cell(value: object) -> str:
+    return "" if value is None else str(value)
+
+
+def _display_width(text: str) -> int:
+    """Terminal cell width: East-Asian Wide/Fullwidth glyphs (Hangul, ...) take two
+    cells, so padding by ``len`` misaligns a column of mixed Korean labels."""
+    return sum(2 if unicodedata.east_asian_width(ch) in ("W", "F") else 1 for ch in text)
+
+
+def _pad(text: str, width: int) -> str:
+    """Left-justify ``text`` to ``width`` terminal cells (wide glyphs counted as two)."""
+    return text + " " * max(0, width - _display_width(text))
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
