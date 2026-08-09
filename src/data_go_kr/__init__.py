@@ -2,9 +2,9 @@
 
     from data_go_kr import DataGoKr
 
-    gokr = DataGoKr()                    # or set DATA_GO_KR_API_KEY (the *decoding* key)
-    rows = gokr.kofia.market_funds(begin="20240101", end="20240131")
-    raw  = gokr.customs.item_trade("8542", begin="202401", end="202406")
+    client = DataGoKr()                    # or set DATA_GO_KR_API_KEY (the *decoding* key)
+    rows = client.kofia.market_funds(begin="20240101", end="20240131")
+    raw  = client.customs.item_trade("8542", begin="202401", end="202406")
 
 One key, many services: the shared :class:`DataGoKrSession` speaks the portal's common
 envelope and paging protocol, and each wrapped agency -- 금융투자협회 (KOFIA) 종합통계,

@@ -1,9 +1,9 @@
 ---
 name: kofia
-description: "Fetch one KOFIA 종합통계 operation from data.go.kr over a date range -- investor deposits and forced selling (market_funds), margin loan balances (credit_balance), funds, CMA, ELS/DLS, trusts, overseas derivatives. Holds no logic of its own -- it calls the data-go-kr package's CLI (`gokr kofia`) and shows the result to the user. Trigger phrases: 투자자예탁금, 신용잔고, 신용거래융자, 반대매매, CMA 잔고, ELS 발행, KOFIA statistics, investor deposit, margin loan balance."
+description: "Fetch one KOFIA 종합통계 operation from data.go.kr over a date range -- investor deposits and forced selling (market_funds), margin loan balances (credit_balance), funds, CMA, ELS/DLS, trusts, overseas derivatives. Holds no logic of its own -- it calls the data-go-kr package's CLI (`data-go-kr kofia`) and shows the result to the user. Trigger phrases: 투자자예탁금, 신용잔고, 신용거래융자, 반대매매, CMA 잔고, ELS 발행, KOFIA statistics, investor deposit, margin loan balance."
 ---
 
-# gokr — KOFIA 종합통계
+# data-go-kr — KOFIA 종합통계
 
 Fetch one 금융투자협회 (KOFIA) statistics operation over a date range. Daily
 operations (`market_funds`, `credit_balance`, `fund_net_asset`, `cma_status`) take
@@ -25,24 +25,24 @@ A data.go.kr **decoding** key must be configured (env `DATA_GO_KR_API_KEY` or
 ## Running
 
 ```
-gokr kofia <operation> [--begin YYYYMMDD] [--end YYYYMMDD] [--json]
+data-go-kr kofia <operation> [--begin YYYYMMDD] [--end YYYYMMDD] [--json]
 ```
 
 ## Procedure
 
-1. **Pick the operation.** Unsure? Run `gokr list` (offline) and match the concept.
+1. **Pick the operation.** Unsure? Run `data-go-kr list` (offline) and match the concept.
 2. **Run.**
    ```bash
-   gokr kofia market_funds --begin 20240101 --end 20240131
+   data-go-kr kofia market_funds --begin 20240101 --end 20240131
    ```
    Add `--json` when the user wants machine-readable data.
 3. **Relay the result.** Show the CLI's stdout; the text view caps at 20 rows, so use
    `--json` for a full series.
-4. **Error handling.** A one-line `gokr: <message>` on stderr:
+4. **Error handling.** A one-line `data-go-kr: <message>` on stderr:
    - a `[30]`/`[20]` auth error -> the key is wrong, is the *encoding* form by mistake,
      or the dataset is not applied for.
    - a `[22]`/`[23]` rate limit -> the daily traffic limit; wait and retry.
-   - `unknown operation` (exit 2) -> run `gokr list` and correct the name.
+   - `unknown operation` (exit 2) -> run `data-go-kr list` and correct the name.
 
 ## What this skill does not do
 

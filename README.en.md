@@ -32,9 +32,9 @@ Each dataset must also be applied for (활용신청) on your data.go.kr account.
 ```python
 from data_go_kr import DataGoKr
 
-gokr = DataGoKr()
-rows = gokr.kofia.market_funds(begin="20240101", end="20240131")
-raw  = gokr.customs.item_trade("8542", begin="202401", end="202406")
+client = DataGoKr()
+rows = client.kofia.market_funds(begin="20240101", end="20240131")
+raw  = client.customs.item_trade("8542", begin="202401", end="202406")
 ```
 
 ```python
@@ -49,11 +49,11 @@ pl.DataFrame(rows)
 
 ## 3. Services
 
-- `gokr.kofia` -- 금융투자협회 종합통계 (service 1160100), 8 operations:
+- `client.kofia` -- 금융투자협회 종합통계 (service 1160100), 8 operations:
   `market_funds`, `credit_balance`, `trust_scale`, `fund_net_asset`, `cma_status`,
   `dls_dlb`, `els_elb`, `overseas_derivatives`. `clean=True` (default) returns typed
   snake_case columns; `clean=False` the raw vendor tokens.
-- `gokr.customs` -- 관세청 수출입 무역통계 (service 1220000): `item_trade(hs_code,
+- `client.customs` -- 관세청 수출입 무역통계 (service 1220000): `item_trade(hs_code,
   begin=, end=)`, raw rows (the field-token mapping is pending live verification).
 
 The offline catalog needs no key: `data_go_kr.catalog.services()` /
@@ -79,17 +79,17 @@ the transport changes:
 2. Declare its operations and a `Table` spec per operation (`Field(token, column, kind)`)
    -- the one declarative place vendor tokens map to clean columns, so a later field
    change is a one-line edit, not a code change.
-3. Register the service in `catalog.py` so `gokr list` and the offline catalog show it.
+3. Register the service in `catalog.py` so `data-go-kr list` and the offline catalog show it.
 4. Apply for the dataset (활용신청) on your account, then pin any pending field tokens
    with one live call.
 
 ## 4. Command line
 
 ```bash
-gokr list                                                # offline, no key
-gokr fields kofia market_funds                           # offline column schema
-gokr kofia market_funds --begin 20240101 --end 20240131
-gokr customs item_trade 8542 --begin 202401 --end 202406
+data-go-kr list                                                # offline, no key
+data-go-kr fields kofia market_funds                           # offline column schema
+data-go-kr kofia market_funds --begin 20240101 --end 20240131
+data-go-kr customs item_trade 8542 --begin 202401 --end 202406
 ```
 
 Add `--json` for machine-readable output.
@@ -133,21 +133,21 @@ preserves the code on `.code`, so you can still branch on 1/4/12/99 yourself):
 
 - This repo doubles as a plugin marketplace for Claude Code and Codex.
 - It ships three skills -- `list`, `kofia`, `customs` -- each a thin wrapper over the
-  `gokr` command.
+  `data-go-kr` command.
 - Install the package first (`list` works without a key; the fetches need one).
 
 ### 6.1 Claude Code (chat)
 
 ```
 /plugin marketplace add seokhoonj/data-go-kr
-/plugin install gokr@data-go-kr
+/plugin install data-go-kr@data-go-kr
 ```
 
 ### 6.2 Codex (terminal)
 
 ```
 codex plugin marketplace add seokhoonj/data-go-kr
-codex plugin add gokr@data-go-kr
+codex plugin add data-go-kr@data-go-kr
 ```
 
 ## 7. License

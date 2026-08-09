@@ -44,7 +44,7 @@ Repository = "https://github.com/seokhoonj/data-go-kr"
 Issues = "https://github.com/seokhoonj/data-go-kr/issues"
 
 [project.scripts]
-gokr = "data_go_kr.cli:main"
+data-go-kr = "data_go_kr.cli:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/data_go_kr"]

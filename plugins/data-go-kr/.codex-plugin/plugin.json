@@ -1,7 +1,7 @@
 {
-  "name": "gokr",
+  "name": "data-go-kr",
   "version": "0.1.0",
-  "description": "Read Korean government open data from data.go.kr -- KOFIA market statistics (deposits, margin loans, funds, CMA, ELS/DLS) and customs item trade by HS code -- powered by the gokr CLI",
+  "description": "Read Korean government open data from data.go.kr -- KOFIA market statistics (deposits, margin loans, funds, CMA, ELS/DLS) and customs item trade by HS code -- powered by the data-go-kr CLI",
   "author": { "name": "seokhoonj", "url": "https://github.com/seokhoonj" },
   "homepage": "https://github.com/seokhoonj/data-go-kr",
   "repository": "https://github.com/seokhoonj/data-go-kr",
@@ -9,9 +9,9 @@
   "keywords": ["data.go.kr", "korea", "open data", "kofia", "customs", "trade", "finance"],
   "skills": "./skills/",
   "interface": {
-    "displayName": "gokr",
+    "displayName": "data-go-kr",
     "shortDescription": "Read Korean government open data from data.go.kr",
-    "longDescription": "List the wrapped data.go.kr services offline (list), fetch KOFIA market statistics -- investor deposits, margin loans, funds, CMA, ELS/DLS, trusts, overseas derivatives (kofia) -- and fetch Korea Customs Service monthly item trade by HS code (customs), via the gokr CLI.",
+    "longDescription": "List the wrapped data.go.kr services offline (list), fetch KOFIA market statistics -- investor deposits, margin loans, funds, CMA, ELS/DLS, trusts, overseas derivatives (kofia) -- and fetch Korea Customs Service monthly item trade by HS code (customs), via the data-go-kr CLI.",
     "developerName": "seokhoonj",
     "category": "Productivity",
     "capabilities": [],

@@ -1,7 +1,7 @@
 {
-  "name": "gokr",
-  "displayName": "gokr",
-  "description": "Read Korean government open data from data.go.kr -- KOFIA market statistics (deposits, margin loans, funds, CMA, ELS/DLS) and customs item trade by HS code -- powered by the gokr CLI",
+  "name": "data-go-kr",
+  "displayName": "data-go-kr",
+  "description": "Read Korean government open data from data.go.kr -- KOFIA market statistics (deposits, margin loans, funds, CMA, ELS/DLS) and customs item trade by HS code -- powered by the data-go-kr CLI",
   "version": "0.1.0",
   "author": { "name": "seokhoonj" },
   "homepage": "https://github.com/seokhoonj/data-go-kr",

@@ -4,9 +4,9 @@
   "description": "Read Korean government open data from data.go.kr: KOFIA market statistics and customs item trade",
   "plugins": [
     {
-      "name": "gokr",
-      "displayName": "gokr",
-      "source": "./plugins/gokr",
+      "name": "data-go-kr",
+      "displayName": "data-go-kr",
+      "source": "./plugins/data-go-kr",
       "description": "Read Korean government open data from data.go.kr: KOFIA market statistics and customs item trade",
       "author": { "name": "seokhoonj" },
       "homepage": "https://github.com/seokhoonj/data-go-kr",

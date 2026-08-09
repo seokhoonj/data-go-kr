@@ -5,11 +5,11 @@ clean column schema offline; ``kofia`` fetches one KOFIA 종합통계 operation 
 range; ``customs item_trade`` fetches one HS code's monthly 수출입실적. Each takes the same
 service and operation names the Python client uses.
 
-    $ gokr list                                                # offline
-    $ gokr fields kofia market_funds                           # offline
-    $ gokr kofia market_funds --begin 20240101 --end 20240131
-    $ gokr kofia credit_balance --begin 20240101 --end 20240131 --json
-    $ gokr customs item_trade 8542 --begin 202401 --end 202406
+    $ data-go-kr list                                                # offline
+    $ data-go-kr fields kofia market_funds                           # offline
+    $ data-go-kr kofia market_funds --begin 20240101 --end 20240131
+    $ data-go-kr kofia credit_balance --begin 20240101 --end 20240131 --json
+    $ data-go-kr customs item_trade 8542 --begin 202401 --end 202406
 """
 
 from __future__ import annotations
@@ -25,7 +25,7 @@ from .errors import DataGoKrError
 from .services.customs import Customs
 from .services.kofia import Kofia
 
-_PROG = "gokr"
+_PROG = "data-go-kr"
 _ERROR_PREFIX = f"{_PROG}: "
 
 # How many rows the text view prints; the full result is always in --json.
@@ -36,7 +36,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     """Parse ``argv``, run one call, and return a process exit code.
 
     A failure -- a missing/rejected key, a vendor error, or a transport problem -- is
-    printed as a one-line ``gokr: <message>`` to stderr and returns 1. A usage error
+    printed as a one-line ``data-go-kr: <message>`` to stderr and returns 1. A usage error
     caught here (an unknown operation, a ``ValueError`` from the client) returns 2;
     argparse's own usage errors (a bad flag or subcommand) raise ``SystemExit(2)``.
     """
@@ -67,14 +67,14 @@ def _make_parser() -> argparse.ArgumentParser:
 
     fields_cmd = commands.add_parser(
         "fields", help="show one operation's clean column schema (offline)")
-    fields_cmd.add_argument("service", help="service name, e.g. kofia (see `gokr list`)")
+    fields_cmd.add_argument("service", help="service name, e.g. kofia (see `data-go-kr list`)")
     fields_cmd.add_argument("operation", help="operation name, e.g. market_funds")
     fields_cmd.add_argument("--json", action="store_true", help="emit JSON instead of text")
     fields_cmd.set_defaults(run=_run_fields)
 
     kofia_cmd = commands.add_parser("kofia", help="fetch one KOFIA 종합통계 operation")
     kofia_cmd.add_argument("operation",
-                           help="operation name, e.g. market_funds (see `gokr list`)")
+                           help="operation name, e.g. market_funds (see `data-go-kr list`)")
     kofia_cmd.add_argument("--begin", default=None, metavar="YYYYMMDD",
                            help="range start (YYYYMM for monthly operations)")
     kofia_cmd.add_argument("--end", default=None, metavar="YYYYMMDD",

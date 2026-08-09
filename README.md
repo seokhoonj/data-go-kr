@@ -31,9 +31,9 @@ data.go.kr 인증키가 필요합니다 -- 반드시 **디코딩**(원문) 키�
 ```python
 from data_go_kr import DataGoKr
 
-gokr = DataGoKr()
-rows = gokr.kofia.market_funds(begin="20240101", end="20240131")
-raw  = gokr.customs.item_trade("8542", begin="202401", end="202406")
+client = DataGoKr()
+rows = client.kofia.market_funds(begin="20240101", end="20240131")
+raw  = client.customs.item_trade("8542", begin="202401", end="202406")
 ```
 
 ```python
@@ -48,11 +48,11 @@ pl.DataFrame(rows)
 
 ## 3. 서비스
 
-- `gokr.kofia` -- 금융투자협회 종합통계(서비스 1160100), 8개 오퍼레이션:
+- `client.kofia` -- 금융투자협회 종합통계(서비스 1160100), 8개 오퍼레이션:
   `market_funds`, `credit_balance`, `trust_scale`, `fund_net_asset`, `cma_status`,
   `dls_dlb`, `els_elb`, `overseas_derivatives`. `clean=True`(기본)는 타입 파싱된
   snake_case 컬럼을, `clean=False`는 벤더 토큰 원문을 돌려줍니다.
-- `gokr.customs` -- 관세청 수출입 무역통계(서비스 1220000): `item_trade(hs_code,
+- `client.customs` -- 관세청 수출입 무역통계(서비스 1220000): `item_trade(hs_code,
   begin=, end=)`, 원문 행 반환(필드 토큰 매핑은 라이브 검증 대기 중).
 
 오프라인 목록은 키 없이: `data_go_kr.catalog.services()` /
@@ -76,16 +76,16 @@ data.go.kr에는 수천 개 기관 API가 있고 시간에 따라 바뀌므로, 
 2. 오퍼레이션과 오퍼레이션별 `Table` 스펙(`Field(token, column, kind)`)을 선언합니다 --
    벤더 토큰이 깨끗한 컬럼으로 매핑되는 단 하나의 자리라, 나중에 필드가 바뀌어도 한 줄
    수정으로 끝납니다.
-3. `catalog.py`에 서비스를 등록하면 `gokr list`와 오프라인 목록에 나타납니다.
+3. `catalog.py`에 서비스를 등록하면 `data-go-kr list`와 오프라인 목록에 나타납니다.
 4. 계정에서 데이터셋을 활용신청한 뒤, 라이브 1콜로 미확정 필드 토큰을 확정합니다.
 
 ## 4. 커맨드라인
 
 ```bash
-gokr list                                                # 오프라인, 키 불필요
-gokr fields kofia market_funds                           # 오프라인 컬럼 스키마
-gokr kofia market_funds --begin 20240101 --end 20240131
-gokr customs item_trade 8542 --begin 202401 --end 202406
+data-go-kr list                                                # 오프라인, 키 불필요
+data-go-kr fields kofia market_funds                           # 오프라인 컬럼 스키마
+data-go-kr kofia market_funds --begin 20240101 --end 20240131
+data-go-kr customs item_trade 8542 --begin 202401 --end 202406
 ```
 
 `--json`을 붙이면 JSON으로 나옵니다.
@@ -127,7 +127,7 @@ gokr customs item_trade 8542 --begin 202401 --end 202406
 ## 6. AI 코딩 에이전트에서 사용
 
 - 이 저장소는 Claude Code와 Codex의 플러그인 마켓플레이스를 겸합니다.
-- `list` / `kofia` / `customs` 세 스킬이 들어 있고, 각각 같은 이름의 `gokr` 명령을
+- `list` / `kofia` / `customs` 세 스킬이 들어 있고, 각각 같은 이름의 `data-go-kr` 명령을
   얇게 감쌉니다.
 - 패키지를 먼저 설치하세요(`list`는 키 없이 동작, 조회는 키 필요).
 
@@ -135,14 +135,14 @@ gokr customs item_trade 8542 --begin 202401 --end 202406
 
 ```
 /plugin marketplace add seokhoonj/data-go-kr
-/plugin install gokr@data-go-kr
+/plugin install data-go-kr@data-go-kr
 ```
 
 ### 6.2 Codex (터미널)
 
 ```
 codex plugin marketplace add seokhoonj/data-go-kr
-codex plugin add gokr@data-go-kr
+codex plugin add data-go-kr@data-go-kr
 ```
 
 ## 7. 라이선스
