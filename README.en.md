@@ -8,8 +8,6 @@ overseas derivatives) and Korea Customs Service item trade (monthly exports/impo
 HS code). Zero runtime dependencies; rows come back as `list[dict]` that
 `pandas.DataFrame` / `polars.DataFrame` accept directly.
 
-> Scaffolding README -- the section skeleton is final, the prose is not.
-
 ## 1. Install
 
 ```bash

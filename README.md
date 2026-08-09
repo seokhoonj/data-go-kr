@@ -7,8 +7,6 @@
 수출입 무역통계(HS 부호별 월간 수출입실적). 런타임 의존성 없이 표준 라이브러리만
 쓰고, 결과는 `pandas.DataFrame` / `polars.DataFrame`이 바로 받는 `list[dict]`입니다.
 
-> 뼈대 README -- 섹션 구조는 확정, 본문은 채워 나가는 중입니다.
-
 ## 1. 설치
 
 ```bash
@@ -72,7 +70,7 @@ kind, is_key). CLI로는 `data-go-kr list`, `data-go-kr fields kofia market_fund
 
 data.go.kr에는 수천 개 기관 API가 있고 시간에 따라 바뀌므로, 서비스는 더하는
 구조입니다. 중립 `DataGoKrSession` 전송 계층이 포털 공통 계약(디코딩키 단일 인코딩,
-페이징, 두 오류 envelope, reason-code 체계)을 모든 서비스에 대해 이미 처리하므로,
+페이징, 두 에러 envelope, reason-code 체계)을 모든 서비스에 대해 이미 처리하므로,
 새 서비스는 작고 반복적인 모듈 하나면 됩니다 -- 전송 계층은 바뀌지 않습니다:
 
 1. `src/data_go_kr/services/<기관>.py`에 surface 클래스를 두고, 그 서비스의 base URL로
@@ -95,11 +93,11 @@ data-go-kr customs item_trade 8542 --begin 202401 --end 202406
 
 `--json`을 붙이면 JSON으로 나옵니다.
 
-## 5. 오류 및 운영 참고
+## 5. 에러 및 운영 참고
 
-모든 운영 오류는 `DataGoKrError`에서 파생합니다: `DataGoKrConfigError`(키 없음),
+모든 운영 에러는 `DataGoKrError`에서 파생합니다: `DataGoKrConfigError`(키 없음),
 `DataGoKrAuthError`(키 거부/미활용신청), `DataGoKrRateLimitError`(트래픽 제한),
-`DataGoKrResponseError`(벤더 오류 코드), `DataGoKrNetworkError`(전송 실패). 오류
+`DataGoKrResponseError`(벤더 에러 코드), `DataGoKrNetworkError`(전송 실패). 에러
 메시지에 키나 요청 URL은 절대 담기지 않습니다.
 
 포털 reason 코드는 아래처럼 매핑됩니다(`DataGoKrResponseError`는 `.code`에 코드를
