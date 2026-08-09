@@ -70,7 +70,7 @@ jobs:
           "
           # The console script runs, and its top-level --version prints (not shoved
           # into a required subcommand).
-          /tmp/bare/bin/gokr --version
+          /tmp/bare/bin/data-go-kr --version
 
       - name: Confirm a user's type checker can see the hints
         # Every hint in this package is invisible to a user unless py.typed ships
