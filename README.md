@@ -48,20 +48,25 @@ pl.DataFrame(rows)
 
 ## 3. 서비스
 
-- `client.kofia` -- 금융투자협회 종합통계(서비스 1160100), 8개 오퍼레이션:
-  `market_funds`, `credit_balance`, `trust_scale`, `fund_net_asset`, `cma_status`,
-  `dls_dlb`, `els_elb`, `overseas_derivatives`. `clean=True`(기본)는 타입 파싱된
-  snake_case 컬럼을, `clean=False`는 벤더 토큰 원문을 돌려줍니다.
-- `client.customs` -- 관세청 수출입 무역통계(서비스 1220000): `item_trade(hs_code,
-  begin=, end=)`, 원문 행 반환(필드 토큰 매핑은 라이브 검증 대기 중).
+지원 서비스 -- 아래 표는 오프라인 카탈로그(`data-go-kr list` / `catalog.services()`)와
+동일합니다:
 
-오프라인 목록은 키 없이: `data_go_kr.catalog.services()` /
-`catalog.operations("kofia")` / `catalog.fields("kofia", "market_funds")`(오퍼레이션별
-정제 컬럼 스키마 -- token, column, kind, is_key).
+| 접근자 | 기관 · 통계 | 서비스ID | 포맷 | 오퍼레이션 |
+|---|---|---|---|---|
+| `client.kofia` | 금융투자협회 종합통계 | 1160100 | JSON | 8개 -- `market_funds` · `credit_balance` · `trust_scale` · `fund_net_asset` · `cma_status` · `dls_dlb` · `els_elb` · `overseas_derivatives` |
+| `client.customs` | 관세청 품목별 수출입실적 | 1220000 | XML | `item_trade` -- HS부호별 월 수출/수입 금액·중량 |
 
-정제는 단독으로도 씁니다: 공개 함수 `clean(rows, table)`과 오퍼레이션별 `Table` /
-`Field` 스펙으로, 클라이언트 없이 원문 벤더 행을 타입 파싱된 snake_case 컬럼으로
-바꿉니다(`from data_go_kr import clean`).
+- 서비스마다 계정에서 **활용신청**이 따로 필요합니다(§5 참고).
+- `clean=True`(기본)는 타입 파싱된 snake_case 컬럼을, `clean=False`는 벤더 토큰 원문을
+  돌려줍니다.
+
+**오프라인 탐색(키 불필요):** `catalog.services()` / `catalog.operations("kofia")` /
+`catalog.fields("kofia", "market_funds")`(오퍼레이션별 정제 컬럼 스키마 -- token, column,
+kind, is_key). CLI로는 `data-go-kr list`, `data-go-kr fields kofia market_funds`.
+
+**정제 단독 사용:** 공개 함수 `clean(rows, table)`과 오퍼레이션별 `Table` / `Field`
+스펙으로, 클라이언트 없이 원문 벤더 행을 타입 파싱된 snake_case 컬럼으로 바꿉니다
+(`from data_go_kr import clean`).
 
 ### 서비스 추가하기
 

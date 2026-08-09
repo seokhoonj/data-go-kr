@@ -49,20 +49,25 @@ pl.DataFrame(rows)
 
 ## 3. Services
 
-- `client.kofia` -- 금융투자협회 종합통계 (service 1160100), 8 operations:
-  `market_funds`, `credit_balance`, `trust_scale`, `fund_net_asset`, `cma_status`,
-  `dls_dlb`, `els_elb`, `overseas_derivatives`. `clean=True` (default) returns typed
-  snake_case columns; `clean=False` the raw vendor tokens.
-- `client.customs` -- 관세청 수출입 무역통계 (service 1220000): `item_trade(hs_code,
-  begin=, end=)`, raw rows (the field-token mapping is pending live verification).
+Supported services -- this table matches the offline catalog (`data-go-kr list` /
+`catalog.services()`):
 
-The offline catalog needs no key: `data_go_kr.catalog.services()` /
-`catalog.operations("kofia")` / `catalog.fields("kofia", "market_funds")` (the clean
-column schema -- token, column, kind, is_key -- per operation).
+| accessor | agency · statistics | service ID | format | operations |
+|---|---|---|---|---|
+| `client.kofia` | 금융투자협회 종합통계 (KOFIA) | 1160100 | JSON | 8 -- `market_funds` · `credit_balance` · `trust_scale` · `fund_net_asset` · `cma_status` · `dls_dlb` · `els_elb` · `overseas_derivatives` |
+| `client.customs` | 관세청 품목별 수출입실적 (Korea Customs) | 1220000 | XML | `item_trade` -- monthly export/import value and weight by HS code |
 
-Cleaning is also usable on its own: the public `clean(rows, table)` with the per-operation
-`Table` / `Field` specs turns raw vendor rows into typed snake_case columns without a
-client (`from data_go_kr import clean`).
+- Each service must be applied for (활용신청) separately on your account (see Sec. 5).
+- `clean=True` (default) returns typed snake_case columns; `clean=False` the raw vendor
+  tokens.
+
+**Offline browse (no key):** `catalog.services()` / `catalog.operations("kofia")` /
+`catalog.fields("kofia", "market_funds")` (the per-operation clean column schema -- token,
+column, kind, is_key). From the CLI: `data-go-kr list`, `data-go-kr fields kofia market_funds`.
+
+**Cleaning on its own:** the public `clean(rows, table)` with the per-operation `Table` /
+`Field` specs turns raw vendor rows into typed snake_case columns without a client
+(`from data_go_kr import clean`).
 
 ### Adding a service
 
