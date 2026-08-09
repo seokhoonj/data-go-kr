@@ -112,6 +112,32 @@ def _fault(code, err_msg="SERVICE ERROR.", auth_msg=None):
     return _body({"OpenAPI_ServiceResponse": {"cmmMsgHeader": header}})
 
 
+def _xml_envelope(items, *, total=None, code="00", message="NORMAL SERVICE."):
+    """The XML-only service's envelope -- the same nested shape as ``_envelope`` in XML.
+    ``items`` may be ``None`` (no ``<items>``) or a (possibly empty) list of row dicts."""
+    parts = [f"<header><resultCode>{code}</resultCode>"
+             f"<resultMsg>{message}</resultMsg></header>"]
+    body = ""
+    if items is not None:
+        rows = "".join(
+            "<item>" + "".join(f"<{k}>{v}</{k}>" for k, v in item.items()) + "</item>"
+            for item in items)
+        body += f"<items>{rows}</items>"
+    if total is not None:
+        body += f"<totalCount>{total}</totalCount>"
+    parts.append(f"<body>{body}</body>")
+    return f"<response>{''.join(parts)}</response>".encode()
+
+
+def _xml_fault(code, *, err_msg="SERVICE ERROR.", auth_msg=None):
+    header = (f"<returnReasonCode>{code}</returnReasonCode>"
+              f"<errMsg>{err_msg}</errMsg>")
+    if auth_msg is not None:
+        header += f"<returnAuthMsg>{auth_msg}</returnAuthMsg>"
+    return (f"<OpenAPI_ServiceResponse><cmmMsgHeader>{header}"
+            f"</cmmMsgHeader></OpenAPI_ServiceResponse>").encode()
+
+
 def _http_error(status):
     return urllib.error.HTTPError("https://x", status, "msg", Message(), io.BytesIO(b""))
 
@@ -187,10 +213,21 @@ def test_missing_total_count_stops_on_the_empty_page():
     assert len(opener.requests) == 2
 
 
+def test_short_page_is_the_last_page():
+    # A service that returns the whole result in one call -- fewer than num_of_rows, no
+    # totalCount, ignoring pageNo (the customs endpoint) -- must stop after the one
+    # request. Without the short-page stop this opener would loop to _PAGE_CAP.
+    opener = _InfiniteOpener(_envelope([{"n": "1"}, {"n": "2"}, {"n": "3"}]))
+    session = DataGoKrSession(_BASE, _KEY, opener=opener)
+    rows = session.fetch("getThing", num_of_rows=1000)
+    assert rows == [{"n": "1"}, {"n": "2"}, {"n": "3"}]
+    assert len(opener.requests) == 1                         # 3 < 1000 = last page
+
+
 def test_countless_run_stops_at_the_page_cap():
-    # A service that returns a non-empty page but never a totalCount could page forever;
-    # the runaway guard stops the loop at _PAGE_CAP calls.
-    opener = _InfiniteOpener(_envelope([{"n": "1"}]))       # non-empty, no totalCount
+    # A service that returns a FULL page (num_of_rows rows) every time but never a
+    # totalCount could page forever; the runaway guard stops the loop at _PAGE_CAP calls.
+    opener = _InfiniteOpener(_envelope([{"n": "1"}]))       # full page (1 == num_of_rows)
     session = DataGoKrSession(_BASE, _KEY, opener=opener)
     rows = session.fetch("getThing", num_of_rows=1)
     assert len(opener.requests) == _PAGE_CAP
@@ -332,6 +369,58 @@ def test_non_utf8_body_raises_network_error():
     session, _ = _session(b"\xff\xfe")                      # not decodable as UTF-8
     with pytest.raises(DataGoKrNetworkError):
         session.fetch("getThing")
+
+
+# --- the XML transport (an XML-only service like customs) --------------------
+
+def test_xml_rows_match_the_json_path():
+    # The XML body decodes into the identical list-of-string-dicts the JSON path yields.
+    session, _ = _session(
+        _xml_envelope([{"hsCode": "8542", "expDlr": "10"},
+                       {"hsCode": "8541", "expDlr": "20"}], total=2),
+        response_format="xml")
+    assert session.fetch("getThing") == [
+        {"hsCode": "8542", "expDlr": "10"},
+        {"hsCode": "8541", "expDlr": "20"},
+    ]
+
+
+def test_xml_single_item_is_normalized_to_a_list():
+    session, _ = _session(
+        _xml_envelope([{"hsCode": "8542"}], total=1), response_format="xml")
+    assert session.fetch("getThing") == [{"hsCode": "8542"}]
+
+
+def test_xml_empty_items_is_empty_list():
+    session, _ = _session(_xml_envelope([], total=0), response_format="xml")
+    assert session.fetch("getThing") == []
+
+
+def test_xml_fault_maps_like_the_json_fault():
+    session, _ = _session(
+        _xml_fault("30", auth_msg="SERVICE_KEY_IS_NOT_REGISTERED_ERROR"),
+        response_format="xml")
+    with pytest.raises(DataGoKrAuthError) as exc:
+        session.fetch("getThing")
+    assert exc.value.code == "30"
+
+
+def test_malformed_xml_raises_network_error_without_the_key():
+    session, _ = _session(b"<response><header>", response_format="xml")
+    with pytest.raises(DataGoKrNetworkError) as exc:
+        session.fetch("getThing")
+    assert _KEY not in str(exc.value)
+    assert urllib.parse.quote_plus(_KEY) not in str(exc.value)
+    assert exc.value.__cause__ is None                       # the parser chain is broken
+    assert exc.value.__context__ is None
+
+
+def test_xml_mode_omits_the_json_param():
+    session, opener = _session(_xml_envelope([], total=0), response_format="xml")
+    session.fetch("getThing")
+    url = opener.requests[0].full_url
+    assert "_type=json" not in url and "resultType=json" not in url
+    assert "serviceKey=" in url and "numOfRows=" in url and "pageNo=1" in url
 
 
 # --- the secret never appears ------------------------------------------------

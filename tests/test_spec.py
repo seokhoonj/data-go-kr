@@ -68,7 +68,9 @@ def test_date_ym_parses_and_rejects():
     cleaned = clean(rows, DLS_DLB)
     assert cleaned[0]["bas_ym"] == "2024-01"
     assert cleaned[0]["amount_krw"] == 9             # unit encoded in the column name
-    bad = [{**rows[0], "basDt": "2024.01"}]          # wrong format -> row dropped
+    dotted = [{**rows[0], "basDt": "2026.01"}]       # customs "YYYY.MM" -> separators stripped
+    assert clean(dotted, DLS_DLB)[0]["bas_ym"] == "2026-01"
+    bad = [{**rows[0], "basDt": "2024"}]             # not a YYYYMM -> row dropped
     assert clean(bad, DLS_DLB) == []
 
 

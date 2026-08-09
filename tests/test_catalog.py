@@ -18,6 +18,20 @@ def test_operations_lists_a_services_tables():
     assert catalog.operations("customs") == ["item_trade"]
 
 
+def test_customs_fields_are_the_confirmed_tokens():
+    schema = catalog.fields("customs", "item_trade")
+    assert [(field["token"], field["column"]) for field in schema] == [
+        ("year",        "period"),
+        ("hsCode",      "hs_code"),
+        ("statKor",     "item_name"),
+        ("expDlr",      "export_usd"),
+        ("expWgt",      "export_weight_kg"),
+        ("impDlr",      "import_usd"),
+        ("impWgt",      "import_weight_kg"),
+        ("balPayments", "trade_balance_usd"),
+    ]
+
+
 def test_fields_returns_the_clean_column_schema():
     schema = catalog.fields("kofia", "market_funds")
     assert schema[0] == {"token": "basDt", "column": "bas_dt",

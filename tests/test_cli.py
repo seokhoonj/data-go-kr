@@ -18,6 +18,16 @@ def _envelope(items, total):
                                "body": {"items": {"item": items}, "totalCount": total}}})
 
 
+def _xml_envelope(items, total):
+    rows = "".join(
+        "<item>" + "".join(f"<{k}>{v}</{k}>" for k, v in item.items()) + "</item>"
+        for item in items)
+    return (f"<response><header><resultCode>00</resultCode>"
+            f"<resultMsg>NORMAL</resultMsg></header>"
+            f"<body><items>{rows}</items>"
+            f"<totalCount>{total}</totalCount></body></response>").encode()
+
+
 def _fake_opener(monkeypatch, body: bytes):
     """Point the package opener at a fake; returns the list of captured URLs."""
     urls = []
@@ -132,16 +142,20 @@ def test_kofia_fetch_json(capsys, keyed_env, monkeypatch):
 
 # --- customs -----------------------------------------------------------------
 
-def test_customs_item_trade_sends_range_and_returns_raw(capsys, keyed_env, monkeypatch):
-    urls = _fake_opener(monkeypatch, _envelope(
-        [{"year": "202401", "expDlr": 123}], total=1))
+def test_customs_item_trade_sends_range_and_cleans(capsys, keyed_env, monkeypatch):
+    # The XML-only service: the CLI cleans by default and never sends the JSON flag.
+    urls = _fake_opener(monkeypatch, _xml_envelope(
+        [{"year": "2026.01", "hsCode": "8542311000", "statKor": "집적회로",
+          "expDlr": "123", "expWgt": "4", "impDlr": "5", "impWgt": "6",
+          "balPayments": "118"}], total=1))
     assert main(["customs", "item_trade", "8542",
-                 "--begin", "202401", "--end", "202403"]) == 0
+                 "--begin", "202601", "--end", "202603"]) == 0
     out = capsys.readouterr().out
-    assert "expDlr" in out                                   # raw vendor tokens
+    assert "item_name" in out and "export_usd" in out        # cleaned columns
+    assert "2026-01" in out                                  # dotted period parsed
     assert "hsSgn=8542" in urls[0]
-    assert "strtYymm=202401" in urls[0] and "endYymm=202403" in urls[0]
-    assert "_type=json" in urls[0]
+    assert "strtYymm=202601" in urls[0] and "endYymm=202603" in urls[0]
+    assert "_type=json" not in urls[0] and "resultType=json" not in urls[0]
 
 
 def test_customs_item_trade_requires_the_range(keyed_env):

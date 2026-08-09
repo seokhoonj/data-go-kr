@@ -6,12 +6,14 @@ No third-party HTTP client -- ``urllib`` carries it, so the package has zero run
 dependencies.
 
 The transport is *neutral*: it knows the portal's two envelope shapes and its paging
-protocol, and nothing about any particular dataset. The success and error-A shape is
-``response.header.resultCode`` (``00`` ok, ``03`` no-data) with rows at
-``response.body.items.item``; the error-B shape is the portal fault
-``OpenAPI_ServiceResponse.cmmMsgHeader`` with a ``returnReasonCode``. ``fetch`` pages
-through ``pageNo``/``numOfRows`` until ``totalCount`` rows are collected (or a page
-comes back empty, for services that omit the count).
+protocol, and nothing about any particular dataset. It speaks either encoding -- JSON
+(the default) or XML, for XML-only services -- and both share one nested shape, so the
+XML path parses into the same nested dict the JSON path yields and the envelope logic
+below is written once. The success and error-A shape is ``response.header.resultCode``
+(``00`` ok, ``03`` no-data) with rows at ``response.body.items.item``; the error-B shape
+is the portal fault ``OpenAPI_ServiceResponse.cmmMsgHeader`` with a ``returnReasonCode``.
+``fetch`` pages through ``pageNo``/``numOfRows`` until ``totalCount`` rows are collected
+(or a page comes back empty, for services that omit the count).
 
 **The secret-safety invariant lives here.** The portal takes the service key as the
 ``serviceKey`` query parameter, so the request URL contains it. A transport exception's
@@ -33,6 +35,7 @@ import math
 import urllib.error
 import urllib.parse
 import urllib.request
+import xml.etree.ElementTree as ET
 from typing import IO, Any, Protocol, cast
 
 from ._config import resolve_api_key
@@ -42,7 +45,7 @@ from .errors import (
     DataGoKrRateLimitError,
     _error_for,
 )
-from .types import JsonParam, Row
+from .types import JsonParam, ResponseFormat, Row
 
 __all__ = ["DataGoKrSession"]
 
@@ -102,15 +105,18 @@ class DataGoKrSession:
     """Holds the service key and one base URL; fetches operations as raw rows.
 
     ``base_url`` is the service root (e.g. the KOFIA statistics service URL) and
-    ``operation`` in :meth:`fetch` is the path segment under it. ``json_param`` is the
-    service's "answer in JSON" parameter name -- ``resultType`` for older services,
-    ``_type`` for newer ones. The key comes from ``api_key``, then
+    ``operation`` in :meth:`fetch` is the path segment under it. ``response_format`` picks
+    the reply encoding: ``"json"`` (the default, a JSON service like KOFIA) sends the
+    ``json_param`` "answer in JSON" flag (``resultType`` for older services, ``_type`` for
+    newer ones); ``"xml"`` (an XML-only service like customs) omits that flag entirely and
+    parses the XML into the same nested shape. The key comes from ``api_key``, then
     ``$DATA_GO_KR_API_KEY``, then ``~/.config/data-go-kr/credentials.json``; construction
     raises :class:`DataGoKrConfigError` when none of them supplies one.
     """
 
     def __init__(self, base_url: str, api_key: str | None = None, *,
                  timeout: float = 30.0, json_param: JsonParam = "resultType",
+                 response_format: ResponseFormat = "json",
                  opener: _Opener | None = None) -> None:
         if isinstance(timeout, bool) or not isinstance(timeout, (int, float)):
             raise ValueError("timeout must be a finite positive number")
@@ -119,6 +125,7 @@ class DataGoKrSession:
         self.base_url = base_url.rstrip("/")
         self.timeout = float(timeout)
         self.json_param: JsonParam = json_param
+        self.response_format: ResponseFormat = response_format
         self._api_key = resolve_api_key(api_key)
         self._opener = opener if opener is not None else cast(_Opener, _OPENER)
 
@@ -130,10 +137,14 @@ class DataGoKrSession:
               **filters: str | None) -> list[Row]:
         """Every row of ``operation`` over the given filters, with the vendor's own field
         names. ``filters`` with a ``None`` value are dropped, so an unset date bound is
-        simply omitted. Pages until ``totalCount`` rows are collected, or until a page
-        comes back empty for a service that omits the count; a no-data result
-        (``resultCode`` 03) is an empty list, not an error. ``num_of_rows`` is the page
-        size, not a result cap.
+        simply omitted. Pages until the last page; a no-data result (``resultCode`` 03) is
+        an empty list, not an error. ``num_of_rows`` is the page size, not a result cap.
+
+        The last page is recognized three ways, so this works across services that page,
+        report a ``totalCount``, or do neither: an empty page, a *short* page (fewer than a
+        full ``num_of_rows`` -- the universal last-page signal, and the only one a service
+        gives when it returns the whole result at once and omits both paging and the count,
+        as the customs endpoint does), or once ``totalCount`` rows have been collected.
 
         Filter values (date bounds, an HS code, ...) are passed to the vendor unvalidated:
         the vendor is the authority on its own filter grammar, so this transport checks
@@ -144,7 +155,10 @@ class DataGoKrSession:
         while page <= _PAGE_CAP:
             page_rows, total = self._fetch_page(operation, page, num_of_rows, filters)
             rows.extend(page_rows)
-            if not page_rows or (total is not None and len(rows) >= total):
+            last_page = (not page_rows
+                         or len(page_rows) < num_of_rows
+                         or (total is not None and len(rows) >= total))
+            if last_page:
                 break
             page += 1
         return rows
@@ -153,11 +167,14 @@ class DataGoKrSession:
                     filters: dict[str, str | None]) -> tuple[list[Row], int | None]:
         """One page of ``operation``: ``(rows, totalCount-or-None)``."""
         params: dict[str, str] = {
-            "serviceKey":    self._api_key,   # the raw decoding key, as a plain value
-            self.json_param: "json",
-            "numOfRows":     str(num_of_rows),
-            "pageNo":        str(page),
+            "serviceKey": self._api_key,   # the raw decoding key, as a plain value
+            "numOfRows":  str(num_of_rows),
+            "pageNo":     str(page),
         }
+        # A JSON service takes the "answer in JSON" flag; an XML-only service faults if it
+        # is sent at all, so xml mode omits it and gets XML back.
+        if self.response_format == "json":
+            params[self.json_param] = "json"
         params.update({name: value for name, value in filters.items() if value is not None})
         # urlencode exactly once: the raw key goes in as a plain value and comes out
         # single-encoded. Never pre-encode it (the portal's "encoding key" form would be
@@ -195,20 +212,46 @@ class DataGoKrSession:
         raise failure from None
 
     def _page_from_body(self, raw: bytes, operation: str) -> tuple[list[Row], int | None]:
-        """Apply the portal envelope contract to a raw 200 body."""
+        """Apply the portal envelope contract to a raw 200 body (JSON or XML). Both
+        encodings decode into the same nested dict, so the envelope logic below runs once
+        regardless of the wire format."""
+        if self.response_format == "xml":
+            payload: Any = self._payload_from_xml(raw, operation)
+        else:
+            payload = self._payload_from_json(raw, operation)
+        if isinstance(payload, dict):
+            return self._page_from_payload(payload, operation)
+        raise DataGoKrNetworkError(
+            f"unexpected data.go.kr response shape for {operation}") from None
+
+    def _payload_from_json(self, raw: bytes, operation: str) -> Any:
+        """The JSON body as a nested object, or our network error (cause detached). The
+        failure is built inside the handler and raised after leaving it, so neither
+        ``__cause__`` (``from None``) nor ``__context__`` carries the decode exception."""
         failure: DataGoKrError
         try:
-            payload: Any = json.loads(raw.decode("utf-8"))
+            return json.loads(raw.decode("utf-8"))
         except (ValueError, UnicodeDecodeError, RecursionError):
             # A 200 whose body is not JSON -- the portal's XML fault, or a
             # proxy/maintenance page -- must surface through our error, cause detached.
             failure = DataGoKrNetworkError(
                 f"non-JSON response from data.go.kr for {operation}")
-        else:
-            if isinstance(payload, dict):
-                return self._page_from_payload(payload, operation)
+        raise failure from None
+
+    def _payload_from_xml(self, raw: bytes, operation: str) -> dict[str, Any]:
+        """The XML body as the SAME nested dict the JSON path yields (root tag wrapped),
+        or our network error. The message is FIXED -- never the parser's text or the body
+        -- and the parser exception is detached from both ``__cause__`` and ``__context__``
+        (built in the handler, raised after it), the same secret-safety discipline as the
+        JSON path."""
+        failure: DataGoKrError
+        try:
+            root = ET.fromstring(raw.decode("utf-8"))
+        except (ET.ParseError, UnicodeDecodeError):
             failure = DataGoKrNetworkError(
-                f"unexpected data.go.kr response shape for {operation}")
+                f"non-XML response from data.go.kr for {operation}")
+        else:
+            return {root.tag: _xml_to_dict(root)}
         raise failure from None
 
     def _page_from_payload(self, payload: dict[str, Any],
@@ -271,6 +314,34 @@ class DataGoKrSession:
             if representation:
                 redacted = redacted.replace(representation, "[REDACTED]")
         return redacted
+
+
+def _xml_to_dict(elem: ET.Element) -> dict[str, Any] | str:
+    """One XML element as the nested-dict shape the JSON path produces.
+
+    A leaf (no children) becomes its text (``""`` when the element is empty), and a parent
+    becomes a dict keyed by child tag. A repeated child tag accumulates into a LIST, so
+    ``<items>`` with many ``<item>`` becomes ``{"item": [..]}`` while a lone ``<item>``
+    stays ``{"item": {..}}`` -- exactly the two shapes :meth:`_rows_from_items` already
+    normalizes -- and an empty ``<items/>`` becomes ``""``, which it treats as no rows.
+    Every value is a ``str`` (XML text) or a nested dict; the ``_rows_from_items``
+    str-coercion downstream is left in place.
+    """
+    children = list(elem)
+    if not children:
+        return elem.text if elem.text is not None else ""
+    result: dict[str, Any] = {}
+    for child in children:
+        value = _xml_to_dict(child)
+        if child.tag in result:
+            existing = result[child.tag]
+            if isinstance(existing, list):
+                existing.append(value)
+            else:
+                result[child.tag] = [existing, value]
+        else:
+            result[child.tag] = value
+    return result
 
 
 def _total_count(body: dict[str, Any]) -> int | None:

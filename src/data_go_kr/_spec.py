@@ -113,9 +113,11 @@ def _date_ymd(raw: object) -> str | None:
 
 
 def _date_ym(raw: object) -> str | None:
-    """A 6-digit YYYYMM to an ISO year-month string (``"2024-01"``); anything else -> None."""
-    text = str(raw).strip()
-    if len(text) != 6 or not text.isdigit():
+    """A YYYYMM year-month to an ISO string (``"2024-01"``). Non-digit separators are
+    stripped first, so both ``"202601"`` and the customs dotted form ``"2026.01"`` parse;
+    anything not yielding a valid 6-digit YYYYMM -> None."""
+    text = "".join(ch for ch in str(raw) if ch.isdigit())
+    if len(text) != 6:
         return None
     try:
         date(int(text[:4]), int(text[4:6]), 1)   # validates the month

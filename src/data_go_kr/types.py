@@ -8,17 +8,21 @@ list of rows into a table in one line (``pandas.DataFrame(rows)`` /
 snake_case columns.
 
 ``JsonParam`` is the portal's *closed* vocabulary for the "answer in JSON" query
-parameter -- older services take ``resultType=json`` (KOFIA), newer ones ``_type=json``
-(customs) -- typed as a ``Literal`` so a wrong spelling is a type error at the call site
-rather than an XML body from the server.
+parameter -- older services take ``resultType=json`` (KOFIA), newer ones ``_type=json`` --
+typed as a ``Literal`` so a wrong spelling is a type error at the call site rather than an
+XML body from the server. ``ResponseFormat`` picks which envelope a session parses: a
+service that answers JSON (KOFIA) vs one that is XML-only (customs 품목별 수출입실적, which
+faults if the JSON param is sent at all).
 """
 
 from __future__ import annotations
 
 from typing import Literal
 
-__all__ = ["JsonParam", "Row"]
+__all__ = ["JsonParam", "ResponseFormat", "Row"]
 
 Row = dict[str, str]
 
 JsonParam = Literal["resultType", "_type"]
+
+ResponseFormat = Literal["json", "xml"]

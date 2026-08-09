@@ -28,10 +28,11 @@ def test_surfaces_share_key_and_timeout():
     assert client.customs._session.timeout == 7.0
 
 
-def test_surface_json_params_differ():
+def test_surface_response_formats_differ():
     client = DataGoKr(api_key="k")
+    assert client.kofia._session.response_format == "json"
     assert client.kofia._session.json_param == "resultType"
-    assert client.customs._session.json_param == "_type"
+    assert client.customs._session.response_format == "xml"
 
 
 def test_repr_never_shows_the_key():
