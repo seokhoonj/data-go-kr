@@ -13,7 +13,9 @@ from __future__ import annotations
 from functools import cached_property
 
 from .services.customs import Customs
+from .services.holidays import Holidays
 from .services.kofia import Kofia
+from .services.realestate import Realestate
 
 __all__ = ["DataGoKr"]
 
@@ -50,3 +52,13 @@ class DataGoKr:
     def customs(self) -> Customs:
         """관세청 수출입 무역통계 -- 품목별(HS) 수출입실적."""
         return Customs(self._api_key, timeout=self._timeout)
+
+    @cached_property
+    def holidays(self) -> Holidays:
+        """한국천문연구원 특일 정보 -- 공휴일·국경일·기념일·24절기·잡절."""
+        return Holidays(self._api_key, timeout=self._timeout)
+
+    @cached_property
+    def realestate(self) -> Realestate:
+        """국토교통부 아파트 실거래가 -- 매매·매매상세·전월세·분양권전매."""
+        return Realestate(self._api_key, timeout=self._timeout)

@@ -270,9 +270,14 @@ class DataGoKrSession:
         raw_header = envelope.get("header")
         header: dict[str, Any] = raw_header if isinstance(raw_header, dict) else {}
         code = str(header.get("resultCode", "?")).strip()
-        if code == _NO_DATA_CODE:
+        # Agencies zero-pad the result code differently -- the standard is two digits
+        # ("00" ok, "03" no-data) but some (국토부 RTMS) send three ("000"/"030"). Compare on
+        # the significant digits so both conventions read the same; the original code is
+        # kept for the error message.
+        digits = code.lstrip("0") or "0"
+        if digits == (_NO_DATA_CODE.lstrip("0") or "0"):
             return [], 0    # "no data" is an empty series, not an error
-        if code != _OK_CODE:
+        if digits != (_OK_CODE.lstrip("0") or "0"):
             message = self._redact(str(header.get("resultMsg", "")).strip())
             raise _error_for(code, message) from None
 

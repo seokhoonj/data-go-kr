@@ -8,6 +8,8 @@ columns. The surfaces share nothing but :class:`~data_go_kr.session.DataGoKrSess
 from __future__ import annotations
 
 from .customs import Customs
+from .holidays import Holidays
 from .kofia import Kofia
+from .realestate import Realestate
 
-__all__ = ["Customs", "Kofia"]
+__all__ = ["Customs", "Holidays", "Kofia", "Realestate"]

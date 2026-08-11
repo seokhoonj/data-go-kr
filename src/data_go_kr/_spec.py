@@ -28,7 +28,7 @@ from .types import Row
 
 __all__ = ["CleanRow", "CleanValue", "Field", "FieldKind", "Table", "clean"]
 
-FieldKind = Literal["date_ymd", "date_ym", "text", "int", "ratio"]
+FieldKind = Literal["date_ymd", "date_ym", "text", "int", "ratio", "decimal"]
 DateToken = Literal["basDt", "basYm", "year"]
 CleanValue = str | int | float | None
 CleanRow = dict[str, CleanValue]
@@ -170,10 +170,18 @@ def _ratio(raw: object) -> float | None:
     return value if math.isfinite(value) else None
 
 
+def _decimal(raw: object) -> float | None:
+    """A decimal measure (area, coordinate, ...) to a float; blank/``"-"``/``"nan"``/
+    non-finite -> None. Same parsing as :func:`_ratio`, kept a distinct kind so the schema
+    reads honestly -- 전용면적 is a measure, not a percentage."""
+    return _ratio(raw)
+
+
 _PARSER_BY_KIND: dict[FieldKind, Callable[[object], CleanValue]] = {
     "date_ymd": _date_ymd,
     "date_ym":  _date_ym,
     "int":      _integer,
     "ratio":    _ratio,
+    "decimal":  _decimal,
     "text":     _text,
 }

@@ -23,7 +23,9 @@ from collections.abc import Callable, Mapping, Sequence
 from . import __version__, catalog
 from .errors import DataGoKrError
 from .services.customs import Customs
+from .services.holidays import Holidays
 from .services.kofia import Kofia
+from .services.realestate import Realestate
 
 _PROG = "data-go-kr"
 _ERROR_PREFIX = f"{_PROG}: "
@@ -95,6 +97,30 @@ def _make_parser() -> argparse.ArgumentParser:
                                 help="emit JSON instead of text")
     item_trade_cmd.set_defaults(run=_run_customs_item_trade)
 
+    holidays_cmd = commands.add_parser("holidays", help="한국천문연구원 특일 정보")
+    holidays_cmd.add_argument("operation", nargs="?", default="holidays",
+                              help="holidays (default) / national_holidays / anniversaries "
+                                   "/ solar_terms / sundry_days")
+    holidays_cmd.add_argument("--year", required=True, type=int, metavar="YYYY",
+                              help="solar year")
+    holidays_cmd.add_argument("--month", default=None, type=int, metavar="M",
+                              help="1-12 (optional; omit for the whole year)")
+    holidays_cmd.add_argument("--json", action="store_true",
+                              help="emit JSON instead of text")
+    holidays_cmd.set_defaults(run=_run_holidays)
+
+    realestate_cmd = commands.add_parser("realestate", help="국토교통부 아파트 실거래가")
+    re_ops = realestate_cmd.add_subparsers(required=True)
+    for op, desc in (("apt_trade", "아파트 매매"), ("apt_trade_detail", "아파트 매매 상세"),
+                     ("apt_rent", "아파트 전월세"), ("apt_presale", "아파트 분양권전매")):
+        op_cmd = re_ops.add_parser(op, help=f"fetch {desc} 실거래가")
+        op_cmd.add_argument("region_code", metavar="LAWD_CD",
+                            help="법정동 앞5자리 (예 종로구 11110)")
+        op_cmd.add_argument("--deal-ym", required=True, metavar="YYYYMM", dest="deal_ym",
+                            help="계약년월")
+        op_cmd.add_argument("--json", action="store_true", help="emit JSON instead of text")
+        op_cmd.set_defaults(run=_run_realestate, operation=op)
+
     return parser
 
 
@@ -135,6 +161,23 @@ def _run_kofia(args: argparse.Namespace) -> int:
 
 def _run_customs_item_trade(args: argparse.Namespace) -> int:
     rows = Customs().item_trade(args.hs_code, begin=args.begin, end=args.end)
+    _emit(rows, args.json)
+    return 0
+
+
+def _run_holidays(args: argparse.Namespace) -> int:
+    if args.operation not in catalog.operations("holidays"):
+        print(f"{_ERROR_PREFIX}unknown operation {args.operation!r} "
+              f"(try `{_PROG} list`)", file=sys.stderr)
+        return 2
+    rows = Holidays().fetch(args.operation, year=args.year, month=args.month)
+    _emit(rows, args.json)
+    return 0
+
+
+def _run_realestate(args: argparse.Namespace) -> int:
+    rows = Realestate().fetch(args.operation, region_code=args.region_code,
+                              deal_ym=args.deal_ym)
     _emit(rows, args.json)
     return 0
 
