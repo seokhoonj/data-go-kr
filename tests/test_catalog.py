@@ -7,7 +7,8 @@ from data_go_kr import catalog
 
 def test_services_are_registry_derived():
     listed = {entry["service"]: entry for entry in catalog.services()}
-    assert set(listed) == {"kofia", "customs", "holidays", "realestate", "weather", "airquality"}
+    assert set(listed) == {"kofia", "customs", "holidays", "realestate", "weather", "airquality",
+                          "midforecast", "procurement"}
     assert listed["kofia"]["base_url"].endswith("GetKofiaStatisticsInfoService")
     assert "관세청" in listed["customs"]["agency"]
 

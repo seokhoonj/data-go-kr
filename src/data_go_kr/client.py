@@ -16,6 +16,8 @@ from .services.airquality import AirQuality
 from .services.customs import Customs
 from .services.holidays import Holidays
 from .services.kofia import Kofia
+from .services.midforecast import MidForecast
+from .services.procurement import Procurement
 from .services.realestate import Realestate
 from .services.weather import Weather
 
@@ -74,3 +76,13 @@ class DataGoKr:
     def airquality(self) -> AirQuality:
         """한국환경공단 에어코리아 대기오염정보 -- 시도별·측정소별 실시간 측정."""
         return AirQuality(self._api_key, timeout=self._timeout)
+
+    @cached_property
+    def midforecast(self) -> MidForecast:
+        """기상청 중기예보 -- 예보구역별 4~10일 육상(강수·날씨)·기온(최저·최고)."""
+        return MidForecast(self._api_key, timeout=self._timeout)
+
+    @cached_property
+    def procurement(self) -> Procurement:
+        """조달청 나라장터 입찰공고 -- 물품·용역·공사·외자 업무구분별."""
+        return Procurement(self._api_key, timeout=self._timeout)

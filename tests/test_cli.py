@@ -71,7 +71,8 @@ def test_list_needs_no_key(capsys, tmp_path, monkeypatch):
 def test_list_json(capsys):
     assert main(["list", "--json"]) == 0
     data = json.loads(capsys.readouterr().out)
-    assert set(data) == {"kofia", "customs", "holidays", "realestate", "weather", "airquality"}
+    assert set(data) == {"kofia", "customs", "holidays", "realestate", "weather", "airquality",
+                          "midforecast", "procurement"}
     assert "market_funds" in data["kofia"]
     assert data["customs"] == ["item_trade"]
 

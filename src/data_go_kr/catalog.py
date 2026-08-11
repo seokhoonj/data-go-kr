@@ -15,7 +15,16 @@ from __future__ import annotations
 from typing import Protocol
 
 from ._spec import Table
-from .services import airquality, customs, holidays, kofia, realestate, weather
+from .services import (
+    airquality,
+    customs,
+    holidays,
+    kofia,
+    midforecast,
+    procurement,
+    realestate,
+    weather,
+)
 
 __all__ = ["fields", "operations", "services"]
 
@@ -29,8 +38,11 @@ class _ServiceModule(Protocol):
     TABLES:   dict[str, Table]
 
 
-# The registry: a third service is one more module here, and every accessor picks it up.
-_SERVICES: tuple[_ServiceModule, ...] = (kofia, customs, holidays, realestate, weather, airquality)
+# The registry: one more service is one more module here, and every accessor picks it up.
+# Ordered by the datasets' data.go.kr 활용신청 (application) counts, most-used first.
+_SERVICES: tuple[_ServiceModule, ...] = (
+    weather, airquality, holidays, realestate, midforecast, procurement, customs, kofia,
+)
 
 
 def services() -> list[dict[str, str]]:

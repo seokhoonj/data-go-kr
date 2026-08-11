@@ -26,6 +26,8 @@ from .services.airquality import AirQuality
 from .services.customs import Customs
 from .services.holidays import Holidays
 from .services.kofia import Kofia
+from .services.midforecast import MidForecast
+from .services.procurement import Procurement
 from .services.realestate import Realestate
 from .services.weather import Weather
 
@@ -150,6 +152,31 @@ def _make_parser() -> argparse.ArgumentParser:
     station_cmd.add_argument("--json", action="store_true", help="emit JSON instead of text")
     station_cmd.set_defaults(run=_run_airquality_station)
 
+    mid_cmd = commands.add_parser("midforecast", help="기상청 중기예보")
+    mid_ops = mid_cmd.add_subparsers(required=True)
+    for op, desc in (("land", "중기육상예보"), ("temperature", "중기기온예보")):
+        op_cmd = mid_ops.add_parser(op, help=f"fetch {desc}")
+        op_cmd.add_argument("--region", required=True, metavar="REGID",
+                            help="예보구역코드 (예 11B00000)")
+        op_cmd.add_argument("--base-time", required=True, metavar="YYYYMMDDHHMM",
+                            dest="base_time", help="발표시각 (0600/1800)")
+        op_cmd.add_argument("--json", action="store_true", help="emit JSON instead of text")
+        op_cmd.set_defaults(run=_run_midforecast, operation=op)
+
+    proc_cmd = commands.add_parser("procurement", help="조달청 나라장터 입찰공고")
+    proc_ops = proc_cmd.add_subparsers(required=True)
+    for op, desc in (("goods", "물품"), ("services", "용역"),
+                     ("construction", "공사"), ("foreign", "외자")):
+        op_cmd = proc_ops.add_parser(op, help=f"fetch {desc} 입찰공고")
+        op_cmd.add_argument("--begin", required=True, metavar="YYYYMMDDHHMM",
+                            help="공고게시 시작")
+        op_cmd.add_argument("--end", required=True, metavar="YYYYMMDDHHMM",
+                            help="공고게시 종료")
+        op_cmd.add_argument("--inqry-div", default="1", dest="inqry_div", metavar="DIV",
+                            help="조회구분 (1 공고게시일시 / 2 개찰일시)")
+        op_cmd.add_argument("--json", action="store_true", help="emit JSON instead of text")
+        op_cmd.set_defaults(run=_run_procurement, operation=op)
+
     return parser
 
 
@@ -225,6 +252,19 @@ def _run_airquality_sido(args: argparse.Namespace) -> int:
 
 def _run_airquality_station(args: argparse.Namespace) -> int:
     _emit(AirQuality().by_station(station=args.station, data_term=args.data_term), args.json)
+    return 0
+
+
+def _run_midforecast(args: argparse.Namespace) -> int:
+    rows = MidForecast().fetch(args.operation, region=args.region, base_time=args.base_time)
+    _emit(rows, args.json)
+    return 0
+
+
+def _run_procurement(args: argparse.Namespace) -> int:
+    rows = Procurement().fetch(args.operation, begin=args.begin, end=args.end,
+                               inqry_div=args.inqry_div)
+    _emit(rows, args.json)
     return 0
 
 

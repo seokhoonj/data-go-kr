@@ -11,7 +11,10 @@ from .airquality import AirQuality
 from .customs import Customs
 from .holidays import Holidays
 from .kofia import Kofia
+from .midforecast import MidForecast
+from .procurement import Procurement
 from .realestate import Realestate
 from .weather import Weather
 
-__all__ = ["AirQuality", "Customs", "Holidays", "Kofia", "Realestate", "Weather"]
+__all__ = ["AirQuality", "Customs", "Holidays", "Kofia", "MidForecast",
+           "Procurement", "Realestate", "Weather"]

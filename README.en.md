@@ -2,14 +2,17 @@
 
 **English** | [한국어](README.md)
 
-Read Korean government open-data services from **data.go.kr** with one key: KOFIA
-market statistics (investor deposits, margin loans, funds, CMA, ELS/DLS, trusts,
-overseas derivatives) and Korea Customs Service item trade (monthly exports/imports by
-HS code), and Korea Astronomy and Space Science Institute (KASI) special days (public
-holidays, 24 solar terms, ...), and Ministry of Land (MOLIT) apartment real-transaction
-prices (sale, rent, presale), and KMA (기상청) village weather forecasts, and AirKorea (에어코리아) air-quality
-measurements. Zero runtime dependencies; rows come back as `list[dict]` that
-`pandas.DataFrame` / `polars.DataFrame` accept directly.
+Read Korean government open-data services from **data.go.kr** with one key: KMA (기상청)
+village weather forecasts (short-range, ultra-short, nowcast) and AirKorea (에어코리아)
+air-quality measurements (PM, ozone, ...), Korea Astronomy and Space Science Institute
+(KASI) special days (public holidays, 24 solar terms, ...), Ministry of Land (MOLIT)
+apartment real-transaction prices (sale, rent, presale), KMA medium-range forecasts
+(days 4-10, land and temperature), Korea Public Procurement Service (나라장터) bid
+announcements (goods, services, construction, foreign), Korea Customs Service item trade
+(monthly exports/imports by HS code), and KOFIA market statistics (investor deposits,
+margin loans, funds, CMA, ELS/DLS, trusts, overseas derivatives). Zero runtime
+dependencies; rows come back as `list[dict]` that `pandas.DataFrame` / `polars.DataFrame`
+accept directly.
 
 ## 1. Install
 
@@ -34,8 +37,8 @@ Each dataset must also be applied for (활용신청) on your data.go.kr account.
 from data_go_kr import DataGoKr
 
 client = DataGoKr()
-rows = client.kofia.market_funds(begin="20240101", end="20240131")
-raw  = client.customs.item_trade("8542", begin="202401", end="202406")
+rows = client.weather.forecast(base_date="20260811", base_time="0500", nx=60, ny=127)
+raw  = client.realestate.apt_trade(region_code="11110", deal_ym="202401")
 ```
 
 ```python
@@ -55,12 +58,14 @@ Supported services -- this table matches the offline catalog (`data-go-kr list` 
 
 | accessor | agency · statistics | service ID | format | operations |
 |---|---|---|---|---|
-| `client.kofia` | 금융투자협회 종합통계 (KOFIA) | 1160100 | JSON | 8 -- `market_funds` · `credit_balance` · `trust_scale` · `fund_net_asset` · `cma_status` · `dls_dlb` · `els_elb` · `overseas_derivatives` |
-| `client.customs` | 관세청 품목별 수출입실적 (Korea Customs) | 1220000 | XML | `item_trade` -- monthly export/import value and weight by HS code |
-| `client.holidays` | 한국천문연구원 특일 정보 (KASI) | B090041 | XML | 5 -- `holidays` · `national_holidays` · `anniversaries` · `solar_terms` · `sundry_days` |
-| `client.realestate` | 국토교통부 아파트 실거래가 (MOLIT RTMS) | 1613000 | XML | 4 -- `apt_trade` · `apt_trade_detail` · `apt_rent` · `apt_presale` |
 | `client.weather` | 기상청 동네예보 (KMA village forecast) | 1360000 | XML | 3 -- `forecast` · `ultra_forecast` · `nowcast` |
 | `client.airquality` | 한국환경공단 에어코리아 대기오염정보 (AirKorea) | B552584 | XML | 2 -- `by_sido` · `by_station` |
+| `client.holidays` | 한국천문연구원 특일 정보 (KASI) | B090041 | XML | 5 -- `holidays` · `national_holidays` · `anniversaries` · `solar_terms` · `sundry_days` |
+| `client.realestate` | 국토교통부 아파트 실거래가 (MOLIT RTMS) | 1613000 | XML | 4 -- `apt_trade` · `apt_trade_detail` · `apt_rent` · `apt_presale` |
+| `client.midforecast` | 기상청 중기예보 (KMA medium-range) | 1360000 | XML | 2 -- `land` (강수·날씨) · `temperature` (최저·최고) |
+| `client.procurement` | 조달청 나라장터 입찰공고 (Public Procurement) | 1230000 | XML | 4 -- `goods` · `services` · `construction` · `foreign` |
+| `client.customs` | 관세청 품목별 수출입실적 (Korea Customs) | 1220000 | XML | `item_trade` -- monthly export/import value and weight by HS code |
+| `client.kofia` | 금융투자협회 종합통계 (KOFIA) | 1160100 | JSON | 8 -- `market_funds` · `credit_balance` · `trust_scale` · `fund_net_asset` · `cma_status` · `dls_dlb` · `els_elb` · `overseas_derivatives` |
 
 - Each service must be applied for (활용신청) separately on your account (see Sec. 5).
 - `clean=True` (default) returns typed snake_case columns; `clean=False` the raw vendor
@@ -96,14 +101,16 @@ the transport changes:
 ## 4. Command line
 
 ```bash
-data-go-kr list                                                # offline, no key
-data-go-kr fields kofia market_funds                           # offline column schema
-data-go-kr kofia market_funds --begin 20240101 --end 20240131
-data-go-kr customs item_trade 8542 --begin 202401 --end 202406
-data-go-kr holidays --year 2026                                # public holidays
-data-go-kr realestate apt_trade 11110 --deal-ym 202401         # apartment sale trades
+data-go-kr list                                         # offline, no key
+data-go-kr fields weather forecast                      # offline column schema
 data-go-kr weather forecast --base-date 20260811 --base-time 0500 --nx 60 --ny 127
-data-go-kr airquality by_sido 서울                              # real-time PM/ozone
+data-go-kr airquality by_sido 서울                      # real-time PM/ozone
+data-go-kr holidays --year 2026                         # public holidays
+data-go-kr realestate apt_trade 11110 --deal-ym 202401  # apartment sale trades
+data-go-kr midforecast land --region 11B00000 --base-time 202608111800
+data-go-kr procurement services --begin 202608010000 --end 202608102359
+data-go-kr customs item_trade 8542 --begin 202401 --end 202406
+data-go-kr kofia market_funds --begin 20240101 --end 20240131
 ```
 
 Add `--json` for machine-readable output.
@@ -146,7 +153,8 @@ preserves the code on `.code`, so you can still branch on 1/4/12/99 yourself):
 ## 6. AI coding agents
 
 - This repo doubles as a plugin marketplace for Claude Code and Codex.
-- It ships seven skills -- `list`, `kofia`, `customs`, `holidays`, `realestate`, `weather`, `airquality` -- each a thin wrapper over the
+- It ships nine skills -- `list`, `weather`, `airquality`, `holidays`, `realestate`,
+  `midforecast`, `procurement`, `customs`, `kofia` -- each a thin wrapper over the
   `data-go-kr` command.
 - Install the package first (`list` works without a key; the fetches need one).
 

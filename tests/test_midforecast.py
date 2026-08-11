@@ -1,0 +1,99 @@
+"""MidForecast -- XML session, wide day-columns, int/text typing, two ops, offline."""
+
+import pytest
+
+from data_go_kr.services.midforecast import MidForecast
+
+
+def _xml(items, total):
+    rows = "".join(
+        "<item>" + "".join(f"<{k}>{v}</{k}>" for k, v in item.items()) + "</item>"
+        for item in items)
+    return (f"<response><header><resultCode>00</resultCode>"
+            f"<resultMsg>NORMAL_SERVICE</resultMsg></header>"
+            f"<body><items>{rows}</items>"
+            f"<totalCount>{total}</totalCount></body></response>").encode()
+
+
+class _FakeResponse:
+    def __init__(self, raw):
+        self._raw = raw
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        return False
+
+    def read(self):
+        return self._raw
+
+
+class _FakeOpener:
+    def __init__(self, raw):
+        self._raw = raw
+        self.requests = []
+
+    def open(self, request, timeout=None):
+        self.requests.append(request)
+        return _FakeResponse(self._raw)
+
+
+# A 1800 announcement: day 4 is absent (its columns empty), days 5-10 present.
+_LAND_ROW = {
+    "regId": "11B00000",
+    "rnSt4Am": "", "rnSt4Pm": "",
+    "rnSt5Am": "20", "rnSt5Pm": "30", "rnSt6Am": "40", "rnSt6Pm": "40",
+    "rnSt7Am": "60", "rnSt7Pm": "60", "rnSt8": "10", "rnSt9": "10", "rnSt10": "20",
+    "wf5Am": "구름많음", "wf5Pm": "흐림", "wf8": "맑음", "wf10": "비",
+}
+
+_TA_ROW = {
+    "regId": "11B10101",
+    "taMin5": "26", "taMax5": "34", "taMin6": "25", "taMax6": "33",
+    "taMin10": "24", "taMax10": "31",
+}
+
+
+def _mid(raw):
+    mid = MidForecast(api_key="k")
+    opener = _FakeOpener(raw)
+    mid._session._opener = opener
+    return mid, opener
+
+
+def test_land_types_precip_int_and_sky_text():
+    mid, _ = _mid(_xml([_LAND_ROW], 1))
+    row = mid.land(region="11B00000", base_time="202608111800")[0]
+    assert row["region"] == "11B00000"
+    assert row["precip_prob_5am"] == 20 and row["precip_prob_7pm"] == 60   # int
+    assert row["sky_5am"] == "구름많음" and row["sky_8"] == "맑음"          # text
+    assert row["precip_prob_4am"] is None                                  # absent -> None
+
+
+def test_temperature_types_min_and_max():
+    mid, _ = _mid(_xml([_TA_ROW], 1))
+    row = mid.temperature(region="11B10101", base_time="202608111800")[0]
+    assert row["temp_min_5"] == 26 and row["temp_max_5"] == 34
+    assert row["temp_min_10"] == 24 and row["temp_max_10"] == 31
+
+
+def test_land_raw_passthrough_keeps_vendor_tokens():
+    mid, _ = _mid(_xml([_LAND_ROW], 1))
+    assert mid.land(region="11B00000", base_time="202608111800", clean=False) == [_LAND_ROW]
+
+
+def test_operation_path_and_params_reach_the_vendor():
+    mid, opener = _mid(_xml([], 0))
+    mid.land(region="11B00000", base_time="202608111800")
+    query = opener.requests[0].full_url
+    assert "getMidLandFcst" in query
+    assert "regId=11B00000" in query
+    assert "tmFc=202608111800" in query
+    assert "dataType=XML" in query
+
+
+def test_fetch_rejects_an_unknown_operation():
+    mid, _ = _mid(_xml([], 0))
+    with pytest.raises(ValueError, match="unknown operation"):
+        mid.fetch("sea", region="11B00000", base_time="202608111800")
