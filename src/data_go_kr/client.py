@@ -16,6 +16,7 @@ from .services.customs import Customs
 from .services.holidays import Holidays
 from .services.kofia import Kofia
 from .services.realestate import Realestate
+from .services.weather import Weather
 
 __all__ = ["DataGoKr"]
 
@@ -62,3 +63,8 @@ class DataGoKr:
     def realestate(self) -> Realestate:
         """국토교통부 아파트 실거래가 -- 매매·매매상세·전월세·분양권전매."""
         return Realestate(self._api_key, timeout=self._timeout)
+
+    @cached_property
+    def weather(self) -> Weather:
+        """기상청 동네예보 -- 단기예보·초단기예보·초단기실황(격자별)."""
+        return Weather(self._api_key, timeout=self._timeout)

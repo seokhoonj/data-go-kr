@@ -26,6 +26,7 @@ from .services.customs import Customs
 from .services.holidays import Holidays
 from .services.kofia import Kofia
 from .services.realestate import Realestate
+from .services.weather import Weather
 
 _PROG = "data-go-kr"
 _ERROR_PREFIX = f"{_PROG}: "
@@ -121,6 +122,20 @@ def _make_parser() -> argparse.ArgumentParser:
         op_cmd.add_argument("--json", action="store_true", help="emit JSON instead of text")
         op_cmd.set_defaults(run=_run_realestate, operation=op)
 
+    weather_cmd = commands.add_parser("weather", help="기상청 동네예보")
+    weather_ops = weather_cmd.add_subparsers(required=True)
+    for op, desc in (("forecast", "단기예보"), ("ultra_forecast", "초단기예보"),
+                     ("nowcast", "초단기실황")):
+        op_cmd = weather_ops.add_parser(op, help=f"fetch {desc}")
+        op_cmd.add_argument("--base-date", required=True, metavar="YYYYMMDD",
+                            dest="base_date", help="발표일자")
+        op_cmd.add_argument("--base-time", required=True, metavar="HHMM",
+                            dest="base_time", help="발표시각")
+        op_cmd.add_argument("--nx", required=True, type=int, help="격자 X")
+        op_cmd.add_argument("--ny", required=True, type=int, help="격자 Y")
+        op_cmd.add_argument("--json", action="store_true", help="emit JSON instead of text")
+        op_cmd.set_defaults(run=_run_weather, operation=op)
+
     return parser
 
 
@@ -178,6 +193,13 @@ def _run_holidays(args: argparse.Namespace) -> int:
 def _run_realestate(args: argparse.Namespace) -> int:
     rows = Realestate().fetch(args.operation, region_code=args.region_code,
                               deal_ym=args.deal_ym)
+    _emit(rows, args.json)
+    return 0
+
+
+def _run_weather(args: argparse.Namespace) -> int:
+    rows = Weather().fetch(args.operation, base_date=args.base_date,
+                           base_time=args.base_time, nx=args.nx, ny=args.ny)
     _emit(rows, args.json)
     return 0
 

@@ -7,7 +7,8 @@ market statistics (investor deposits, margin loans, funds, CMA, ELS/DLS, trusts,
 overseas derivatives) and Korea Customs Service item trade (monthly exports/imports by
 HS code), and Korea Astronomy and Space Science Institute (KASI) special days (public
 holidays, 24 solar terms, ...), and Ministry of Land (MOLIT) apartment real-transaction
-prices (sale, rent, presale). Zero runtime dependencies; rows come back as `list[dict]` that
+prices (sale, rent, presale), and KMA (기상청) village weather forecasts. Zero runtime
+dependencies; rows come back as `list[dict]` that
 `pandas.DataFrame` / `polars.DataFrame` accept directly.
 
 ## 1. Install
@@ -58,6 +59,7 @@ Supported services -- this table matches the offline catalog (`data-go-kr list` 
 | `client.customs` | 관세청 품목별 수출입실적 (Korea Customs) | 1220000 | XML | `item_trade` -- monthly export/import value and weight by HS code |
 | `client.holidays` | 한국천문연구원 특일 정보 (KASI) | B090041 | XML | 5 -- `holidays` · `national_holidays` · `anniversaries` · `solar_terms` · `sundry_days` |
 | `client.realestate` | 국토교통부 아파트 실거래가 (MOLIT RTMS) | 1613000 | XML | 4 -- `apt_trade` · `apt_trade_detail` · `apt_rent` · `apt_presale` |
+| `client.weather` | 기상청 동네예보 (KMA village forecast) | 1360000 | XML | 3 -- `forecast` · `ultra_forecast` · `nowcast` |
 
 - Each service must be applied for (활용신청) separately on your account (see Sec. 5).
 - `clean=True` (default) returns typed snake_case columns; `clean=False` the raw vendor
@@ -99,6 +101,7 @@ data-go-kr kofia market_funds --begin 20240101 --end 20240131
 data-go-kr customs item_trade 8542 --begin 202401 --end 202406
 data-go-kr holidays --year 2026                                # public holidays
 data-go-kr realestate apt_trade 11110 --deal-ym 202401         # apartment sale trades
+data-go-kr weather forecast --base-date 20260811 --base-time 0500 --nx 60 --ny 127
 ```
 
 Add `--json` for machine-readable output.
@@ -141,7 +144,7 @@ preserves the code on `.code`, so you can still branch on 1/4/12/99 yourself):
 ## 6. AI coding agents
 
 - This repo doubles as a plugin marketplace for Claude Code and Codex.
-- It ships five skills -- `list`, `kofia`, `customs`, `holidays`, `realestate` -- each a thin wrapper over the
+- It ships six skills -- `list`, `kofia`, `customs`, `holidays`, `realestate`, `weather` -- each a thin wrapper over the
   `data-go-kr` command.
 - Install the package first (`list` works without a key; the fetches need one).
 
