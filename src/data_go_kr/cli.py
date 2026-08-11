@@ -22,6 +22,7 @@ from collections.abc import Callable, Mapping, Sequence
 
 from . import __version__, catalog
 from .errors import DataGoKrError
+from .services.airquality import AirQuality
 from .services.customs import Customs
 from .services.holidays import Holidays
 from .services.kofia import Kofia
@@ -136,6 +137,19 @@ def _make_parser() -> argparse.ArgumentParser:
         op_cmd.add_argument("--json", action="store_true", help="emit JSON instead of text")
         op_cmd.set_defaults(run=_run_weather, operation=op)
 
+    aq_cmd = commands.add_parser("airquality", help="한국환경공단 에어코리아 대기오염정보")
+    aq_ops = aq_cmd.add_subparsers(required=True)
+    sido_cmd = aq_ops.add_parser("by_sido", help="fetch 시도별 실시간 측정")
+    sido_cmd.add_argument("sido", help="시도명 (서울/부산/경기 ...)")
+    sido_cmd.add_argument("--json", action="store_true", help="emit JSON instead of text")
+    sido_cmd.set_defaults(run=_run_airquality_sido)
+    station_cmd = aq_ops.add_parser("by_station", help="fetch 측정소별 실시간 측정")
+    station_cmd.add_argument("station", help="측정소명 (예 종로구)")
+    station_cmd.add_argument("--data-term", default="DAILY", dest="data_term",
+                             metavar="TERM", help="DAILY / MONTH / 3MONTH")
+    station_cmd.add_argument("--json", action="store_true", help="emit JSON instead of text")
+    station_cmd.set_defaults(run=_run_airquality_station)
+
     return parser
 
 
@@ -201,6 +215,16 @@ def _run_weather(args: argparse.Namespace) -> int:
     rows = Weather().fetch(args.operation, base_date=args.base_date,
                            base_time=args.base_time, nx=args.nx, ny=args.ny)
     _emit(rows, args.json)
+    return 0
+
+
+def _run_airquality_sido(args: argparse.Namespace) -> int:
+    _emit(AirQuality().by_sido(sido=args.sido), args.json)
+    return 0
+
+
+def _run_airquality_station(args: argparse.Namespace) -> int:
+    _emit(AirQuality().by_station(station=args.station, data_term=args.data_term), args.json)
     return 0
 
 

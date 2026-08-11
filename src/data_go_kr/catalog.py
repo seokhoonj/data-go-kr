@@ -15,7 +15,7 @@ from __future__ import annotations
 from typing import Protocol
 
 from ._spec import Table
-from .services import customs, holidays, kofia, realestate, weather
+from .services import airquality, customs, holidays, kofia, realestate, weather
 
 __all__ = ["fields", "operations", "services"]
 
@@ -30,7 +30,7 @@ class _ServiceModule(Protocol):
 
 
 # The registry: a third service is one more module here, and every accessor picks it up.
-_SERVICES: tuple[_ServiceModule, ...] = (kofia, customs, holidays, realestate, weather)
+_SERVICES: tuple[_ServiceModule, ...] = (kofia, customs, holidays, realestate, weather, airquality)
 
 
 def services() -> list[dict[str, str]]:

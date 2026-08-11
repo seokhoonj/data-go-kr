@@ -12,6 +12,7 @@ from __future__ import annotations
 
 from functools import cached_property
 
+from .services.airquality import AirQuality
 from .services.customs import Customs
 from .services.holidays import Holidays
 from .services.kofia import Kofia
@@ -68,3 +69,8 @@ class DataGoKr:
     def weather(self) -> Weather:
         """기상청 동네예보 -- 단기예보·초단기예보·초단기실황(격자별)."""
         return Weather(self._api_key, timeout=self._timeout)
+
+    @cached_property
+    def airquality(self) -> AirQuality:
+        """한국환경공단 에어코리아 대기오염정보 -- 시도별·측정소별 실시간 측정."""
+        return AirQuality(self._api_key, timeout=self._timeout)

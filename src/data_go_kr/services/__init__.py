@@ -7,10 +7,11 @@ columns. The surfaces share nothing but :class:`~data_go_kr.session.DataGoKrSess
 
 from __future__ import annotations
 
+from .airquality import AirQuality
 from .customs import Customs
 from .holidays import Holidays
 from .kofia import Kofia
 from .realestate import Realestate
 from .weather import Weather
 
-__all__ = ["Customs", "Holidays", "Kofia", "Realestate", "Weather"]
+__all__ = ["AirQuality", "Customs", "Holidays", "Kofia", "Realestate", "Weather"]
