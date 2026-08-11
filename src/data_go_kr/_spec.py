@@ -68,8 +68,11 @@ class Table:
         return tuple(field.column for field in self.fields if field.is_key)
 
     @property
-    def date_column(self) -> str:
-        return next(field.column for field in self.fields if field.kind.startswith("date"))
+    def date_column(self) -> str | None:
+        """The clean column of this table's date field, or ``None`` for a wide-key table
+        that carries no date field (its rows are keyed by a surrogate id, not a period)."""
+        return next((field.column for field in self.fields
+                     if field.kind.startswith("date")), None)
 
 
 def clean(rows: list[Row], table: Table) -> list[CleanRow]:

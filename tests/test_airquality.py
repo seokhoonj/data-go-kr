@@ -1,5 +1,6 @@
 """AirQuality -- XML session, int/decimal measurements, both operations, offline."""
 
+import pytest
 
 from data_go_kr.services.airquality import AirQuality
 
@@ -64,7 +65,7 @@ def test_by_sido_types_the_measurements():
     assert row["station"] == "중구"
     assert row["measured_at"] == "2026-08-12 01:00"
     assert row["pm10"] == 7 and row["pm25"] == 7 and row["khai"] == 54   # int
-    assert row["o3"] == 0.034 and row["no2"] == 0.005                    # decimal -> float
+    assert row["o3"] == pytest.approx(0.034) and row["no2"] == pytest.approx(0.005)  # decimal
     assert row["pm10_flag"] is None                                      # empty -> None
 
 
@@ -79,6 +80,11 @@ def test_sido_operation_and_filter_reach_the_vendor():
     query = opener.requests[0].full_url
     assert "getCtprvnRltmMesureDnsty" in query
     assert "sidoName=" in query   # 부산 is url-encoded; its presence is the point
+
+
+def test_by_sido_with_no_rows_returns_empty_list():
+    air, _ = _air(_xml([], 0))
+    assert air.by_sido(sido="서울") == []
 
 
 def test_by_station_sends_the_station_and_data_term():

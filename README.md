@@ -33,8 +33,8 @@ data.go.kr 인증키가 필요합니다 -- 반드시 **디코딩**(원문) 키�
 from data_go_kr import DataGoKr
 
 client = DataGoKr()
-rows = client.weather.forecast(base_date="20260811", base_time="0500", nx=60, ny=127)
-raw  = client.realestate.apt_trade(region_code="11110", deal_ym="202401")
+rows   = client.weather.forecast(base_date="20260811", base_time="0500", nx=60, ny=127)
+trades = client.realestate.apt_trade(region_code="11110", deal_ym="202401")
 ```
 
 ```python

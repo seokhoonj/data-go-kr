@@ -1,14 +1,16 @@
 """Command-line shell over ``DataGoKr``.
 
 ``list`` browses the in-code catalog offline (no key) and ``fields`` shows one operation's
-clean column schema offline; ``kofia`` fetches one KOFIA 종합통계 operation over a date
-range; ``customs item_trade`` fetches one HS code's monthly 수출입실적. Each takes the same
-service and operation names the Python client uses.
+clean column schema offline. The fetch commands -- one per wrapped service: ``weather``,
+``airquality``, ``holidays``, ``realestate``, ``midforecast``, ``procurement``, ``customs``,
+``kofia`` -- each take the same service and operation names the Python client uses.
 
     $ data-go-kr list                                                # offline
-    $ data-go-kr fields kofia market_funds                           # offline
-    $ data-go-kr kofia market_funds --begin 20240101 --end 20240131
-    $ data-go-kr kofia credit_balance --begin 20240101 --end 20240131 --json
+    $ data-go-kr fields weather forecast                             # offline
+    $ data-go-kr weather forecast --base-date 20260811 --base-time 0500 --nx 60 --ny 127
+    $ data-go-kr airquality by_sido 서울
+    $ data-go-kr midforecast land --region 11B00000 --base-time 202608111800
+    $ data-go-kr procurement services --begin 202608010000 --end 202608102359
     $ data-go-kr customs item_trade 8542 --begin 202401 --end 202406
 """
 

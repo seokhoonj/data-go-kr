@@ -2,6 +2,7 @@
 
 from data_go_kr._spec import clean
 from data_go_kr.services.kofia import CMA_STATUS, DLS_DLB, MARKET_FUNDS, OVERSEAS_DERIVATIVES
+from data_go_kr.services.procurement import SERVICES
 
 
 def test_market_funds_row_parses_every_kind():
@@ -88,3 +89,9 @@ def test_table_derived_properties():
     assert MARKET_FUNDS.columns[0] == "bas_dt"
     assert CMA_STATUS.key_columns == ("bas_dt", "management_target", "investor_type")
     assert OVERSEAS_DERIVATIVES.is_wide_key
+
+
+def test_date_column_is_none_for_a_wide_key_table_without_a_date_field():
+    # A wide-key table keyed by a surrogate id, not a period, has no date field; the
+    # property returns None rather than raising StopIteration.
+    assert SERVICES.date_column is None

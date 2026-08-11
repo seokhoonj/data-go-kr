@@ -151,17 +151,20 @@ class DataGoKrSession:
         only its own inputs (e.g. the timeout) and forwards the filters as given.
         """
         rows: list[Row] = []
-        page = 1
-        while page <= _PAGE_CAP:
+        for page in range(1, _PAGE_CAP + 1):
             page_rows, total = self._fetch_page(operation, page, num_of_rows, filters)
             rows.extend(page_rows)
             last_page = (not page_rows
                          or len(page_rows) < num_of_rows
                          or (total is not None and len(rows) >= total))
             if last_page:
-                break
-            page += 1
-        return rows
+                return rows
+        # The cap was reached without any last-page signal: rather than silently return a
+        # truncated result that looks complete, refuse it. The message carries the
+        # operation path only (never the key-bearing query string).
+        raise DataGoKrError(
+            f"data.go.kr paging for {operation} exceeded {_PAGE_CAP} pages without a "
+            f"last-page signal; refusing to return a possibly truncated result")
 
     def _fetch_page(self, operation: str, page: int, num_of_rows: int,
                     filters: dict[str, str | None]) -> tuple[list[Row], int | None]:

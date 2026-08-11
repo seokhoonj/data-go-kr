@@ -119,7 +119,13 @@ def _deal_date(row: Row) -> str:
     year, month, day = row.get("dealYear"), row.get("dealMonth"), row.get("dealDay")
     if not (year and month and day):
         return ""
-    return f"{int(year):04d}{int(month):02d}{int(day):02d}"
+    try:
+        return f"{int(year):04d}{int(month):02d}{int(day):02d}"
+    except (TypeError, ValueError):
+        # A non-numeric part (a malformed vendor value) yields no date, so _spec.clean
+        # drops just this row on its date_ymd required-check -- one poisoned row does not
+        # crash the whole fetch.
+        return ""
 
 
 class Realestate:

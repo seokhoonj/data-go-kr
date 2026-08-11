@@ -83,6 +83,21 @@ def test_land_raw_passthrough_keeps_vendor_tokens():
     assert mid.land(region="11B00000", base_time="202608111800", clean=False) == [_LAND_ROW]
 
 
+def test_0600_announcement_keeps_day_four_that_1800_omits():
+    # A 0600 announcement carries day 4 (rnSt4Am/wf4Am); a 1800 one does not. The same
+    # code must surface the 0600 value AND leave the 1800 day-4 column None -- so a
+    # regression that dropped a present day-4 value could not hide behind the 1800 case.
+    row_0600 = {"regId": "11B00000", "rnSt4Am": "10", "rnSt4Pm": "20", "wf4Am": "맑음"}
+    mid, _ = _mid(_xml([row_0600], 1))
+    got_0600 = mid.land(region="11B00000", base_time="202608110600")[0]
+    assert got_0600["precip_prob_4am"] == 10 and got_0600["precip_prob_4pm"] == 20
+    assert got_0600["sky_4am"] == "맑음"
+
+    mid, _ = _mid(_xml([_LAND_ROW], 1))                 # the 1800 row omits day 4
+    got_1800 = mid.land(region="11B00000", base_time="202608111800")[0]
+    assert got_1800["precip_prob_4am"] is None and got_1800["sky_4am"] is None
+
+
 def test_operation_path_and_params_reach_the_vendor():
     mid, opener = _mid(_xml([], 0))
     mid.land(region="11B00000", base_time="202608111800")
@@ -91,6 +106,21 @@ def test_operation_path_and_params_reach_the_vendor():
     assert "regId=11B00000" in query
     assert "tmFc=202608111800" in query
     assert "dataType=XML" in query
+
+
+def test_temperature_operation_path_and_params_reach_the_vendor():
+    mid, opener = _mid(_xml([], 0))
+    mid.temperature(region="11B10101", base_time="202608111800")
+    query = opener.requests[0].full_url
+    assert "getMidTa" in query
+    assert "regId=11B10101" in query
+    assert "tmFc=202608111800" in query
+    assert "dataType=XML" in query
+
+
+def test_land_with_no_rows_returns_empty_list():
+    mid, _ = _mid(_xml([], 0))
+    assert mid.land(region="11B00000", base_time="202608111800") == []
 
 
 def test_fetch_rejects_an_unknown_operation():

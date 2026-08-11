@@ -114,11 +114,17 @@ def _error_for(code: str, message: str) -> DataGoKrError:
 
     Serves both envelope shapes: the portal's ``returnReasonCode`` (error-B) and a
     service's ``resultCode`` (error-A) share the portal's common code vocabulary.
+
+    Agencies zero-pad that code differently -- the standard is two digits (``"20"``) but
+    some (국토부 RTMS) send three (``"020"``). Classification compares on the significant
+    digits so a padded code lands in the same subclass; the raw code is preserved on the
+    error's ``.code`` and in its message.
     """
-    if code in _AUTH_REASON_CODES:
+    significant = code.lstrip("0") or "0"
+    if significant in _AUTH_REASON_CODES:
         return DataGoKrAuthError(
             code, message or "data.go.kr rejected the service key or the dataset "
                              "is not applied for")
-    if code in _RATE_LIMIT_REASON_CODES:
+    if significant in _RATE_LIMIT_REASON_CODES:
         return DataGoKrRateLimitError(code, message or "traffic limit exceeded")
     return DataGoKrResponseError(code, message)

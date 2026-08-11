@@ -99,6 +99,11 @@ def test_each_kind_hits_its_own_operation_with_the_window():
         assert "type=xml" in query
 
 
+def test_services_with_no_rows_returns_empty_list():
+    proc, _ = _proc(_xml([], 0))
+    assert proc.services(begin="202608010000", end="202608102359") == []
+
+
 def test_fetch_rejects_an_unknown_operation():
     proc, _ = _proc(_xml([], 0))
     with pytest.raises(ValueError, match="unknown operation"):

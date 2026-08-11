@@ -3,12 +3,12 @@
     from data_go_kr import DataGoKr
 
     client = DataGoKr()                    # or set DATA_GO_KR_API_KEY (the *decoding* key)
-    rows = client.kofia.market_funds(begin="20240101", end="20240131")
-    raw  = client.customs.item_trade("8542", begin="202401", end="202406")
+    rows   = client.weather.forecast(base_date="20260811", base_time="0500", nx=60, ny=127)
+    trades = client.realestate.apt_trade(region_code="11110", deal_ym="202401")
 
 One key, many services: the shared :class:`DataGoKrSession` speaks the portal's common
-envelope and paging protocol, and each wrapped agency -- 금융투자협회 (KOFIA) 종합통계,
-관세청 수출입 무역통계 -- is a thin surface over it. Rows come back as ``list[dict]``
+envelope and paging protocol, and each wrapped agency -- 기상청 동네예보, 에어코리아 대기오염,
+국토교통부 아파트 실거래가, ... -- is a thin surface over it. Rows come back as ``list[dict]``
 with the vendor's own field names (or cleaned to typed snake_case columns via the
 per-operation table specs) -- frame them your own way, e.g. ``pandas.DataFrame(rows)`` or
 ``polars.DataFrame(rows)``. The offline :mod:`data_go_kr.catalog` lists every service and
@@ -30,8 +30,16 @@ from .errors import (
     DataGoKrRateLimitError,
     DataGoKrResponseError,
 )
-from .services.customs import Customs
-from .services.kofia import Kofia
+from .services import (
+    AirQuality,
+    Customs,
+    Holidays,
+    Kofia,
+    MidForecast,
+    Procurement,
+    Realestate,
+    Weather,
+)
 from .session import DataGoKrSession
 from .types import Row
 
@@ -41,6 +49,7 @@ except PackageNotFoundError:              # running from source without an insta
     __version__ = "0.0.0+unknown"
 
 __all__ = [
+    "AirQuality",
     "Customs",
     "DataGoKr",
     "DataGoKrAuthError",
@@ -51,9 +60,14 @@ __all__ = [
     "DataGoKrResponseError",
     "DataGoKrSession",
     "Field",
+    "Holidays",
     "Kofia",
+    "MidForecast",
+    "Procurement",
+    "Realestate",
     "Row",
     "Table",
+    "Weather",
     "catalog",
     "clean",
 ]

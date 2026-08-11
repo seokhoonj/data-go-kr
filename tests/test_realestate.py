@@ -75,6 +75,16 @@ def test_apt_trade_synthesizes_deal_date_and_types_the_measures():
     assert "dealYear" not in row                  # split parts collapse into deal_date
 
 
+def test_a_non_numeric_date_part_drops_only_that_row_not_the_whole_fetch():
+    # A malformed vendor date part must not crash the entire month's fetch: _deal_date
+    # yields no date, so _spec.clean drops just that one row on its required date-check.
+    bad = dict(_TRADE_ROW, dealDay="19일")            # a stray non-numeric day
+    realestate, _ = _re(_xml([bad, dict(_TRADE_ROW)], 2))
+    rows = realestate.apt_trade(region_code="11110", deal_ym="202401")
+    assert len(rows) == 1                              # the good row survives; no crash
+    assert rows[0]["deal_date"] == "2024-01-19"
+
+
 def test_raw_passthrough_keeps_the_vendor_tokens_unchanged():
     realestate, _ = _re(_xml([_TRADE_ROW], 1))
     assert realestate.apt_trade(region_code="11110", deal_ym="202401", clean=False) == [_TRADE_ROW]

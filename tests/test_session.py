@@ -11,6 +11,7 @@ import pytest
 
 from data_go_kr.errors import (
     DataGoKrAuthError,
+    DataGoKrError,
     DataGoKrNetworkError,
     DataGoKrRateLimitError,
     DataGoKrResponseError,
@@ -224,14 +225,16 @@ def test_short_page_is_the_last_page():
     assert len(opener.requests) == 1                         # 3 < 1000 = last page
 
 
-def test_countless_run_stops_at_the_page_cap():
+def test_countless_run_raises_at_the_page_cap():
     # A service that returns a FULL page (num_of_rows rows) every time but never a
-    # totalCount could page forever; the runaway guard stops the loop at _PAGE_CAP calls.
+    # totalCount could page forever; the runaway guard stops at _PAGE_CAP calls and
+    # refuses to return a silently truncated result.
     opener = _InfiniteOpener(_envelope([{"n": "1"}]))       # full page (1 == num_of_rows)
     session = DataGoKrSession(_BASE, _KEY, opener=opener)
-    rows = session.fetch("getThing", num_of_rows=1)
+    with pytest.raises(DataGoKrError) as exc:
+        session.fetch("getThing", num_of_rows=1)
     assert len(opener.requests) == _PAGE_CAP
-    assert len(rows) == _PAGE_CAP
+    assert "getThing" in str(exc.value)
 
 
 def test_non_object_row_raises():
@@ -256,14 +259,17 @@ def test_other_result_code_raises_response_error():
 
 
 @pytest.mark.parametrize("code,exc_type", [
-    ("1",  DataGoKrResponseError),
-    ("4",  DataGoKrResponseError),
-    ("30", DataGoKrAuthError),
-    ("22", DataGoKrRateLimitError),
+    ("1",   DataGoKrResponseError),
+    ("4",   DataGoKrResponseError),
+    ("30",  DataGoKrAuthError),
+    ("030", DataGoKrAuthError),       # 3-digit zero-padded (국토부 RTMS style)
+    ("22",  DataGoKrRateLimitError),
+    ("022", DataGoKrRateLimitError),  # padded traffic code still backs off, not generic
 ])
 def test_result_code_maps_like_the_portal_fault(code, exc_type):
     # The service-envelope resultCode (error-A) shares the portal's reason vocabulary, so
-    # it must map to the same class -- and carry the code on .code -- as the fault path.
+    # it must map to the same class -- and carry the raw code on .code -- as the fault
+    # path, whether the agency zero-pads to two digits or three.
     session, _ = _session(_envelope(None, code=code, message="X"))
     with pytest.raises(exc_type) as exc:
         session.fetch("getThing")
