@@ -69,23 +69,83 @@ pl.DataFrame(rows)
 
 ## 4. 커맨드라인
 
-호출 형태는 `data-go-kr <서비스> <오퍼레이션> [옵션]`입니다. 서비스·오퍼레이션 목록과
-각 오퍼레이션의 옵션은 아래로 확인하세요:
+호출 형태는 `data-go-kr <서비스> <오퍼레이션> [옵션]`입니다. 전체 서비스·오퍼레이션
+목록은 `data-go-kr list`(오프라인, 키 불필요), 각 오퍼레이션의 옵션은 `data-go-kr
+<서비스> <오퍼레이션> --help`로 확인합니다. 어느 명령에든 `--json`을 붙이면 JSON으로
+나옵니다.
+
+**weather — 기상청 동네예보** · `forecast`(단기) / `ultra_forecast`(초단기) / `nowcast`(실황)
 
 ```bash
-data-go-kr list                       # 서비스·오퍼레이션 목록 (오프라인, 키 불필요)
-data-go-kr weather --help             # weather의 오퍼레이션
-data-go-kr weather forecast --help    # forecast의 옵션
+data-go-kr weather forecast --base-date 20260811 --base-time 0500 --nx 60 --ny 127
 ```
 
-예시:
+`--nx`/`--ny`는 기상청 5km 격자좌표(서울 종로 ≈ 60,127), `--base-time`은 발표시각(0200·
+0500·…·2300 중)입니다.
+
+**airquality — 에어코리아 대기오염정보** · `by_sido`(시도별) / `by_station`(측정소별)
 
 ```bash
-data-go-kr holidays --year 2026                         # 공휴일
-data-go-kr realestate apt_trade 11110 --deal-ym 202401  # 아파트 매매 실거래가
+data-go-kr airquality by_sido 서울
+data-go-kr airquality by_station 종로구 --data-term DAILY
 ```
 
-`--json`을 붙이면 JSON으로 나옵니다.
+`by_sido`는 시도명, `by_station`은 측정소명을 받습니다. `--data-term`은 조회기간(DAILY /
+MONTH / 3MONTH).
+
+**holidays — 한국천문연구원 특일 정보** · `holidays`(기본) / `national_holidays` /
+`anniversaries` / `solar_terms` / `sundry_days`
+
+```bash
+data-go-kr holidays --year 2026
+data-go-kr holidays solar_terms --year 2026
+```
+
+`--year`는 필수이고, `--month`(1–12)로 특정 달만 볼 수 있습니다(`solar_terms`는 24절기).
+
+**realestate — 국토교통부 아파트 실거래가** · `apt_trade`(매매) / `apt_trade_detail`(매매
+상세) / `apt_rent`(전월세) / `apt_presale`(분양권)
+
+```bash
+data-go-kr realestate apt_trade 11110 --deal-ym 202401
+```
+
+`11110`은 법정동 코드 앞 5자리(LAWD_CD, 종로구), `--deal-ym`은 계약년월입니다.
+
+**midforecast — 기상청 중기예보** · `land`(육상: 강수·날씨) / `temperature`(기온: 최저·최고)
+
+```bash
+data-go-kr midforecast land --region 11B00000 --base-time 202608110600
+```
+
+`--region`은 예보구역코드(11B00000 = 서울·인천·경기), `--base-time`은 발표시각(매일 0600·
+1800)입니다.
+
+**procurement — 조달청 나라장터 입찰공고** · `goods`(물품) / `services`(용역) /
+`construction`(공사) / `foreign`(외자)
+
+```bash
+data-go-kr procurement services --begin 202608010000 --end 202608102359
+```
+
+`--begin`/`--end`는 공고게시 구간(YYYYMMDDHHMM, 분 단위), `--inqry-div`로 기준을 바꿉니다(1
+공고게시일시 / 2 개찰일시).
+
+**customs — 관세청 품목별 수출입실적** · `item_trade`
+
+```bash
+data-go-kr customs item_trade 8542 --begin 202401 --end 202406
+```
+
+`8542`는 HS 부호(반도체 집적회로), 구간은 YYYYMM입니다.
+
+**kofia — 금융투자협회 종합통계** · `market_funds` 등 8개 오퍼레이션(`data-go-kr list` 참고)
+
+```bash
+data-go-kr kofia market_funds --begin 20240101 --end 20240131
+```
+
+`--begin`/`--end`는 YYYYMMDD이며, 월간 통계는 YYYYMM으로 줍니다.
 
 ## 5. AI 코딩 에이전트에서 사용
 

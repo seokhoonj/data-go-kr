@@ -73,23 +73,86 @@ Supported services -- this table matches the offline catalog (`data-go-kr list` 
 
 ## 4. Command line
 
-The call shape is `data-go-kr <service> <operation> [options]`. Discover the services,
-operations, and each operation's options with `list` and `--help`:
+The call shape is `data-go-kr <service> <operation> [options]`. List every service and
+operation with `data-go-kr list` (offline, no key); see an operation's options with
+`data-go-kr <service> <operation> --help`. Add `--json` to any command for machine-readable
+output.
+
+**weather — 기상청 동네예보 (village forecast)** · `forecast` (단기) / `ultra_forecast`
+(초단기) / `nowcast` (실황)
 
 ```bash
-data-go-kr list                       # services and operations (offline, no key)
-data-go-kr weather --help             # weather's operations
-data-go-kr weather forecast --help    # forecast's options
+data-go-kr weather forecast --base-date 20260811 --base-time 0500 --nx 60 --ny 127
 ```
 
-Examples:
+`--nx`/`--ny` are the KMA 5km grid coordinates (Seoul Jongno ≈ 60,127); `--base-time` is the
+announcement time (0200, 0500, …, 2300).
+
+**airquality — 에어코리아 (AirKorea)** · `by_sido` (by province) / `by_station` (by station)
 
 ```bash
-data-go-kr holidays --year 2026                         # public holidays
-data-go-kr realestate apt_trade 11110 --deal-ym 202401  # apartment sale trades
+data-go-kr airquality by_sido 서울
+data-go-kr airquality by_station 종로구 --data-term DAILY
 ```
 
-Add `--json` for machine-readable output.
+`by_sido` takes a 시도 (province) name, `by_station` a station name. `--data-term` is the
+window (DAILY / MONTH / 3MONTH).
+
+**holidays — 한국천문연구원 (KASI)** · `holidays` (default) / `national_holidays` /
+`anniversaries` / `solar_terms` / `sundry_days`
+
+```bash
+data-go-kr holidays --year 2026
+data-go-kr holidays solar_terms --year 2026
+```
+
+`--year` is required; `--month` (1–12) narrows to one month (`solar_terms` = the 24 절기).
+
+**realestate — 국토교통부 (MOLIT RTMS)** · `apt_trade` (sale) / `apt_trade_detail` (sale
+detail) / `apt_rent` (rent) / `apt_presale` (presale)
+
+```bash
+data-go-kr realestate apt_trade 11110 --deal-ym 202401
+```
+
+`11110` is the first 5 digits of the 법정동 code (LAWD_CD, Jongno-gu); `--deal-ym` is the
+contract year-month.
+
+**midforecast — 기상청 중기예보 (medium-range)** · `land` (강수·날씨) / `temperature`
+(최저·최고)
+
+```bash
+data-go-kr midforecast land --region 11B00000 --base-time 202608110600
+```
+
+`--region` is the forecast-zone code (11B00000 = Seoul/Incheon/Gyeonggi); `--base-time` is
+the announcement time (0600 or 1800 daily).
+
+**procurement — 조달청 나라장터 (Public Procurement)** · `goods` (물품) / `services` (용역) /
+`construction` (공사) / `foreign` (외자)
+
+```bash
+data-go-kr procurement services --begin 202608010000 --end 202608102359
+```
+
+`--begin`/`--end` are the posting window (YYYYMMDDHHMM, minute precision); `--inqry-div`
+switches the basis (1 posting time / 2 opening time).
+
+**customs — 관세청 (Korea Customs)** · `item_trade`
+
+```bash
+data-go-kr customs item_trade 8542 --begin 202401 --end 202406
+```
+
+`8542` is the HS code (electronic integrated circuits); the range is YYYYMM.
+
+**kofia — 금융투자협회 (KOFIA)** · `market_funds` and 7 more operations (see `data-go-kr list`)
+
+```bash
+data-go-kr kofia market_funds --begin 20240101 --end 20240131
+```
+
+`--begin`/`--end` are YYYYMMDD; monthly operations take YYYYMM.
 
 ## 5. AI coding agents
 
