@@ -67,55 +67,53 @@ Supported services -- this table matches the offline catalog (`data-go-kr list` 
 | `client.customs` | 관세청 품목별 수출입실적 (Korea Customs) | 1220000 | XML | `item_trade` -- monthly export/import value and weight by HS code |
 | `client.kofia` | 금융투자협회 종합통계 (KOFIA) | 1160100 | JSON | 8 -- `market_funds` · `credit_balance` · `trust_scale` · `fund_net_asset` · `cma_status` · `dls_dlb` · `els_elb` · `overseas_derivatives` |
 
-- Each service must be applied for (활용신청) separately on your account (see Sec. 5).
+- Each service must be applied for (활용신청) separately on your account (see Sec. 6).
 - `clean=True` (default) returns typed snake_case columns; `clean=False` the raw vendor
   tokens.
 
-**Offline browse (no key):** `catalog.services()` / `catalog.operations("kofia")` /
-`catalog.fields("kofia", "market_funds")` (the per-operation clean column schema -- token,
-column, kind, is_key). From the CLI: `data-go-kr list`, `data-go-kr fields kofia market_funds`.
-
-**Cleaning on its own:** the public `clean(rows, table)` with the per-operation `Table` /
-`Field` specs turns raw vendor rows into typed snake_case columns without a client
-(`from data_go_kr import clean`).
-
-### Adding a service
-
-data.go.kr hosts thousands of agency APIs and they change over time, so services are
-additive. The neutral `DataGoKrSession` transport already handles the portal contract
-(the decoding-key single-encode, paging, both error envelopes, the reason-code
-vocabulary) for every service, so a new one is a small, repeatable module -- nothing in
-the transport changes:
-
-1. Add `src/data_go_kr/services/<agency>.py` with a surface class that builds a
-   `DataGoKrSession(base_url, api_key, timeout=..., json_param=...)` at that service's
-   base URL (`json_param` is `"resultType"` for most, `"_type"` for some -- check the
-   service's spec page).
-2. Declare its operations and a `Table` spec per operation (`Field(token, column, kind)`)
-   -- the one declarative place vendor tokens map to clean columns, so a later field
-   change is a one-line edit, not a code change.
-3. Register the service in `catalog.py` so `data-go-kr list` and the offline catalog show it.
-4. Apply for the dataset (활용신청) on your account, then pin any pending field tokens
-   with one live call.
-
 ## 4. Command line
 
+The call shape is `data-go-kr <service> <operation> [options]`. Discover the services,
+operations, and each operation's options with `list` and `--help`:
+
 ```bash
-data-go-kr list                                         # offline, no key
-data-go-kr fields weather forecast                      # offline column schema
-data-go-kr weather forecast --base-date 20260811 --base-time 0500 --nx 60 --ny 127
-data-go-kr airquality by_sido 서울                      # real-time PM/ozone
+data-go-kr list                       # services and operations (offline, no key)
+data-go-kr weather --help             # weather's operations
+data-go-kr weather forecast --help    # forecast's options
+```
+
+Examples:
+
+```bash
 data-go-kr holidays --year 2026                         # public holidays
 data-go-kr realestate apt_trade 11110 --deal-ym 202401  # apartment sale trades
-data-go-kr midforecast land --region 11B00000 --base-time 202608111800
-data-go-kr procurement services --begin 202608010000 --end 202608102359
-data-go-kr customs item_trade 8542 --begin 202401 --end 202406
-data-go-kr kofia market_funds --begin 20240101 --end 20240131
 ```
 
 Add `--json` for machine-readable output.
 
-## 5. Errors & operational notes
+## 5. AI coding agents
+
+- This repo doubles as a plugin marketplace for Claude Code and Codex.
+- It ships nine skills -- `list`, `weather`, `airquality`, `holidays`, `realestate`,
+  `midforecast`, `procurement`, `customs`, `kofia` -- each a thin wrapper over the
+  `data-go-kr` command.
+- Install the package first (`list` works without a key; the fetches need one).
+
+### 5.1 Claude Code (chat)
+
+```
+/plugin marketplace add seokhoonj/data-go-kr
+/plugin install data-go-kr@data-go-kr
+```
+
+### 5.2 Codex (terminal)
+
+```
+codex plugin marketplace add seokhoonj/data-go-kr
+codex plugin add data-go-kr@data-go-kr
+```
+
+## 6. Errors & operational notes
 
 Every operational error derives from `DataGoKrError`: `DataGoKrConfigError` (no key),
 `DataGoKrAuthError` (key rejected / dataset not applied for), `DataGoKrRateLimitError`
@@ -149,28 +147,6 @@ preserves the code on `.code`, so you can still branch on 1/4/12/99 yourself):
   on the data.go.kr API notices board (`nttApiYn=Y`).
 - **CORS is not a concern.** This is a server-side client, so the browser Same-Origin
   policy that blocks some providers' APIs from front-end JavaScript never applies here.
-
-## 6. AI coding agents
-
-- This repo doubles as a plugin marketplace for Claude Code and Codex.
-- It ships nine skills -- `list`, `weather`, `airquality`, `holidays`, `realestate`,
-  `midforecast`, `procurement`, `customs`, `kofia` -- each a thin wrapper over the
-  `data-go-kr` command.
-- Install the package first (`list` works without a key; the fetches need one).
-
-### 6.1 Claude Code (chat)
-
-```
-/plugin marketplace add seokhoonj/data-go-kr
-/plugin install data-go-kr@data-go-kr
-```
-
-### 6.2 Codex (terminal)
-
-```
-codex plugin marketplace add seokhoonj/data-go-kr
-codex plugin add data-go-kr@data-go-kr
-```
 
 ## 7. License
 
