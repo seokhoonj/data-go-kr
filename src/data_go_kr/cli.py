@@ -24,6 +24,8 @@ from collections.abc import Callable, Mapping, Sequence
 
 from . import __version__, catalog
 from .errors import DataGoKrError
+from .grid import latlon_to_grid
+from .regions import land_region, lawd_code, temp_region
 from .services.airquality import AirQuality
 from .services.customs import Customs
 from .services.holidays import Holidays
@@ -79,6 +81,30 @@ def _make_parser() -> argparse.ArgumentParser:
     fields_cmd.add_argument("operation", help="operation name, e.g. market_funds")
     fields_cmd.add_argument("--json", action="store_true", help="emit JSON instead of text")
     fields_cmd.set_defaults(run=_run_fields)
+
+    # Offline code resolvers (no key), mirroring the Python helpers.
+    grid_cmd = commands.add_parser("grid", help="lat/lon -> KMA grid nx/ny (offline)")
+    grid_cmd.add_argument("lat", type=float, help="위도 (decimal degrees)")
+    grid_cmd.add_argument("lon", type=float, help="경도 (decimal degrees)")
+    grid_cmd.add_argument("--json", action="store_true", help="emit JSON instead of text")
+    grid_cmd.set_defaults(run=_run_grid)
+
+    lawd_cmd = commands.add_parser("lawd", help="지역명 -> 법정동코드 LAWD_CD (offline)")
+    lawd_cmd.add_argument("query", help="시군구명 (예 종로구, '서울 중구')")
+    lawd_cmd.add_argument("--json", action="store_true", help="emit JSON instead of text")
+    lawd_cmd.set_defaults(run=_run_lawd)
+
+    land_region_cmd = commands.add_parser("land-region",
+                                          help="지역명 -> 중기육상예보 REGID (offline)")
+    land_region_cmd.add_argument("query", help="구역명 (예 서울)")
+    land_region_cmd.add_argument("--json", action="store_true", help="emit JSON instead of text")
+    land_region_cmd.set_defaults(run=_run_land_region)
+
+    temp_region_cmd = commands.add_parser("temp-region",
+                                          help="지역명 -> 중기기온예보 REGID (offline)")
+    temp_region_cmd.add_argument("query", help="도시명 (예 서울)")
+    temp_region_cmd.add_argument("--json", action="store_true", help="emit JSON instead of text")
+    temp_region_cmd.set_defaults(run=_run_temp_region)
 
     kofia_cmd = commands.add_parser("kofia", help="fetch one KOFIA 종합통계 operation")
     kofia_cmd.add_argument("operation",
@@ -202,6 +228,31 @@ def _run_fields(args: argparse.Namespace) -> int:
     # catalog.fields raises ValueError for an unknown service/operation, which main()
     # turns into a usage error (exit 2) with the message it built.
     _emit(catalog.fields(args.service, args.operation), args.json)
+    return 0
+
+
+def _run_grid(args: argparse.Namespace) -> int:
+    g = latlon_to_grid(args.lat, args.lon)
+    print(json.dumps({"nx": g.nx, "ny": g.ny}) if args.json else f"{g.nx} {g.ny}")
+    return 0
+
+
+def _run_lawd(args: argparse.Namespace) -> int:
+    # A no/ambiguous match raises ValueError -> main() prints it and returns 2.
+    code = lawd_code(args.query)
+    print(json.dumps({"code": code}, ensure_ascii=False) if args.json else code)
+    return 0
+
+
+def _run_land_region(args: argparse.Namespace) -> int:
+    code = land_region(args.query)
+    print(json.dumps({"code": code}, ensure_ascii=False) if args.json else code)
+    return 0
+
+
+def _run_temp_region(args: argparse.Namespace) -> int:
+    code = temp_region(args.query)
+    print(json.dumps({"code": code}, ensure_ascii=False) if args.json else code)
     return 0
 
 
