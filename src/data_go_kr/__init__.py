@@ -30,6 +30,7 @@ from .errors import (
     DataGoKrRateLimitError,
     DataGoKrResponseError,
 )
+from .grid import Grid, latlon_to_grid
 from .services import (
     AirQuality,
     Customs,
@@ -60,6 +61,7 @@ __all__ = [
     "DataGoKrResponseError",
     "DataGoKrSession",
     "Field",
+    "Grid",
     "Holidays",
     "Kofia",
     "MidForecast",
@@ -70,4 +72,5 @@ __all__ = [
     "Weather",
     "catalog",
     "clean",
+    "latlon_to_grid",
 ]
