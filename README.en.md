@@ -86,7 +86,8 @@ data-go-kr weather forecast --base-date 20260811 --base-time 0500 --nx 60 --ny 1
 ```
 
 `--nx`/`--ny` are the KMA 5km grid coordinates (Seoul Jongno ≈ 60,127); `--base-time` is the
-announcement time (0200, 0500, …, 2300).
+announcement time (0200, 0500, …, 2300). Get the grid from a lat/lon with
+`data-go-kr grid <lat> <lon>`.
 
 **airquality — 에어코리아 (AirKorea)** · `by_sido` (by province) / `by_station` (by station)
 
@@ -115,8 +116,8 @@ detail) / `apt_rent` (rent) / `apt_presale` (presale)
 data-go-kr realestate apt_trade 11110 --deal-ym 202401
 ```
 
-`11110` is the first 5 digits of the 법정동 code (LAWD_CD, Jongno-gu); `--deal-ym` is the
-contract year-month.
+`11110` is the first 5 digits of the 법정동 code (LAWD_CD, Jongno-gu) -- find it with
+`data-go-kr lawd 종로구`; `--deal-ym` is the contract year-month.
 
 **midforecast — 기상청 중기예보 (medium-range)** · `land` (강수·날씨) / `temperature`
 (최저·최고)
@@ -125,8 +126,9 @@ contract year-month.
 data-go-kr midforecast land --region 11B00000 --base-time 202608110600
 ```
 
-`--region` is the forecast-zone code (11B00000 = Seoul/Incheon/Gyeonggi); `--base-time` is
-the announcement time (0600 or 1800 daily).
+`--region` is the forecast-zone code (11B00000 = Seoul/Incheon/Gyeonggi) -- find it with
+`data-go-kr land-region 서울` / `data-go-kr temp-region 서울`; `--base-time` is the
+announcement time (0600 or 1800 daily).
 
 **procurement — 조달청 나라장터 (Public Procurement)** · `goods` (물품) / `services` (용역) /
 `construction` (공사) / `foreign` (외자)

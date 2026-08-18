@@ -81,7 +81,7 @@ data-go-kr weather forecast --base-date 20260811 --base-time 0500 --nx 60 --ny 1
 ```
 
 `--nx`/`--ny`는 기상청 5km 격자좌표(서울 종로 ≈ 60,127), `--base-time`은 발표시각(0200·
-0500·…·2300 중)입니다.
+0500·…·2300 중)입니다. 위경도만 알면 `data-go-kr grid <위도> <경도>`로 격자를 구합니다.
 
 **airquality — 에어코리아 대기오염정보** · `by_sido`(시도별) / `by_station`(측정소별)
 
@@ -110,7 +110,8 @@ data-go-kr holidays solar_terms --year 2026
 data-go-kr realestate apt_trade 11110 --deal-ym 202401
 ```
 
-`11110`은 법정동 코드 앞 5자리(LAWD_CD, 종로구), `--deal-ym`은 계약년월입니다.
+`11110`은 법정동 코드 앞 5자리(LAWD_CD, 종로구)로 `data-go-kr lawd 종로구`로 찾고,
+`--deal-ym`은 계약년월입니다.
 
 **midforecast — 기상청 중기예보** · `land`(육상: 강수·날씨) / `temperature`(기온: 최저·최고)
 
@@ -118,8 +119,8 @@ data-go-kr realestate apt_trade 11110 --deal-ym 202401
 data-go-kr midforecast land --region 11B00000 --base-time 202608110600
 ```
 
-`--region`은 예보구역코드(11B00000 = 서울·인천·경기), `--base-time`은 발표시각(매일 0600·
-1800)입니다.
+`--region`은 예보구역코드(11B00000 = 서울·인천·경기)로 `data-go-kr land-region 서울` /
+`data-go-kr temp-region 서울`로 찾고, `--base-time`은 발표시각(매일 0600·1800)입니다.
 
 **procurement — 조달청 나라장터 입찰공고** · `goods`(물품) / `services`(용역) /
 `construction`(공사) / `foreign`(외자)
