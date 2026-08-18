@@ -31,6 +31,7 @@ from .errors import (
     DataGoKrResponseError,
 )
 from .grid import Grid, latlon_to_grid
+from .regions import land_region, lawd_code, temp_region
 from .services import (
     AirQuality,
     Customs,
@@ -72,5 +73,8 @@ __all__ = [
     "Weather",
     "catalog",
     "clean",
+    "land_region",
     "latlon_to_grid",
+    "lawd_code",
+    "temp_region",
 ]

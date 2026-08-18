@@ -1,0 +1,70 @@
+"""Resolve a Korean place name to the vendor code a data.go.kr service takes: a 법정동
+시군구 code (LAWD_CD) for `realestate`, and a 중기예보 REGID for `midforecast` (the land
+zone and the temperature city are separate code sets). A 시군구 name repeats across 시도
+(many "중구"), so an ambiguous query raises `ValueError` listing the candidates; qualify it
+with a 시도 ("서울 중구") or the parent 시 ("수원시 장안구") to pin one down."""
+
+from __future__ import annotations
+
+from ._regions_data import LAND_ZONES, SIGUNGU, TEMP_CITIES
+
+__all__ = ["lawd_code", "land_region", "temp_region"]
+
+# 도 abbreviations a 시도 substring test misses (충남 is not a substring of 충청남도). The
+# 특별시/광역시/특별자치도 short forms ("서울", "강원", "전북") are substrings, so they need
+# no entry here.
+_SIDO_ALIAS = {"충북": "충청북도", "충남": "충청남도", "경북": "경상북도", "경남": "경상남도"}
+
+
+def _sido_matches(hint: str, sido: str) -> bool:
+    return hint in sido or _SIDO_ALIAS.get(hint) == sido
+
+
+def lawd_code(query: str) -> str:
+    """The 5-digit 법정동 시군구 code (LAWD_CD) for ``query``: "종로구" -> "11110",
+    "서울 중구" -> "11140", "수원시 장안구" -> "41111". The last whitespace-separated token is
+    the 시군구 (a 일반구 name may be a suffix, e.g. "장안구" of "수원시장안구"); any leading
+    token qualifies it by 시도 or parent 시. Raises ``ValueError`` if nothing matches or the
+    name is ambiguous (the message lists the candidates)."""
+    tokens = query.split()
+    if not tokens:
+        raise ValueError(f"no 시군구 matches {query!r}")
+    name = tokens[-1]
+    hint = "".join(tokens[:-1])
+    cands = [(sido, sg, code) for (sido, sg, code) in SIGUNGU if sg == name or sg.endswith(name)]
+    if hint:
+        cands = [c for c in cands if _sido_matches(hint, c[0]) or c[1].startswith(hint)]
+    if not cands:
+        raise ValueError(f"no 시군구 matches {query!r}")
+    if len(cands) > 1:
+        listing = ", ".join(f"{sido} {sg}" for (sido, sg, _) in cands)
+        raise ValueError(
+            f"{query!r} matches several 시군구: {listing} -- add the 시도 to disambiguate"
+        )
+    return cands[0][2]
+
+
+def land_region(query: str) -> str:
+    """The 중기육상예보 (getMidLandFcst) REGID for ``query`` (e.g. "서울" -> "11B00000")."""
+    return _resolve_named(query, LAND_ZONES, "육상예보구역")
+
+
+def temp_region(query: str) -> str:
+    """The 중기기온예보 (getMidTa) 도시 REGID for ``query`` (e.g. "서울" -> "11B10101")."""
+    return _resolve_named(query, TEMP_CITIES, "기온 도시")
+
+
+def _resolve_named(query: str, table: tuple[tuple[str, str], ...], label: str) -> str:
+    """Match ``query`` against ``table`` of (name, code): an exact name wins outright,
+    otherwise fall back to a substring match. Raises ``ValueError`` on no/ambiguous match."""
+    q = query.strip()
+    exact = [(nm, code) for (nm, code) in table if nm == q]
+    cands = exact or [(nm, code) for (nm, code) in table if q in nm]
+    if not cands:
+        raise ValueError(f"no {label} matches {query!r}")
+    if len(cands) > 1:
+        listing = ", ".join(nm for (nm, _) in cands)
+        raise ValueError(
+            f"{query!r} matches several {label}: {listing} -- use a more specific name"
+        )
+    return cands[0][1]
