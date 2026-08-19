@@ -24,7 +24,7 @@ data.go.kr 인증키가 필요합니다 -- 반드시 **디코딩**(원문) 키�
 
 ## 2. 빠른 시작
 
-키 하나로 여러 서비스를 한 클라이언트에서 다룹니다:
+**미리 만들어 둔 서비스**(§3 표)는 한 클라이언트에서 바로 씁니다:
 
 ```python
 from data_go_kr import DataGoKr
@@ -34,16 +34,23 @@ rows   = client.weather.forecast(base_date="20260811", base_time="0500", nx=60, 
 trades = client.realestate.apt_trade(region_code="11110", deal_ym="202401")
 ```
 
-필요한 서비스만 직접 만들어 조립해도 됩니다(키는 동일하게 인자·환경변수·config에서 읽음):
+**표에 없는(아직 안 감싼) 서비스**도 전송 계층으로 직접 조립합니다 -- base URL·오퍼레이션·
+필터만 있으면 되고, 디코딩키 주입·페이징·두 에러 형식은 전송 계층이 처리해 벤더 원본
+필드명 그대로 돌려줍니다. 위 `apt_trade`를 파사드 없이 직접 부르면(스펙 페이지에서 base
+URL·오퍼레이션 경로·파라미터명을 얻습니다):
 
 ```python
-from data_go_kr import Weather, Realestate
+from data_go_kr import DataGoKrSession
 
-rows   = Weather().forecast(base_date="20260811", base_time="0500", nx=60, ny=127)
-trades = Realestate().apt_trade(region_code="11110", deal_ym="202401")
+session = DataGoKrSession("https://apis.data.go.kr/1613000", response_format="xml")
+rows = session.fetch(
+    "RTMSDataSvcAptTrade/getRTMSDataSvcAptTrade",  # 오퍼레이션 경로
+    LAWD_CD="11110",    # 법정동 시군구코드 (앞 5자리)
+    DEAL_YMD="202401",  # 계약년월 YYYYMM
+)
 ```
 
-결과는 `list[dict]`이라 pandas·polars 표로 바로 만듭니다:
+결과는 어느 쪽이든 `list[dict]`이라 pandas·polars 표로 바로 만듭니다:
 
 ```python
 import pandas as pd; pd.DataFrame(rows)     # pandas
