@@ -59,7 +59,7 @@ import polars as pl; pl.DataFrame(rows)      # polars
 - 서비스마다 계정에서 **활용신청**이 따로 필요합니다. 에러 처리와 운영 참고(활용신청·
   트래픽 한도·reason 코드)는 [docs/errors.md](docs/errors.md).
 
-## 4. 커맨드라인 (한눈에)
+## 4. 커맨드라인
 
 ```bash
 data-go-kr list                                         # 서비스·오퍼레이션 (오프라인, 키 불필요)
