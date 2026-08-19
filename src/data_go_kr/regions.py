@@ -31,7 +31,13 @@ def lawd_code(query: str) -> str:
         raise ValueError(f"no 시군구 matches {query!r}")
     name = tokens[-1]
     hint = "".join(tokens[:-1])
-    cands = [(sido, sg, code) for (sido, sg, code) in SIGUNGU if sg == name or sg.endswith(name)]
+    # A 일반구 is stored as "<시>구" (e.g. "수원시장안구"), so a suffix match must land on that
+    # 시-seam -- otherwise "천안 남구" would silently match "천안시동남구" (천안 has no 남구).
+    cands = [
+        (sido, sg, code)
+        for (sido, sg, code) in SIGUNGU
+        if sg == name or (sg.endswith(name) and sg[: -len(name)].endswith("시"))
+    ]
     if hint:
         cands = [c for c in cands if _sido_matches(hint, c[0]) or c[1].startswith(hint)]
     if not cands:
@@ -45,12 +51,14 @@ def lawd_code(query: str) -> str:
 
 
 def land_region(query: str) -> str:
-    """The 중기육상예보 (getMidLandFcst) REGID for ``query`` (e.g. "서울" -> "11B00000")."""
+    """The 중기육상예보 (getMidLandFcst) REGID for ``query`` (e.g. "서울" -> "11B00000").
+    Raises ``ValueError`` if nothing matches or the name is ambiguous."""
     return _resolve_named(query, LAND_ZONES, "육상예보구역")
 
 
 def temp_region(query: str) -> str:
-    """The 중기기온예보 (getMidTa) 도시 REGID for ``query`` (e.g. "서울" -> "11B10101")."""
+    """The 중기기온예보 (getMidTa) 도시 REGID for ``query`` (e.g. "서울" -> "11B10101").
+    Raises ``ValueError`` if nothing matches or the name is ambiguous."""
     return _resolve_named(query, TEMP_CITIES, "기온 도시")
 
 

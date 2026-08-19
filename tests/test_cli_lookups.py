@@ -28,8 +28,23 @@ def test_lawd_json(capsys):
     assert json.loads(capsys.readouterr().out) == {"code": "11110"}
 
 
-def test_land_and_temp(capsys):
+def test_land_region_prints_code(capsys):
     assert main(["land-region", "서울"]) == 0
     assert capsys.readouterr().out.strip() == "11B00000"
+
+
+def test_temp_region_prints_code(capsys):
     assert main(["temp-region", "서울"]) == 0
     assert capsys.readouterr().out.strip() == "11B10101"
+
+
+def test_land_region_json(capsys):
+    assert main(["land-region", "서울", "--json"]) == 0
+    assert json.loads(capsys.readouterr().out) == {"code": "11B00000"}
+
+
+def test_region_unknown_exits_2(capsys):
+    assert main(["land-region", "없는지역"]) == 2
+    assert "data-go-kr:" in capsys.readouterr().err
+    assert main(["temp-region", "없는도시"]) == 2
+    assert "data-go-kr:" in capsys.readouterr().err

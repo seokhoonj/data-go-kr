@@ -7,12 +7,14 @@ def test_lawd_unique():
     assert lawd_code("종로구") == "11110"
 
 
-def test_lawd_ambiguous_lists_candidates():
-    # 중구 exists in several 시도; the error must name them and ask for a 시도 qualifier.
+def test_lawd_ambiguous_lists_every_candidate():
+    # 중구 exists in five 시도; the error must name them ALL and ask for a 시도 qualifier.
     with pytest.raises(ValueError) as exc:
         lawd_code("중구")
     msg = str(exc.value)
-    assert "서울특별시 중구" in msg and "부산광역시 중구" in msg
+    for candidate in ("서울특별시 중구", "부산광역시 중구", "대구광역시 중구",
+                      "대전광역시 중구", "울산광역시 중구"):
+        assert candidate in msg
 
 
 def test_lawd_sido_qualifier():
@@ -20,15 +22,25 @@ def test_lawd_sido_qualifier():
 
 
 def test_lawd_sido_alias():
-    # 경남 is not a substring of 경상남도, so the alias table must map it.
-    assert lawd_code("경남 고성군") == lawd_code("경상남도 고성군")
+    # 경남 is not a substring of 경상남도, so the alias table must map it -- both forms resolve
+    # to the same vendor code (a fixed oracle, not one call compared against another).
+    assert lawd_code("경남 고성군") == "48820"
+    assert lawd_code("경상남도 고성군") == "48820"
 
 
 def test_lawd_ilban_gu_by_parent_city():
-    # 일반구: name stored as "수원시장안구"; both the parent-city qualifier and the bare 구 work.
-    code = lawd_code("수원시장안구")
-    assert code == lawd_code("수원시 장안구") == lawd_code("장안구")
-    assert code.startswith("411")
+    # 일반구: name stored as "수원시장안구"; the bare 구, the parent-시 qualifier, and the joined
+    # form all resolve to the one code.
+    assert lawd_code("수원시장안구") == "41111"
+    assert lawd_code("수원시 장안구") == "41111"
+    assert lawd_code("장안구") == "41111"
+
+
+def test_lawd_suffix_requires_ilban_gu_seam():
+    # A bare suffix must not match a 자치구 that merely ends with it: 천안 has no 남구 (only
+    # 동남구/서북구), so "천안 남구" must fail loudly rather than return 천안시동남구's code.
+    with pytest.raises(ValueError):
+        lawd_code("천안 남구")
 
 
 def test_lawd_unknown():
