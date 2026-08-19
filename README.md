@@ -24,6 +24,8 @@ data.go.kr 인증키가 필요합니다 -- 반드시 **디코딩**(원문) 키�
 
 ## 2. 빠른 시작
 
+키 하나로 여러 서비스를 한 클라이언트에서 다룹니다:
+
 ```python
 from data_go_kr import DataGoKr
 
@@ -32,6 +34,17 @@ rows   = client.weather.forecast(base_date="20260811", base_time="0500", nx=60, 
 trades = client.realestate.apt_trade(region_code="11110", deal_ym="202401")
 ```
 
+필요한 서비스만 직접 만들어 조립해도 됩니다(키는 동일하게 인자·환경변수·config에서 읽음):
+
+```python
+from data_go_kr import Weather, Realestate
+
+rows   = Weather().forecast(base_date="20260811", base_time="0500", nx=60, ny=127)
+trades = Realestate().apt_trade(region_code="11110", deal_ym="202401")
+```
+
+결과는 `list[dict]`이라 pandas·polars 표로 바로 만듭니다:
+
 ```python
 import pandas as pd; pd.DataFrame(rows)     # pandas
 import polars as pl; pl.DataFrame(rows)      # polars
@@ -39,7 +52,8 @@ import polars as pl; pl.DataFrame(rows)      # polars
 
 ## 3. 서비스
 
-접근자마다 문서가 있습니다 -- 오퍼레이션·CLI/Python 예시·필요한 코드를 찾는 법은 각 문서에.
+포털의 수많은 API 중 지금 바로 쓰도록 **미리 만들어 둔** 서비스입니다. 접근자마다 상세
+문서가 있어 오퍼레이션·CLI/Python 예시·필요한 코드를 찾는 법을 담았습니다.
 
 | 접근자 | 기관 · 통계 | 포맷 | 문서 |
 |---|---|---|---|
@@ -52,12 +66,14 @@ import polars as pl; pl.DataFrame(rows)      # polars
 | `client.customs` | 관세청 품목별 수출입실적 (HS 부호별 월간) | XML | [docs/customs.md](docs/customs.md) |
 | `client.kofia` | 금융투자협회 종합통계 (예탁금·펀드·ELS/DLS 등) | JSON | [docs/kofia.md](docs/kofia.md) |
 
-- **오프라인 목록:** `data-go-kr list` / `catalog.services()`. **옵션 확인:** `data-go-kr
-  <서비스> <오퍼레이션> --help`.
-- `clean=True`(기본)는 타입 파싱된 snake_case 컬럼을, `clean=False`는 벤더 토큰 원문을
-  돌려줍니다. CLI에 `--json`을 붙이면 JSON으로 나옵니다.
-- 서비스마다 계정에서 **활용신청**이 따로 필요합니다. 에러 처리와 운영 참고(활용신청·
-  트래픽 한도·reason 코드)는 [docs/errors.md](docs/errors.md).
+- **활용신청이 먼저.** 서비스마다 data.go.kr 계정에서 해당 데이터셋을 따로 신청해야
+  호출됩니다.
+- **정제(`clean`).** 기본값 `clean=True`는 벤더의 원본 필드명을 타입까지 파싱한
+  snake_case 컬럼으로 바꿔 돌려주고, `clean=False`는 원문 토큰 그대로 돌려줍니다.
+- **탐색.** 어떤 서비스·오퍼레이션이 있는지는 `data-go-kr list`(또는 `catalog.services()`),
+  각 오퍼레이션이 받는 옵션은 `data-go-kr <서비스> <오퍼레이션> --help`로 봅니다.
+- **에러·운영.** reason 코드, 활용신청 승인 방식, 트래픽 한도는 [docs/errors.md](docs/errors.md)에
+  정리돼 있습니다.
 
 ## 4. 커맨드라인
 
@@ -67,8 +83,9 @@ data-go-kr holidays --year 2026                         # 공휴일
 data-go-kr realestate apt_trade 11110 --deal-ym 202401  # 아파트 매매 실거래가
 ```
 
-호출 형태는 `data-go-kr <서비스> <오퍼레이션> [옵션]`입니다. 서비스별 전체 명령과
-옵션, 코드를 찾는 법은 위 표의 문서를 참고하세요.
+호출 형태는 `data-go-kr <서비스> <오퍼레이션> [옵션]`입니다. 기본 출력은 읽기 좋은
+요약이고, `--json`을 붙이면 전체 결과를 JSON으로 냅니다. 서비스별 전체 명령과 옵션,
+코드를 찾는 법은 위 표의 문서를 참고하세요.
 
 ## 5. AI 코딩 에이전트에서 사용
 
