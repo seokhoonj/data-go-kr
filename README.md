@@ -1,9 +1,12 @@
 # data-go-kr
 
 공공데이터포털 **data.go.kr**의 오픈 API를 키 하나로 읽어옵니다. 포털에는 수천 개 기관
-API가 있고, 그중 자주 쓰는 것들 -- 기상·대기·공휴일·부동산·중기예보·조달·관세·금융투자 --
-을 미리 감싸 제공합니다. 결과는 `pandas.DataFrame` / `polars.DataFrame`이 바로 받는
-`list[dict]`입니다.
+API가 있고, 그중 조회수와 활용신청이 높은 데이터들 -- 기상·대기·공휴일·부동산·중기예보·
+조달·관세·금융투자 -- 을 미리 감싸 두었습니다.
+
+미리 감싼 서비스는 `client.weather.forecast(...)`처럼 **접근자**로 바로 꺼내고, 표에 없는
+서비스는 base URL만 주면 전송 계층이 그대로 조회합니다. 결과는 어느 쪽이든
+`pandas.DataFrame` / `polars.DataFrame`이 바로 받는 `list[dict]`입니다.
 
 ## 1. 설치
 
