@@ -5,7 +5,7 @@
 [![Python](https://img.shields.io/pypi/pyversions/pydatagokr)](https://pypi.org/project/pydatagokr/)
 [![License](https://img.shields.io/pypi/l/pydatagokr)](https://github.com/seokhoonj/pydatagokr/blob/main/LICENSE)
 
-[공공데이터포털 data.go.kr](https://www.data.go.kr)의 오픈 API를 읽어옵니다. 포털에는 수천 개
+공공데이터포털([data.go.kr](https://www.data.go.kr))의 오픈 API를 읽어옵니다. 포털에는 수천 개
 기관 API가 있고, 그중 조회수·활용신청이 높은 것들 -- 기상·대기·공휴일·부동산·중기예보·조달·
 관세·금융투자 -- 을 미리 만들어 두었습니다.
 
