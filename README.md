@@ -2,9 +2,9 @@
 
 공공데이터포털 **data.go.kr**의 오픈 API를 키 하나로 읽어옵니다. 포털에는 수천 개 기관
 API가 있고, 그중 조회수와 활용신청이 높은 데이터들 -- 기상·대기·공휴일·부동산·중기예보·
-조달·관세·금융투자 -- 을 미리 감싸 두었습니다.
+조달·관세·금융투자 -- 을 미리 만들어 두었습니다.
 
-미리 감싼 서비스는 `client.weather.forecast(...)`처럼 **접근자**로 바로 꺼내고, 표에 없는
+미리 만든 서비스는 `client.weather.forecast(...)`처럼 **접근자**로 바로 꺼내고, 그 밖의
 서비스는 base URL만 주면 전송 계층이 그대로 조회합니다. 결과는 어느 쪽이든
 `pandas.DataFrame` / `polars.DataFrame`이 바로 받는 `list[dict]`입니다.
 
@@ -27,7 +27,7 @@ data.go.kr 인증키가 필요합니다 -- 반드시 **디코딩**(원문) 키�
 
 ## 2. 빠른 시작
 
-**미리 만들어 둔 서비스**(§3 표)는 한 클라이언트에서 바로 씁니다:
+**미리 만들어 둔 서비스**는 한 클라이언트에서 바로 씁니다:
 
 ```python
 from data_go_kr import DataGoKr
@@ -37,7 +37,7 @@ rows   = client.weather.forecast(base_date="20260811", base_time="0500", nx=60, 
 trades = client.realestate.apt_trade(region_code="11110", deal_ym="202401")
 ```
 
-**표에 없는(아직 안 감싼) 서비스**도 전송 계층으로 직접 조립합니다 -- base URL·오퍼레이션·
+**미리 만들어 놓지 않은 서비스**도 전송 계층으로 직접 조립합니다 -- base URL·오퍼레이션·
 필터만 있으면 되고, 디코딩키 주입·페이징·두 에러 형식은 전송 계층이 처리해 벤더 원본
 필드명 그대로 돌려줍니다. 위 `apt_trade`를 파사드 없이 직접 부르면(스펙 페이지에서 base
 URL·오퍼레이션 경로·파라미터명을 얻습니다):
@@ -48,16 +48,21 @@ from data_go_kr import DataGoKrSession
 session = DataGoKrSession("https://apis.data.go.kr/1613000", response_format="xml")
 rows = session.fetch(
     "RTMSDataSvcAptTrade/getRTMSDataSvcAptTrade",  # 오퍼레이션 경로
-    LAWD_CD="11110",    # 법정동 시군구코드 (앞 5자리)
-    DEAL_YMD="202401",  # 계약년월 YYYYMM
+    LAWD_CD="11110",                               # 법정동 시군구코드 (앞 5자리)
+    DEAL_YMD="202401",                             # 계약년월 YYYYMM
 )
 ```
 
 결과는 어느 쪽이든 `list[dict]`이라 pandas·polars 표로 바로 만듭니다:
 
 ```python
-import pandas as pd; pd.DataFrame(rows)     # pandas
-import polars as pl; pl.DataFrame(rows)      # polars
+# pandas
+import pandas as pd
+pd.DataFrame(rows)
+
+# polars
+import polars as pl
+pl.DataFrame(rows)
 ```
 
 ## 3. 서비스
@@ -78,8 +83,10 @@ import polars as pl; pl.DataFrame(rows)      # polars
 
 - **활용신청이 먼저.** 서비스마다 data.go.kr 계정에서 해당 데이터셋을 따로 신청해야
   호출됩니다.
-- **정제(`clean`).** 기본값 `clean=True`는 벤더의 원본 필드명을 타입까지 파싱한
-  snake_case 컬럼으로 바꿔 돌려주고, `clean=False`는 원문 토큰 그대로 돌려줍니다.
+- **정제(`clean`).** 기관이 주는 행은 필드명만으로는 의미를 구별하기 어렵고(`sggCd`,
+  `excluUseAr`) 값이 전부 문자열입니다. 기본값 `clean=True`는 알아보는 이름과 실제
+  타입으로 정리하고(`region_code`, `exclusive_area=84.97`, `deal_amount=82000`),
+  `clean=False`는 원문 그대로 둡니다.
 - **탐색.** 어떤 서비스·오퍼레이션이 있는지는 `data-go-kr list`(또는 `catalog.services()`),
   각 오퍼레이션이 받는 옵션은 `data-go-kr <서비스> <오퍼레이션> --help`로 봅니다.
 - **에러·운영.** reason 코드, 활용신청 승인 방식, 트래픽 한도는 [docs/errors.md](docs/errors.md)에
