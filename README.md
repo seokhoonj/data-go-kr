@@ -39,7 +39,9 @@ PowerShell은 `setx DATAGOKR_API_KEY "발급받은-디코딩-키"`.
 
 ## 2. 빠른 시작
 
-**미리 만들어 둔 서비스**는 한 클라이언트에서 바로 씁니다:
+### 2.1 미리 만든 서비스
+
+접근자로 바로 부릅니다:
 
 ```python
 from pydatagokr import DataGoKr
@@ -53,11 +55,18 @@ forecast = client.weather.forecast(base_date="20260811", base_time="0500", nx=60
 trades = client.realestate.apt_trade(region_code="11110", deal_ym="202401")
 ```
 
-**미리 만들어 놓지 않은 서비스**는 전송 계층으로 직접 조립합니다. data.go.kr의 각 API 스펙
-페이지에 **요청 주소(base URL)**, **기능 이름(오퍼레이션)**, **요청 항목(필터)**이 적혀
-있으니 그 셋만 넣으면 됩니다 -- 디코딩키 주입·페이징·에러 처리는 전송 계층이 맡고, 기관 원본
-필드명 그대로 돌려줍니다. 위 `apt_trade`([아파트 매매 실거래가
-스펙](https://www.data.go.kr/data/15126469/openapi.do))를 파사드 없이 부르면:
+### 2.2 그 밖의 서비스
+
+전송 계층으로 직접 조립합니다. 스펙 페이지([아파트 매매
+실거래가](https://www.data.go.kr/data/15126469/openapi.do))에서 아래 셋을 확인해 넣습니다:
+
+| 넣을 것 | `apt_trade`의 값 |
+|---|---|
+| 요청 주소 (base URL) | `https://apis.data.go.kr/1613000` |
+| 기능 이름 (오퍼레이션) | `RTMSDataSvcAptTrade/getRTMSDataSvcAptTrade` |
+| 요청 항목 (필터) | `LAWD_CD`(법정동코드 앞 5자리), `DEAL_YMD`(계약년월) |
+
+디코딩키 주입·페이징·에러 처리는 전송 계층이 맡고, 기관 원본 필드명 그대로 돌려줍니다:
 
 ```python
 from pydatagokr import DataGoKrSession
