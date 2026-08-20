@@ -33,9 +33,10 @@ rows = client.weather.forecast(nx=g.nx, ny=g.ny)               # 최신 발표�
 rows = client.weather.forecast(base_date="20260811", base_time="0500", nx=g.nx, ny=g.ny)
 ```
 
-`base_date`/`base_time`을 둘 다 생략하면 해당 오퍼레이션의 최신 발표분(단기예보는 하루
-8회, 초단기는 매시)을 자동으로 씁니다. 하나만 지정하면 오류입니다. `ultra_forecast` /
-`nowcast`도 같은 인자를 받습니다. `clean=False`로 벤더 토큰 원문을 받을 수 있습니다.
+`base_date`/`base_time`을 둘 다 생략하면 해당 오퍼레이션의 최신 발표분을 자동으로 씁니다
+(단기예보는 하루 8회, 초단기예보는 매시 30분, 초단기실황은 매시 정시 발표). 하나만 지정하면
+오류입니다. `ultra_forecast` / `nowcast`도 같은 인자를 받습니다. `clean=False`로 벤더 토큰
+원문을 받을 수 있습니다.
 
 ## 격자 코드 찾기
 

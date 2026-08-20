@@ -41,7 +41,8 @@ datagokr weather <operation> --nx NX --ny NY [--base-date YYYYMMDD --base-time H
 
 - `--base-date`/`--base-time`: the announcement time. **Omit both to use the latest published
   announcement** for the operation. 단기예보 is issued at 0200/0500/0800/1100/1400/1700/2000/
-  2300; 초단기 is issued hourly (available ~40 min after the hour). Pass both or neither.
+  2300; 초단기예보 (`ultra_forecast`) hourly at HH30; 초단기실황 (`nowcast`) hourly at HH00.
+  Pass both or neither.
 - `--nx`/`--ny`: the 기상청 5km grid coordinates (서울 시청 ≈ 60/127).
 
 ## Procedure

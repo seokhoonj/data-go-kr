@@ -163,10 +163,44 @@ def test_resolve_base_rejects_exactly_one_of_the_pair():
         _resolve_base("forecast", None, "0500")
 
 
-def test_forecast_without_a_base_sends_the_computed_announcement(monkeypatch):
+def test_default_selection_is_inclusive_at_the_exact_publish_boundary():
+    # The 0200 slot (lag 15) becomes the default at exactly 02:15; one second earlier the
+    # default is still yesterday's 2300. Locks the `issued <= cutoff` boundary.
+    assert _latest_base("forecast", now=datetime(2026, 8, 20, 2, 14, 59, tzinfo=_KST)) \
+        == ("20260819", "2300")
+    assert _latest_base("forecast", now=_kst(2026, 8, 20, 2, 15)) == ("20260820", "0200")
+
+
+def test_latest_base_reads_a_naive_now_as_kst():
+    # A naive datetime is taken as KST wall-clock (not the host timezone), so it matches the
+    # tz-aware KST case rather than shifting by the machine offset.
+    assert _latest_base("forecast", now=datetime(2026, 8, 20, 20, 55)) == ("20260820", "2000")
+
+
+def test_resolve_base_rejects_empty_strings():
+    # An empty string is "missing", not a valid announcement -- it must not slip past the
+    # both-or-neither guard and reach the vendor as an empty parameter.
+    for bad in (("", "0500"), ("20260820", ""), ("", "")):
+        with pytest.raises(ValueError, match="both base_date and base_time, or neither"):
+            _resolve_base("forecast", *bad)
+
+
+@pytest.mark.parametrize("op, operation", [
+    ("forecast", "getVilageFcst"),
+    ("ultra_forecast", "getUltraSrtFcst"),
+    ("nowcast", "getUltraSrtNcst"),
+])
+def test_each_operation_without_a_base_sends_its_computed_announcement(op, operation, monkeypatch):
     import pydatagokr.services.weather as weather_mod
-    monkeypatch.setattr(weather_mod, "_latest_base", lambda name: ("20260101", "0500"))
+    monkeypatch.setattr(weather_mod, "_latest_base", lambda name: ("20260101", "1234"))
     weather, opener = _weather(_xml([], 0))
-    weather.forecast(nx=60, ny=127)                     # base_date/base_time omitted
+    getattr(weather, op)(nx=60, ny=127)                 # base_date/base_time omitted
     query = opener.requests[0].full_url
-    assert "base_date=20260101" in query and "base_time=0500" in query
+    assert operation in query
+    assert "base_date=20260101" in query and "base_time=1234" in query
+
+
+def test_clean_false_returns_the_raw_vendor_rows():
+    weather, _ = _weather(_xml([_FCST_ROW], 1))
+    assert weather.forecast(base_date="20260811", base_time="0500", nx=60, ny=127,
+                            clean=False) == [_FCST_ROW]

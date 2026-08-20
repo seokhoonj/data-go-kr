@@ -18,7 +18,7 @@ answers XML.
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
-from typing import Literal, overload
+from typing import Literal, NamedTuple, overload
 
 from .. import _spec
 from .._spec import CleanRow, Field, Table
@@ -65,25 +65,34 @@ TABLES: dict[str, Table] = {
 
 _KST = timezone(timedelta(hours=9))  # 한국 표준시 (Korea has no daylight saving)
 
-# Each operation's announcement schedule: the daily ``base_time`` slots (ascending) and a
-# safe lag -- how long after a slot the vendor actually serves it, plus a few minutes'
-# margin so the computed default never lands on a not-yet-published announcement. The
-# 단기예보 announces 8 times a day; the 초단기 operations announce hourly (예보 at HH30,
-# 실황 at HH00).
-_SCHEDULE: dict[str, tuple[tuple[tuple[int, int], ...], int]] = {
-    "forecast":       (tuple((hour, 0) for hour in (2, 5, 8, 11, 14, 17, 20, 23)), 15),
-    "ultra_forecast": (tuple((hour, 30) for hour in range(24)), 20),
-    "nowcast":        (tuple((hour, 0) for hour in range(24)), 45),
+class _Schedule(NamedTuple):
+    """An operation's announcement schedule."""
+    slots: tuple[tuple[int, int], ...]   # daily (hour, minute) base_time slots, ascending
+    lag_minutes: int                     # safe delay before a slot is actually served
+
+
+# When base_date/base_time are omitted, pick the latest slot whose announcement is already
+# served: ``lag_minutes`` is the vendor's publish delay plus a few minutes' margin, so the
+# default never lands on a not-yet-published announcement. The 단기예보 announces 8 times a
+# day; the 초단기 operations announce hourly (예보 at HH30, 실황 at HH00).
+_SCHEDULE: dict[str, _Schedule] = {
+    "forecast":       _Schedule(tuple((hour, 0) for hour in (2, 5, 8, 11, 14, 17, 20, 23)), 15),
+    "ultra_forecast": _Schedule(tuple((hour, 30) for hour in range(24)), 20),
+    "nowcast":        _Schedule(tuple((hour, 0) for hour in range(24)), 45),
 }
 
 
 def _latest_base(name: str, *, now: datetime | None = None) -> tuple[str, str]:
     """The most recently published ``(base_date, base_time)`` for operation ``name`` as of
     ``now`` (KST). Walks today's slots, then yesterday's, so just after midnight it rolls the
-    date back to the previous day's last announcement. ``now`` is injectable for tests."""
-    slots, lag = _SCHEDULE[name]
-    now = datetime.now(_KST) if now is None else now.astimezone(_KST)
-    cutoff = now - timedelta(minutes=lag)
+    date back to the previous day's last announcement. ``now`` is injectable for tests; a
+    naive value is read as KST wall-clock, a tz-aware value is converted to KST."""
+    slots, lag_minutes = _SCHEDULE[name]
+    if now is None:
+        now = datetime.now(_KST)
+    else:
+        now = now.replace(tzinfo=_KST) if now.tzinfo is None else now.astimezone(_KST)
+    cutoff = now - timedelta(minutes=lag_minutes)
     for day_offset in (0, 1):
         day = (now - timedelta(days=day_offset)).date()
         for hour, minute in reversed(slots):
@@ -96,10 +105,10 @@ def _latest_base(name: str, *, now: datetime | None = None) -> tuple[str, str]:
 def _resolve_base(name: str, base_date: str | None,
                   base_time: str | None) -> tuple[str, str]:
     """``base_date``/``base_time`` as given, or -- when both are omitted -- the latest
-    published announcement for ``name``. Passing exactly one of the two is an error."""
+    published announcement for ``name``. Passing only one, or an empty string, is an error."""
     if base_date is None and base_time is None:
         return _latest_base(name)
-    if base_date is None or base_time is None:
+    if not base_date or not base_time:
         raise ValueError("pass both base_date and base_time, or neither "
                          "(neither uses the latest published announcement)")
     return base_date, base_time
@@ -121,10 +130,10 @@ class Weather:
         return f"Weather({self._session!r})"
 
     @overload
-    def forecast(self, *, base_date: str | None = None, base_time: str | None = None,
+    def forecast(self, *, base_date: str | None = ..., base_time: str | None = ...,
                  nx: int, ny: int, clean: Literal[True] = ...) -> list[CleanRow]: ...
     @overload
-    def forecast(self, *, base_date: str | None = None, base_time: str | None = None,
+    def forecast(self, *, base_date: str | None = ..., base_time: str | None = ...,
                  nx: int, ny: int, clean: Literal[False]) -> list[Row]: ...
     def forecast(self, *, base_date: str | None = None, base_time: str | None = None,
                  nx: int, ny: int, clean: bool = True) -> list[Row] | list[CleanRow]:
@@ -137,10 +146,10 @@ class Weather:
                           nx=nx, ny=ny, clean=False)
 
     @overload
-    def ultra_forecast(self, *, base_date: str | None = None, base_time: str | None = None,
+    def ultra_forecast(self, *, base_date: str | None = ..., base_time: str | None = ...,
                        nx: int, ny: int, clean: Literal[True] = ...) -> list[CleanRow]: ...
     @overload
-    def ultra_forecast(self, *, base_date: str | None = None, base_time: str | None = None,
+    def ultra_forecast(self, *, base_date: str | None = ..., base_time: str | None = ...,
                        nx: int, ny: int, clean: Literal[False]) -> list[Row]: ...
     def ultra_forecast(self, *, base_date: str | None = None, base_time: str | None = None,
                        nx: int, ny: int, clean: bool = True) -> list[Row] | list[CleanRow]:
@@ -152,10 +161,10 @@ class Weather:
                           nx=nx, ny=ny, clean=False)
 
     @overload
-    def nowcast(self, *, base_date: str | None = None, base_time: str | None = None,
+    def nowcast(self, *, base_date: str | None = ..., base_time: str | None = ...,
                 nx: int, ny: int, clean: Literal[True] = ...) -> list[CleanRow]: ...
     @overload
-    def nowcast(self, *, base_date: str | None = None, base_time: str | None = None,
+    def nowcast(self, *, base_date: str | None = ..., base_time: str | None = ...,
                 nx: int, ny: int, clean: Literal[False]) -> list[Row]: ...
     def nowcast(self, *, base_date: str | None = None, base_time: str | None = None,
                 nx: int, ny: int, clean: bool = True) -> list[Row] | list[CleanRow]:
@@ -167,10 +176,10 @@ class Weather:
                           nx=nx, ny=ny, clean=False)
 
     @overload
-    def fetch(self, name: str, *, base_date: str | None = None, base_time: str | None = None,
+    def fetch(self, name: str, *, base_date: str | None = ..., base_time: str | None = ...,
               nx: int, ny: int, clean: Literal[True] = ...) -> list[CleanRow]: ...
     @overload
-    def fetch(self, name: str, *, base_date: str | None = None, base_time: str | None = None,
+    def fetch(self, name: str, *, base_date: str | None = ..., base_time: str | None = ...,
               nx: int, ny: int, clean: Literal[False]) -> list[Row]: ...
     def fetch(self, name: str, *, base_date: str | None = None, base_time: str | None = None,
               nx: int, ny: int, clean: bool = True) -> list[Row] | list[CleanRow]:
