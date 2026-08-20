@@ -39,7 +39,7 @@ PowerShell은 `setx DATAGOKR_API_KEY "발급받은-디코딩-키"`.
 
 ## 2. 빠른 시작
 
-### 2.1 미리 만든 서비스
+### 2.1 지원 서비스 (현재 기준)
 
 접근자로 바로 부릅니다:
 
@@ -55,12 +55,12 @@ forecast = client.weather.forecast(base_date="20260811", base_time="0500", nx=60
 trades = client.realestate.apt_trade(region_code="11110", deal_ym="202401")
 ```
 
-### 2.2 그 밖의 서비스
+### 2.2 미지원 서비스
 
 전송 계층으로 직접 조립합니다. 스펙 페이지([아파트 매매
 실거래가](https://www.data.go.kr/data/15126469/openapi.do))에서 아래 셋을 확인해 넣습니다:
 
-| 넣을 것 | `apt_trade`의 값 |
+| 넣을 것 | 아파트 매매 실거래가 |
 |---|---|
 | 요청 주소 (base URL) | `https://apis.data.go.kr/1613000` |
 | 기능 이름 (오퍼레이션) | `RTMSDataSvcAptTrade/getRTMSDataSvcAptTrade` |
@@ -91,7 +91,7 @@ import polars as pl
 pl.DataFrame(rows)
 ```
 
-## 3. 서비스
+## 3. 지원 서비스 (현재 기준)
 
 포털의 수많은 API 중 지금 바로 쓰도록 **미리 만들어 둔** 서비스입니다. 접근자마다 상세
 문서가 있어 오퍼레이션·CLI/Python 예시·필요한 코드를 찾는 법을 담았습니다.
