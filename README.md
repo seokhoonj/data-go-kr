@@ -19,9 +19,8 @@ base URL만 주면 전송 계층이 그대로 조회합니다. 결과는 `list[d
 pip install pydatagokr
 ```
 
-data.go.kr 인증키가 필요합니다 -- 반드시 **디코딩**(원문) 키를 쓰세요(퍼센트 인코딩된
-인코딩 키는 이중 인코딩되어 거부됩니다). 한 번 저장해 두려면
-`~/.config/pydatagokr/credentials.json`:
+data.go.kr 인증키가 필요합니다 -- 발급 페이지의 **Decoding(디코딩)** 키를 복사해 쓰세요
+(Encoding 키가 아닙니다). 한 번 저장해 두려면 `~/.config/pydatagokr/credentials.json`:
 
 ```json
 { "DATAGOKR_API_KEY": "발급받은-디코딩-키" }
@@ -46,10 +45,11 @@ forecast = client.weather.forecast(base_date="20260811", base_time="0500", nx=60
 trades = client.realestate.apt_trade(region_code="11110", deal_ym="202401")
 ```
 
-**미리 만들어 놓지 않은 서비스**도 전송 계층으로 직접 조립합니다 -- base URL·오퍼레이션·
-필터만 있으면 되고, 디코딩키 주입·페이징·두 에러 형식은 전송 계층이 처리해 벤더 원본
-필드명 그대로 돌려줍니다. 위 `apt_trade`를 파사드 없이 직접 부르면(스펙 페이지에서 base
-URL·오퍼레이션 경로·파라미터명을 얻습니다):
+**미리 만들어 놓지 않은 서비스**는 전송 계층으로 직접 조립합니다. data.go.kr의 각 API 스펙
+페이지에 **요청 주소(base URL)**, **기능 이름(오퍼레이션)**, **요청 항목(필터)**이 적혀
+있으니 그 셋만 넣으면 됩니다 -- 디코딩키 주입·페이징·에러 처리는 전송 계층이 맡고, 기관 원본
+필드명 그대로 돌려줍니다. 위 `apt_trade`([아파트 매매 실거래가
+스펙](https://www.data.go.kr/data/15126469/openapi.do))를 파사드 없이 부르면:
 
 ```python
 from pydatagokr import DataGoKrSession
