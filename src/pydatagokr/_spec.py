@@ -19,7 +19,7 @@ are worth keeping.
 from __future__ import annotations
 
 import math
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 from datetime import date, datetime
 from typing import Literal
@@ -71,7 +71,7 @@ class Table:
                      if field.kind.startswith("date")), None)
 
 
-def clean(rows: list[Row], table: Table) -> list[CleanRow]:
+def clean(rows: Iterable[Row], table: Table) -> list[CleanRow]:
     """Raw vendor rows -> clean-named rows (``table.columns`` in order): dates parsed to
     ISO strings, dimensions as text, 원화·건수는 int, 비율은 float. A row is dropped if
     its date is missing, or -- for a composite-key table -- any key dimension is missing

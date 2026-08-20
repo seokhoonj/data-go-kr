@@ -35,8 +35,9 @@ _CONFIG_FILE = "credentials.json"
 def resolve_api_key(explicit: str | None) -> str:
     """Return the first key found across the three sources (explicit, env, file).
 
-    Raises :class:`DataGoKrConfigError` when no source supplies a key, or when the resolved
-    key contains a control character (a stray newline or tab, usually from a paste).
+    Raises :class:`DataGoKrConfigError` when no source supplies a key, when the resolved key
+    contains a control character (a stray newline or tab, usually from a paste), or when a
+    present credentials file is unreadable, not UTF-8, not JSON, or not a JSON object.
     """
     key = (explicit or "").strip() or os.environ.get(_ENV_VAR, "").strip() or _key_from_file()
     if not key:

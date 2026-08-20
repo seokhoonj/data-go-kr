@@ -21,7 +21,7 @@ def test_busan_reference_point():
     assert latlon_to_grid(35.1028, 129.0403) == Grid(97, 74)
 
 
-def test_regression_pins():
+def test_known_points_pin_the_projection_output():
     # Not independent oracles -- these pin the canonical formula's output so a change to a
     # projection constant is caught. Seoul/부산 above are the real published anchors.
     assert latlon_to_grid(33.4996, 126.5312) == Grid(53, 38)   # 제주
