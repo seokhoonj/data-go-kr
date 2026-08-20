@@ -1,5 +1,10 @@
 # data-go-kr
 
+[![check](https://github.com/seokhoonj/data-go-kr/actions/workflows/check.yml/badge.svg)](https://github.com/seokhoonj/data-go-kr/actions/workflows/check.yml)
+[![PyPI](https://img.shields.io/pypi/v/data-go-kr)](https://pypi.org/project/data-go-kr/)
+[![Python](https://img.shields.io/pypi/pyversions/data-go-kr)](https://pypi.org/project/data-go-kr/)
+[![License](https://img.shields.io/pypi/l/data-go-kr)](https://github.com/seokhoonj/data-go-kr/blob/main/LICENSE)
+
 공공데이터포털 **data.go.kr**의 오픈 API를 키 하나로 읽어옵니다. 포털에는 수천 개 기관
 API가 있고, 그중 조회수와 활용신청이 높은 데이터들 -- 기상·대기·공휴일·부동산·중기예보·
 조달·관세·금융투자 -- 을 미리 만들어 두었습니다.
