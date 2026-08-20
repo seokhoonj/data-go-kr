@@ -39,9 +39,9 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/seokhoonj/data-go-kr"
-Repository = "https://github.com/seokhoonj/data-go-kr"
-Issues = "https://github.com/seokhoonj/data-go-kr/issues"
+Homepage = "https://github.com/seokhoonj/pydatagokr"
+Repository = "https://github.com/seokhoonj/pydatagokr"
+Issues = "https://github.com/seokhoonj/pydatagokr/issues"
 
 [project.scripts]
 data-go-kr = "pydatagokr.cli:main"

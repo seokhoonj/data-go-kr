@@ -1,9 +1,9 @@
 # pydatagokr
 
-[![check](https://github.com/seokhoonj/data-go-kr/actions/workflows/check.yml/badge.svg)](https://github.com/seokhoonj/data-go-kr/actions/workflows/check.yml)
+[![check](https://github.com/seokhoonj/pydatagokr/actions/workflows/check.yml/badge.svg)](https://github.com/seokhoonj/pydatagokr/actions/workflows/check.yml)
 [![PyPI](https://img.shields.io/pypi/v/pydatagokr)](https://pypi.org/project/pydatagokr/)
 [![Python](https://img.shields.io/pypi/pyversions/pydatagokr)](https://pypi.org/project/pydatagokr/)
-[![License](https://img.shields.io/pypi/l/pydatagokr)](https://github.com/seokhoonj/data-go-kr/blob/main/LICENSE)
+[![License](https://img.shields.io/pypi/l/pydatagokr)](https://github.com/seokhoonj/pydatagokr/blob/main/LICENSE)
 
 공공데이터포털 **data.go.kr**의 오픈 API를 키 하나로 읽어옵니다. 포털에는 수천 개 기관
 API가 있고, 그중 조회수와 활용신청이 높은 데이터들 -- 기상·대기·공휴일·부동산·중기예보·
@@ -125,8 +125,8 @@ data-go-kr realestate apt_trade 11110 --deal-ym 202401  # 아파트 매매 실�
 Claude Code 채팅창에서 마켓플레이스를 추가하고 설치합니다:
 
 ```
-/plugin marketplace add seokhoonj/data-go-kr
-/plugin install data-go-kr@data-go-kr
+/plugin marketplace add seokhoonj/pydatagokr
+/plugin install data-go-kr@pydatagokr
 ```
 
 그런 다음 평범하게 물어보거나("서울 미세먼지 알려줘", "종로구 아파트 매매 실거래가"),
@@ -137,8 +137,8 @@ Claude Code 채팅창에서 마켓플레이스를 추가하고 설치합니다:
 터미널에서 마켓플레이스를 추가하고 설치합니다:
 
 ```
-codex plugin marketplace add seokhoonj/data-go-kr
-codex plugin add data-go-kr@data-go-kr
+codex plugin marketplace add seokhoonj/pydatagokr
+codex plugin add data-go-kr@pydatagokr
 ```
 
 스킬은 관련 요청에 반응하며, `data-go-kr <서비스> <오퍼레이션>`으로 직접 실행해도 됩니다.

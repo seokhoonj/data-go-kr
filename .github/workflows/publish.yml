@@ -3,7 +3,7 @@ name: publish
 # Publish to PyPI on a GitHub Release, via PyPI Trusted Publishing (OIDC): no API
 # token or password is stored anywhere -- GitHub mints a short-lived identity token
 # that PyPI verifies against the publisher registered for the PyPI project (owner
-# seokhoonj / repo data-go-kr / this workflow / environment "pypi"), which uploads to
+# seokhoonj / repo pydatagokr / this workflow / environment "pypi"), which uploads to
 # the project pydatagokr.
 #
 # Three jobs. `gate` runs the same reusable check that check.yml runs, on the
