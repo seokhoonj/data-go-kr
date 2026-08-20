@@ -9,12 +9,15 @@ value in ``forecast_value``; a nowcast carries the same item categories with an
 percentage), so it is kept as text. ``clean=True`` (the default) returns typed rows,
 ``clean=False`` the raw vendor rows.
 
-Pass ``base_date`` (YYYYMMDD) / ``base_time`` (HHMM) = the announcement time, and the grid
-``nx``/``ny``. The service answers XML.
+Pass the grid ``nx``/``ny`` and, optionally, the announcement ``base_date`` (YYYYMMDD) /
+``base_time`` (HHMM). Omit both to use the latest published announcement for the operation
+(the vendor issues the 단기예보 8 times a day, the 초단기 operations hourly). The service
+answers XML.
 """
 
 from __future__ import annotations
 
+from datetime import datetime, timedelta, timezone
 from typing import Literal, overload
 
 from .. import _spec
@@ -60,13 +63,54 @@ NOWCAST = Table("nowcast", "getUltraSrtNcst", "basDt", False, _NOWCAST,
 TABLES: dict[str, Table] = {
     table.name: table for table in (FORECAST, ULTRA_FORECAST, NOWCAST)}
 
+_KST = timezone(timedelta(hours=9))  # 한국 표준시 (Korea has no daylight saving)
+
+# Each operation's announcement schedule: the daily ``base_time`` slots (ascending) and a
+# safe lag -- how long after a slot the vendor actually serves it, plus a few minutes'
+# margin so the computed default never lands on a not-yet-published announcement. The
+# 단기예보 announces 8 times a day; the 초단기 operations announce hourly (예보 at HH30,
+# 실황 at HH00).
+_SCHEDULE: dict[str, tuple[tuple[tuple[int, int], ...], int]] = {
+    "forecast":       (tuple((hour, 0) for hour in (2, 5, 8, 11, 14, 17, 20, 23)), 15),
+    "ultra_forecast": (tuple((hour, 30) for hour in range(24)), 20),
+    "nowcast":        (tuple((hour, 0) for hour in range(24)), 45),
+}
+
+
+def _latest_base(name: str, *, now: datetime | None = None) -> tuple[str, str]:
+    """The most recently published ``(base_date, base_time)`` for operation ``name`` as of
+    ``now`` (KST). Walks today's slots, then yesterday's, so just after midnight it rolls the
+    date back to the previous day's last announcement. ``now`` is injectable for tests."""
+    slots, lag = _SCHEDULE[name]
+    now = datetime.now(_KST) if now is None else now.astimezone(_KST)
+    cutoff = now - timedelta(minutes=lag)
+    for day_offset in (0, 1):
+        day = (now - timedelta(days=day_offset)).date()
+        for hour, minute in reversed(slots):
+            issued = datetime(day.year, day.month, day.day, hour, minute, tzinfo=_KST)
+            if issued <= cutoff:
+                return day.strftime("%Y%m%d"), f"{hour:02d}{minute:02d}"
+    raise AssertionError("unreachable: 24h of slots always cover a two-day window")
+
+
+def _resolve_base(name: str, base_date: str | None,
+                  base_time: str | None) -> tuple[str, str]:
+    """``base_date``/``base_time`` as given, or -- when both are omitted -- the latest
+    published announcement for ``name``. Passing exactly one of the two is an error."""
+    if base_date is None and base_time is None:
+        return _latest_base(name)
+    if base_date is None or base_time is None:
+        raise ValueError("pass both base_date and base_time, or neither "
+                         "(neither uses the latest published announcement)")
+    return base_date, base_time
+
 
 class Weather:
     """The 동네예보 surface. Construct with a data.go.kr decoding key (or let it resolve
     ``DATAGOKR_API_KEY`` / the config file)::
 
         weather = Weather()
-        rows = weather.forecast(base_date="20260811", base_time="0500", nx=60, ny=127)
+        rows = weather.forecast(nx=60, ny=127)   # latest announcement; or pass base_date/base_time
     """
 
     def __init__(self, api_key: str | None = None, *, timeout: float = 30.0) -> None:
@@ -77,13 +121,13 @@ class Weather:
         return f"Weather({self._session!r})"
 
     @overload
-    def forecast(self, *, base_date: str, base_time: str, nx: int, ny: int,
-                 clean: Literal[True] = ...) -> list[CleanRow]: ...
+    def forecast(self, *, base_date: str | None = None, base_time: str | None = None,
+                 nx: int, ny: int, clean: Literal[True] = ...) -> list[CleanRow]: ...
     @overload
-    def forecast(self, *, base_date: str, base_time: str, nx: int, ny: int,
-                 clean: Literal[False]) -> list[Row]: ...
-    def forecast(self, *, base_date: str, base_time: str, nx: int, ny: int,
-                 clean: bool = True) -> list[Row] | list[CleanRow]:
+    def forecast(self, *, base_date: str | None = None, base_time: str | None = None,
+                 nx: int, ny: int, clean: Literal[False]) -> list[Row]: ...
+    def forecast(self, *, base_date: str | None = None, base_time: str | None = None,
+                 nx: int, ny: int, clean: bool = True) -> list[Row] | list[CleanRow]:
         """단기예보 (``getVilageFcst``), to ~3 days, for the grid cell ``nx``/``ny`` at the
         ``base_date``/``base_time`` announcement. Args as :meth:`fetch`."""
         if clean:
@@ -93,13 +137,13 @@ class Weather:
                           nx=nx, ny=ny, clean=False)
 
     @overload
-    def ultra_forecast(self, *, base_date: str, base_time: str, nx: int, ny: int,
-                       clean: Literal[True] = ...) -> list[CleanRow]: ...
+    def ultra_forecast(self, *, base_date: str | None = None, base_time: str | None = None,
+                       nx: int, ny: int, clean: Literal[True] = ...) -> list[CleanRow]: ...
     @overload
-    def ultra_forecast(self, *, base_date: str, base_time: str, nx: int, ny: int,
-                       clean: Literal[False]) -> list[Row]: ...
-    def ultra_forecast(self, *, base_date: str, base_time: str, nx: int, ny: int,
-                       clean: bool = True) -> list[Row] | list[CleanRow]:
+    def ultra_forecast(self, *, base_date: str | None = None, base_time: str | None = None,
+                       nx: int, ny: int, clean: Literal[False]) -> list[Row]: ...
+    def ultra_forecast(self, *, base_date: str | None = None, base_time: str | None = None,
+                       nx: int, ny: int, clean: bool = True) -> list[Row] | list[CleanRow]:
         """초단기예보 (``getUltraSrtFcst``), to 6 hours. Args as :meth:`fetch`."""
         if clean:
             return self.fetch("ultra_forecast", base_date=base_date, base_time=base_time,
@@ -108,13 +152,13 @@ class Weather:
                           nx=nx, ny=ny, clean=False)
 
     @overload
-    def nowcast(self, *, base_date: str, base_time: str, nx: int, ny: int,
-                clean: Literal[True] = ...) -> list[CleanRow]: ...
+    def nowcast(self, *, base_date: str | None = None, base_time: str | None = None,
+                nx: int, ny: int, clean: Literal[True] = ...) -> list[CleanRow]: ...
     @overload
-    def nowcast(self, *, base_date: str, base_time: str, nx: int, ny: int,
-                clean: Literal[False]) -> list[Row]: ...
-    def nowcast(self, *, base_date: str, base_time: str, nx: int, ny: int,
-                clean: bool = True) -> list[Row] | list[CleanRow]:
+    def nowcast(self, *, base_date: str | None = None, base_time: str | None = None,
+                nx: int, ny: int, clean: Literal[False]) -> list[Row]: ...
+    def nowcast(self, *, base_date: str | None = None, base_time: str | None = None,
+                nx: int, ny: int, clean: bool = True) -> list[Row] | list[CleanRow]:
         """초단기실황 (``getUltraSrtNcst``), the latest observation. Args as :meth:`fetch`."""
         if clean:
             return self.fetch("nowcast", base_date=base_date, base_time=base_time,
@@ -123,21 +167,23 @@ class Weather:
                           nx=nx, ny=ny, clean=False)
 
     @overload
-    def fetch(self, name: str, *, base_date: str, base_time: str, nx: int, ny: int,
-              clean: Literal[True] = ...) -> list[CleanRow]: ...
+    def fetch(self, name: str, *, base_date: str | None = None, base_time: str | None = None,
+              nx: int, ny: int, clean: Literal[True] = ...) -> list[CleanRow]: ...
     @overload
-    def fetch(self, name: str, *, base_date: str, base_time: str, nx: int, ny: int,
-              clean: Literal[False]) -> list[Row]: ...
-    def fetch(self, name: str, *, base_date: str, base_time: str, nx: int, ny: int,
-              clean: bool = True) -> list[Row] | list[CleanRow]:
+    def fetch(self, name: str, *, base_date: str | None = None, base_time: str | None = None,
+              nx: int, ny: int, clean: Literal[False]) -> list[Row]: ...
+    def fetch(self, name: str, *, base_date: str | None = None, base_time: str | None = None,
+              nx: int, ny: int, clean: bool = True) -> list[Row] | list[CleanRow]:
         """Any of the three operations by name (see :meth:`operations`) for one grid cell.
         ``base_date`` = YYYYMMDD, ``base_time`` = HHMM (the announcement time), ``nx``/``ny``
-        the 기상청 5km grid. ``clean=True`` (the default) returns typed rows; ``clean=False``
-        raw."""
+        the 기상청 5km grid. Omit both ``base_date`` and ``base_time`` (or pass neither) to use
+        the latest published announcement for this operation. ``clean=True`` (the default)
+        returns typed rows; ``clean=False`` raw."""
         try:
             table = TABLES[name]
         except KeyError:
             raise ValueError(f"unknown operation {name!r}; valid: {list(TABLES)}") from None
+        base_date, base_time = _resolve_base(name, base_date, base_time)
         rows = self._session.fetch(table.operation, base_date=base_date, base_time=base_time,
                                    nx=str(nx), ny=str(ny))
         return _spec.clean(rows, table) if clean else rows

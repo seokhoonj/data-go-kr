@@ -7,7 +7,7 @@ clean column schema offline. The fetch commands -- one per wrapped service: ``we
 
     $ datagokr list                                                # offline
     $ datagokr fields weather forecast                             # offline
-    $ datagokr weather forecast --base-date 20260811 --base-time 0500 --nx 60 --ny 127
+    $ datagokr weather forecast --nx 60 --ny 127                   # 최신 발표분
     $ datagokr airquality by_sido 서울
     $ datagokr midforecast land --region 11B00000 --base-time 202608111800
     $ datagokr procurement services --begin 202608010000 --end 202608102359
@@ -157,10 +157,10 @@ def _make_parser() -> argparse.ArgumentParser:
     for op, desc in (("forecast", "단기예보"), ("ultra_forecast", "초단기예보"),
                      ("nowcast", "초단기실황")):
         op_cmd = weather_ops.add_parser(op, help=f"fetch {desc}")
-        op_cmd.add_argument("--base-date", required=True, metavar="YYYYMMDD",
-                            dest="base_date", help="발표일자")
-        op_cmd.add_argument("--base-time", required=True, metavar="HHMM",
-                            dest="base_time", help="발표시각")
+        op_cmd.add_argument("--base-date", default=None, metavar="YYYYMMDD",
+                            dest="base_date", help="발표일자 (생략 시 최신 발표분)")
+        op_cmd.add_argument("--base-time", default=None, metavar="HHMM",
+                            dest="base_time", help="발표시각 (생략 시 최신 발표분)")
         op_cmd.add_argument("--nx", required=True, type=int, help="격자 X")
         op_cmd.add_argument("--ny", required=True, type=int, help="격자 Y")
         op_cmd.add_argument("--json", action="store_true", help="emit JSON instead of text")

@@ -36,20 +36,22 @@ VilageFcstInfoService_2.0) applied for (활용신청) on that account.
 ## Running
 
 ```
-datagokr weather <operation> --base-date YYYYMMDD --base-time HHMM --nx NX --ny NY [--json]
+datagokr weather <operation> --nx NX --ny NY [--base-date YYYYMMDD --base-time HHMM] [--json]
 ```
 
-- `--base-date`/`--base-time`: the announcement time. 단기예보 is issued at 0200/0500/0800/
-  1100/1400/1700/2000/2300; 초단기 is issued hourly (available ~40 min after the hour).
+- `--base-date`/`--base-time`: the announcement time. **Omit both to use the latest published
+  announcement** for the operation. 단기예보 is issued at 0200/0500/0800/1100/1400/1700/2000/
+  2300; 초단기 is issued hourly (available ~40 min after the hour). Pass both or neither.
 - `--nx`/`--ny`: the 기상청 5km grid coordinates (서울 시청 ≈ 60/127).
 
 ## Procedure
 
 1. **Map the place to a grid.** Convert the user's location to `nx`/`ny` (ask if unsure;
-   do not guess). Pick a valid `base_date`/`base_time` for the operation.
+   do not guess). Omit `base_date`/`base_time` for the latest announcement, or pick a valid
+   pair for the operation.
 2. **Run.**
    ```bash
-   datagokr weather forecast --base-date 20260811 --base-time 0500 --nx 60 --ny 127
+   datagokr weather forecast --nx 60 --ny 127          # latest announcement
    ```
    Add `--json` for machine-readable data.
 3. **Relay the result.** The rows are long; group by `forecast_date`/`forecast_time` and

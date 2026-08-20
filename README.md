@@ -48,8 +48,8 @@ from pydatagokr import DataGoKr
 
 client = DataGoKr(api_key="발급받은-디코딩-키")   # 저장해 뒀으면 DataGoKr()
 
-# 단기예보 -- 서울 종로 격자(nx 60, ny 127), 2026-08-11 0500 발표
-forecast = client.weather.forecast(base_date="20260811", base_time="0500", nx=60, ny=127)
+# 단기예보 -- 서울 종로 격자(nx 60, ny 127). base_date/base_time 생략 시 최신 발표분
+forecast = client.weather.forecast(nx=60, ny=127)
 
 # 아파트 매매 실거래 -- 종로구(11110), 2024년 1월
 trades = client.realestate.apt_trade(region_code="11110", deal_ym="202401")

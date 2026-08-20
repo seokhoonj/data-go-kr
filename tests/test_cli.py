@@ -150,6 +150,21 @@ def test_kofia_monthly_operation_uses_year_month_bounds(capsys, keyed_env, monke
     assert "beginBasDt" not in urls[0]
 
 
+# --- weather ------------------------------------------------------------------
+
+def test_weather_omitted_base_uses_the_latest_announcement(keyed_env, monkeypatch):
+    # `datagokr weather forecast --nx --ny` (no --base-date/--base-time) resolves the latest
+    # published announcement and sends it to the vendor.
+    import pydatagokr.services.weather as weather_mod
+    monkeypatch.setattr(weather_mod, "_latest_base", lambda name: ("20260101", "0500"))
+    urls = _fake_opener(monkeypatch, _xml_envelope(
+        [{"baseDate": "20260101", "baseTime": "0500", "category": "TMP",
+          "fcstDate": "20260101", "fcstTime": "0600", "fcstValue": "1",
+          "nx": "60", "ny": "127"}], total=1))
+    assert main(["weather", "forecast", "--nx", "60", "--ny", "127"]) == 0
+    assert "base_date=20260101" in urls[0] and "base_time=0500" in urls[0]
+
+
 # --- customs -----------------------------------------------------------------
 
 def test_customs_item_trade_sends_range_and_cleans(capsys, keyed_env, monkeypatch):
