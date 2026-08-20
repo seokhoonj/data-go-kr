@@ -5,9 +5,11 @@
 [![Python](https://img.shields.io/pypi/pyversions/pydatagokr)](https://pypi.org/project/pydatagokr/)
 [![License](https://img.shields.io/pypi/l/pydatagokr)](https://github.com/seokhoonj/pydatagokr/blob/main/LICENSE)
 
+**한국어** | [English](README.en.md)
+
 공공데이터포털([data.go.kr](https://www.data.go.kr))의 오픈 API를 읽어옵니다. 포털에는 수천 개
-기관 API가 있고, 그중 조회수·활용신청이 높은 것들 -- 기상·대기·공휴일·부동산·중기예보·조달·
-관세·금융투자 -- 을 미리 만들어 두었습니다.
+기관 API가 있고, 그중 조회수·활용신청이 높은 것들(기상·대기·공휴일·부동산·중기예보·조달·
+관세·금융투자)을 미리 만들어 두었습니다.
 
 미리 만든 서비스는 `client.weather.forecast(...)`처럼 접근자(accessor)로 부르고, 목록에
 없는 서비스도 요청 주소만 알면 직접 가져올 수 있습니다(아래 2.2). 결과는 딕셔너리 목록
@@ -19,22 +21,21 @@
 pip install pydatagokr
 ```
 
-data.go.kr 인증키가 필요합니다 -- [data.go.kr](https://www.data.go.kr)에서 발급받은
+data.go.kr 인증키가 필요합니다. [data.go.kr](https://www.data.go.kr)에서 발급받은
 **Decoding(디코딩)** 키를 복사하세요(Encoding 키가 아닙니다). 키를 넣는 방법은 세 가지입니다.
 
-**① 코드에서 직접** -- `DataGoKr(api_key="발급받은-디코딩-키")` (아래 빠른 시작).
+**① 코드에서 직접**: `DataGoKr(api_key="발급받은-디코딩-키")` (아래 빠른 시작).
 
-**② 파일에 저장**(권장 -- 한 번 넣으면 이후 `DataGoKr()`만 써도 됨) --
-`~/.config/pydatagokr/credentials.json`:
+**② 파일에 저장**(권장, 한 번 넣으면 이후 `DataGoKr()`만 써도 됨). 아래를 `~/.config/pydatagokr/credentials.json`에 저장합니다:
 
 ```json
 { "DATAGOKR_API_KEY": "발급받은-디코딩-키" }
 ```
 
-**③ 환경변수** -- macOS·Linux는 `export DATAGOKR_API_KEY=발급받은-디코딩-키`, Windows
+**③ 환경변수**: macOS·Linux는 `export DATAGOKR_API_KEY=발급받은-디코딩-키`, Windows
 PowerShell은 `setx DATAGOKR_API_KEY "발급받은-디코딩-키"`.
 
-데이터마다 data.go.kr에서 따로 **활용신청**(사용 신청)을 해야 불러올 수 있습니다 -- 그
+데이터마다 data.go.kr에서 따로 **활용신청**(사용 신청)을 해야 불러올 수 있습니다. 그
 데이터의 안내 페이지에서 "활용신청"을 누르고, 마이페이지 > 데이터 활용 > Open API에서
 승인됐는지 봅니다.
 
@@ -49,10 +50,10 @@ from pydatagokr import DataGoKr
 
 client = DataGoKr(api_key="발급받은-디코딩-키")   # 저장해 뒀으면 DataGoKr()
 
-# 단기예보 -- 서울 종로 격자(nx 60, ny 127). base_date/base_time 생략 시 최신 발표분
+# 단기예보: 서울 종로 격자(nx 60, ny 127). base_date/base_time 생략 시 최신 발표분
 forecast = client.weather.forecast(nx=60, ny=127)
 
-# 아파트 매매 실거래 -- 종로구(11110), 2024년 1월
+# 아파트 매매 실거래: 종로구(11110), 2024년 1월
 trades = client.realestate.apt_trade(region_code="11110", deal_ym="202401")
 ```
 
@@ -65,7 +66,7 @@ trades = client.realestate.apt_trade(region_code="11110", deal_ym="202401")
 | 넣을 것 | 아파트 매매 실거래가 |
 |---|---|
 | 요청 주소 | `https://apis.data.go.kr/1613000` |
-| 기능 이름 (오퍼레이션) | `RTMSDataSvcAptTrade/getRTMSDataSvcAptTrade` |
+| 기능명 (오퍼레이션) | `RTMSDataSvcAptTrade/getRTMSDataSvcAptTrade` |
 | 요청 항목 (필터) | `LAWD_CD`(법정동코드 앞 5자리), `DEAL_YMD`(계약년월) |
 
 인증키 넣기, 여러 페이지로 나뉜 결과 이어받기, 오류 처리는 `DataGoKrSession`이 알아서 하고,
@@ -77,7 +78,7 @@ from pydatagokr import DataGoKrSession
 # XML로 답하는 서비스면 response_format="xml" (대부분 XML)
 session = DataGoKrSession("https://apis.data.go.kr/1613000", response_format="xml")
 rows = session.fetch(
-    "RTMSDataSvcAptTrade/getRTMSDataSvcAptTrade",  # 기능 이름
+    "RTMSDataSvcAptTrade/getRTMSDataSvcAptTrade",  # 기능명
     LAWD_CD="11110",                               # 법정동코드 앞 5자리
     DEAL_YMD="202401",                             # 계약년월(YYYYMM)
 )
@@ -113,12 +114,12 @@ pl.DataFrame(rows)
 
 - **활용신청이 먼저.** 서비스마다 data.go.kr 계정에서 해당 데이터셋을 따로 신청해야
   호출됩니다.
-- **정제(`clean`).** 기관이 주는 행은 필드명만으로는 의미를 구별하기 어렵고(`sggCd`,
-  `excluUseAr`) 값이 전부 문자열입니다. 기본값 `clean=True`는 알아보는 이름과 실제
-  타입으로 정리하고(`region_code`, `exclusive_area=84.97`, `deal_amount=82000`),
-  `clean=False`는 원문 그대로 둡니다.
+- **이름·타입 정리(`clean`).** 기관이 주는 행은 필드명만으로는 의미를 알기 어렵고(`sggCd`,
+  `excluUseAr`) 값이 전부 문자열입니다. 기본값 `clean=True`는 데이터 내용을 손보는 게 아니라
+  **필드명을 알아보기 쉬운 이름으로, 문자열 값을 실제 타입으로** 바꿔 줍니다(`region_code`,
+  `exclusive_area=84.97`, `deal_amount=82000`). `clean=False`는 기관 원문 그대로 둡니다.
 - **탐색.** 어떤 서비스·오퍼레이션이 있는지는 `datagokr list`(또는 `catalog.services()`),
-  각 오퍼레이션이 받는 옵션은 `datagokr <서비스> <오퍼레이션> --help`, 정제 열 스키마는
+  각 오퍼레이션이 받는 옵션은 `datagokr <서비스> <오퍼레이션> --help`, 정리된 열 스키마는
   `datagokr fields <서비스> <오퍼레이션>`으로 봅니다.
 - **에러·운영.** reason 코드, 활용신청 승인 방식, 트래픽 한도는 [docs/errors.md](docs/errors.md)에
   정리돼 있습니다.
@@ -138,7 +139,7 @@ datagokr realestate apt_trade 11110 --deal-ym 202401  # 아파트 매매 실거�
 
 ## 5. AI 코딩 에이전트에서 사용
 
-이 저장소는 Claude Code·Codex용 플러그인 마켓플레이스도 겸합니다 -- `list`·`weather`·
+이 저장소는 Claude Code·Codex용 플러그인 마켓플레이스도 겸합니다. `list`·`weather`·
 `airquality`·`holidays`·`realestate`·`midforecast`·`procurement`·`customs`·`kofia`를
 같은 이름의 `datagokr` 명령을 호출하는 스킬로 제공합니다. 먼저 위에서 패키지를
 설치하세요(`list`는 키 없이, 조회는 키 필요).
@@ -148,20 +149,20 @@ datagokr realestate apt_trade 11110 --deal-ym 202401  # 아파트 매매 실거�
 Claude Code 채팅창에서 마켓플레이스를 추가하고 설치합니다:
 
 ```
-/plugin marketplace add seokhoonj/pydatagokr
-/plugin install datagokr@pydatagokr
+/plugin marketplace add seokhoonj/pydatagokr   # 마켓플레이스 등록
+/plugin install datagokr@pydatagokr            # 플러그인 설치
 ```
 
 그런 다음 평범하게 물어보거나("서울 미세먼지 알려줘", "종로구 아파트 매매 실거래가"),
-스킬을 직접 호출하세요 -- `/datagokr:realestate apt_trade 11110 --deal-ym 202401`.
+스킬을 직접 호출하세요: `/datagokr:realestate apt_trade 11110 --deal-ym 202401`.
 
 ### 5.2 Codex
 
 터미널에서 마켓플레이스를 추가하고 설치합니다:
 
 ```
-codex plugin marketplace add seokhoonj/pydatagokr
-codex plugin add datagokr@pydatagokr
+codex plugin marketplace add seokhoonj/pydatagokr   # 마켓플레이스 등록
+codex plugin add datagokr@pydatagokr                # 플러그인 설치
 ```
 
 스킬은 관련 요청에 반응하며, `datagokr <서비스> <오퍼레이션>`으로 직접 실행해도 됩니다.
