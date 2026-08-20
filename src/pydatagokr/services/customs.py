@@ -29,7 +29,7 @@ ITEM_TRADE = Table(
     name="item_trade",
     operation="getItemtradeList",
     fields=(
-        Field("year",        "period",            "date_ym"),          # "2026.01" -> "2026-01"
+        Field("year",        "period",            "date_ym", is_key=True),   # "2026.01" -> "2026-01"
         Field("hsCode",      "hs_code",           "text", is_key=True),
         Field("statKor",     "item_name",         "text"),
         Field("expDlr",      "export_usd",        "int"),

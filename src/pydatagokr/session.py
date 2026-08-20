@@ -316,9 +316,12 @@ class DataGoKrSession:
 
     def _rows_from_items(self, items: Any, operation: str) -> list[Row]:
         """Normalize ``body.items.item`` -- a list of objects, a single object (a one-row
-        page), or an empty marker (``""``/absent) -- into a list of string rows."""
+        page), or an empty marker (absent, ``""``, a whitespace-only string, or ``{}``) --
+        into a list of string rows."""
         item = items.get("item") if isinstance(items, dict) else items
-        if item is None or item == "" or item == {}:
+        # An empty items block is the missing-marker: absent, "" (compact <items/>), a
+        # whitespace-only string (a pretty-printed <items>\n  </items>), or {}.
+        if item is None or (isinstance(item, str) and not item.strip()) or item == {}:
             return []
         raw_rows = item if isinstance(item, list) else [item]
         rows: list[Row] = []

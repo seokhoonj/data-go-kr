@@ -1,6 +1,6 @@
 """Customs -- the XML session, clean-by-default rows, and the raw passthrough, offline."""
 
-from pydatagokr.services.customs import Customs
+from pydatagokr.services.customs import ITEM_TRADE, Customs
 
 
 def _xml(items, total):
@@ -85,3 +85,10 @@ def test_negative_trade_balance_parses():
     customs, _ = _customs(_xml([{**_ROW, "balPayments": "-1234"}], 1))
     cleaned = customs.item_trade("8542311000", begin="202601", end="202601")
     assert cleaned[0]["trade_balance_usd"] == -1234
+
+
+def test_item_trade_natural_key_includes_the_period():
+    # The series is monthly over one HS code, so the period is part of the natural key --
+    # a store upserting on key_columns keeps each month rather than collapsing them all
+    # onto the HS code alone.
+    assert ITEM_TRADE.key_columns == ("period", "hs_code")

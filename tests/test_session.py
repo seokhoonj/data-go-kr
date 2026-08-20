@@ -439,6 +439,17 @@ def test_xml_empty_items_is_empty_list():
     assert session.fetch("getThing") == []
 
 
+def test_xml_whitespace_only_items_is_empty_list():
+    # A pretty-printed empty <items> block is whitespace text, not "", so the empty-marker
+    # check must treat a blank string as no rows -- otherwise a legitimately empty result
+    # surfaces as a "non-object row" network error.
+    body = (b"<response><header><resultCode>00</resultCode>"
+            b"<resultMsg>NORMAL SERVICE.</resultMsg></header>"
+            b"<body><items>\n      </items><totalCount>0</totalCount></body></response>")
+    session, _ = _session(body, response_format="xml")
+    assert session.fetch("getThing") == []
+
+
 def test_xml_fault_maps_like_the_json_fault():
     session, _ = _session(
         _xml_fault("30", auth_msg="SERVICE_KEY_IS_NOT_REGISTERED_ERROR"),
