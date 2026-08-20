@@ -77,9 +77,7 @@ class Holidays:
         """관공서 공휴일 (``getRestDeInfo``) for ``year`` (YYYY); ``month`` (1-12) narrows to
         one month. ``clean=True`` (the default) returns typed rows through
         :data:`HOLIDAYS`; ``clean=False`` the raw vendor rows."""
-        if clean:
-            return self.fetch("holidays", year=year, month=month, clean=True)
-        return self.fetch("holidays", year=year, month=month, clean=False)
+        return self.fetch("holidays", year=year, month=month, clean=clean)
 
     @overload
     def fetch(self, name: str, *, year: int, month: int | None = ...,

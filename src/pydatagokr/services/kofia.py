@@ -167,9 +167,7 @@ class KOFIA:
                      clean: bool = True) -> list[Row] | list[CleanRow]:
         """증시자금추이 -- 일자별 투자자예탁금, 위탁매매미수금, 미수금대비반대매매금액·비중 등.
         ``begin``/``end`` = YYYYMMDD."""
-        if clean:
-            return self.fetch("market_funds", begin=begin, end=end, clean=True)
-        return self.fetch("market_funds", begin=begin, end=end, clean=False)
+        return self.fetch("market_funds", begin=begin, end=end, clean=clean)
 
     @overload
     def credit_balance(self, *, begin: str | None = ..., end: str | None = ...,
@@ -184,9 +182,7 @@ class KOFIA:
                        clean: bool = True) -> list[Row] | list[CleanRow]:
         """신용공여잔고추이 -- 일자별 신용거래융자(전체/유가/코스닥), 신용거래대주,
         예탁증권담보융자 등. ``begin``/``end`` = YYYYMMDD."""
-        if clean:
-            return self.fetch("credit_balance", begin=begin, end=end, clean=True)
-        return self.fetch("credit_balance", begin=begin, end=end, clean=False)
+        return self.fetch("credit_balance", begin=begin, end=end, clean=clean)
 
     @overload
     def fetch(self, name: str, *, begin: str | None = ..., end: str | None = ...,

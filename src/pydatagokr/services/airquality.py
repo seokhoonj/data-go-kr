@@ -18,11 +18,14 @@ from .._spec import CleanRow, Field, Table
 from ..session import DataGoKrSession
 from ..types import Row
 
-__all__ = ["AGENCY", "BASE_URL", "AirQuality", "SERVICE", "TABLES"]
+__all__ = ["AGENCY", "BASE_URL", "AirQuality", "DataTerm", "SERVICE", "TABLES"]
 
 SERVICE = "airquality"
 AGENCY = "한국환경공단 (Korea Environment Corporation, AirKorea)"
 BASE_URL = "https://apis.data.go.kr/B552584/ArpltnInforInqireSvc"
+
+# The measurement window ``by_station`` accepts as ``dataTerm`` -- a closed three-value set.
+DataTerm = Literal["DAILY", "MONTH", "3MONTH"]
 
 # The measurement columns, shared by both operations.
 _MEASURE = (
@@ -89,15 +92,15 @@ class AirQuality:
         return _spec.clean(rows, BY_SIDO) if clean else rows
 
     @overload
-    def by_station(self, *, station: str, data_term: str = ..., ver: str = ...,
+    def by_station(self, *, station: str, data_term: DataTerm = ..., ver: str = ...,
                    clean: Literal[True] = ...) -> list[CleanRow]: ...
     @overload
-    def by_station(self, *, station: str, data_term: str = ..., ver: str = ...,
+    def by_station(self, *, station: str, data_term: DataTerm = ..., ver: str = ...,
                    clean: Literal[False]) -> list[Row]: ...
     @overload
-    def by_station(self, *, station: str, data_term: str = ..., ver: str = ...,
+    def by_station(self, *, station: str, data_term: DataTerm = ..., ver: str = ...,
                    clean: bool) -> list[Row] | list[CleanRow]: ...
-    def by_station(self, *, station: str, data_term: str = "DAILY", ver: str = "1.0",
+    def by_station(self, *, station: str, data_term: DataTerm = "DAILY", ver: str = "1.0",
                    clean: bool = True) -> list[Row] | list[CleanRow]:
         """측정소별 실시간 측정정보 (``getMsrstnAcctoRltmMesureDnsty``) for one ``station``
         over ``data_term`` (``DAILY`` / ``MONTH`` / ``3MONTH``). ``clean`` as

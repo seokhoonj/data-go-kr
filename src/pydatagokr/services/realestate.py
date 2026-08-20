@@ -157,10 +157,7 @@ class RealEstate:
                   clean: bool = True) -> list[Row] | list[CleanRow]:
         """아파트 매매 실거래가 for one 법정동 (``region_code``) and 계약년월 (``deal_ym`` =
         YYYYMM). ``clean=True`` (the default) returns typed rows; ``clean=False`` raw."""
-        if clean:
-            return self.fetch("apt_trade", region_code=region_code,
-                              deal_ym=deal_ym, clean=True)
-        return self.fetch("apt_trade", region_code=region_code, deal_ym=deal_ym, clean=False)
+        return self.fetch("apt_trade", region_code=region_code, deal_ym=deal_ym, clean=clean)
 
     @overload
     def apt_trade_detail(self, *, region_code: str, deal_ym: str,
@@ -174,11 +171,8 @@ class RealEstate:
     def apt_trade_detail(self, *, region_code: str, deal_ym: str,
                          clean: bool = True) -> list[Row] | list[CleanRow]:
         """아파트 매매 실거래가 상세 (adds the road address). Args as :meth:`apt_trade`."""
-        if clean:
-            return self.fetch("apt_trade_detail", region_code=region_code,
-                              deal_ym=deal_ym, clean=True)
         return self.fetch("apt_trade_detail", region_code=region_code, deal_ym=deal_ym,
-                          clean=False)
+                          clean=clean)
 
     @overload
     def apt_rent(self, *, region_code: str, deal_ym: str,
@@ -192,10 +186,7 @@ class RealEstate:
     def apt_rent(self, *, region_code: str, deal_ym: str,
                  clean: bool = True) -> list[Row] | list[CleanRow]:
         """아파트 전월세 실거래가 (보증금·월세). Args as :meth:`apt_trade`."""
-        if clean:
-            return self.fetch("apt_rent", region_code=region_code,
-                              deal_ym=deal_ym, clean=True)
-        return self.fetch("apt_rent", region_code=region_code, deal_ym=deal_ym, clean=False)
+        return self.fetch("apt_rent", region_code=region_code, deal_ym=deal_ym, clean=clean)
 
     @overload
     def apt_presale(self, *, region_code: str, deal_ym: str,
@@ -209,10 +200,7 @@ class RealEstate:
     def apt_presale(self, *, region_code: str, deal_ym: str,
                     clean: bool = True) -> list[Row] | list[CleanRow]:
         """아파트 분양권전매 실거래가. Args as :meth:`apt_trade`."""
-        if clean:
-            return self.fetch("apt_presale", region_code=region_code,
-                              deal_ym=deal_ym, clean=True)
-        return self.fetch("apt_presale", region_code=region_code, deal_ym=deal_ym, clean=False)
+        return self.fetch("apt_presale", region_code=region_code, deal_ym=deal_ym, clean=clean)
 
     @overload
     def fetch(self, name: str, *, region_code: str, deal_ym: str,

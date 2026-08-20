@@ -139,11 +139,8 @@ class Weather:
                  nx: int, ny: int, clean: bool = True) -> list[Row] | list[CleanRow]:
         """단기예보 (``getVilageFcst``), to ~3 days, for the grid cell ``nx``/``ny`` at the
         ``base_date``/``base_time`` announcement. Args as :meth:`fetch`."""
-        if clean:
-            return self.fetch("forecast", base_date=base_date, base_time=base_time,
-                              nx=nx, ny=ny, clean=True)
         return self.fetch("forecast", base_date=base_date, base_time=base_time,
-                          nx=nx, ny=ny, clean=False)
+                          nx=nx, ny=ny, clean=clean)
 
     @overload
     def ultra_forecast(self, *, base_date: str | None = ..., base_time: str | None = ...,
@@ -157,11 +154,8 @@ class Weather:
     def ultra_forecast(self, *, base_date: str | None = None, base_time: str | None = None,
                        nx: int, ny: int, clean: bool = True) -> list[Row] | list[CleanRow]:
         """초단기예보 (``getUltraSrtFcst``), to 6 hours. Args as :meth:`fetch`."""
-        if clean:
-            return self.fetch("ultra_forecast", base_date=base_date, base_time=base_time,
-                              nx=nx, ny=ny, clean=True)
         return self.fetch("ultra_forecast", base_date=base_date, base_time=base_time,
-                          nx=nx, ny=ny, clean=False)
+                          nx=nx, ny=ny, clean=clean)
 
     @overload
     def nowcast(self, *, base_date: str | None = ..., base_time: str | None = ...,
@@ -175,11 +169,8 @@ class Weather:
     def nowcast(self, *, base_date: str | None = None, base_time: str | None = None,
                 nx: int, ny: int, clean: bool = True) -> list[Row] | list[CleanRow]:
         """초단기실황 (``getUltraSrtNcst``), the latest observation. Args as :meth:`fetch`."""
-        if clean:
-            return self.fetch("nowcast", base_date=base_date, base_time=base_time,
-                              nx=nx, ny=ny, clean=True)
         return self.fetch("nowcast", base_date=base_date, base_time=base_time,
-                          nx=nx, ny=ny, clean=False)
+                          nx=nx, ny=ny, clean=clean)
 
     @overload
     def fetch(self, name: str, *, base_date: str | None = ..., base_time: str | None = ...,

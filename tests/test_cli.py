@@ -189,6 +189,33 @@ def test_customs_item_trade_requires_the_range(keyed_env):
     assert exc.value.code == 2
 
 
+# --- procurement / airquality closed-value flags -----------------------------
+
+def test_procurement_rejects_an_invalid_query_basis():
+    # --query-basis is a closed set (1/2); argparse choices reject anything else at parse
+    # time, before a key is even needed.
+    with pytest.raises(SystemExit) as exc:
+        main(["procurement", "goods", "--begin", "202608010000",
+              "--end", "202608102359", "--query-basis", "9"])
+    assert exc.value.code == 2
+
+
+def test_procurement_omitted_query_basis_uses_the_library_default(keyed_env, monkeypatch):
+    # Omitting --query-basis forwards nothing, so fetch's own default ("1" -> inqryDiv=1)
+    # applies -- the CLI does not restate it.
+    urls = _fake_opener(monkeypatch, _xml_envelope([{"bidNtceNo": "1", "bidNtceOrd": "0"}],
+                                                   total=1))
+    assert main(["procurement", "goods",
+                 "--begin", "202608010000", "--end", "202608102359"]) == 0
+    assert "inqryDiv=1" in urls[0]
+
+
+def test_airquality_rejects_an_invalid_data_term():
+    with pytest.raises(SystemExit) as exc:
+        main(["airquality", "by_station", "종로구", "--data-term", "WEEKLY"])
+    assert exc.value.code == 2
+
+
 # --- failures ----------------------------------------------------------------
 
 def test_vendor_error_exits_1(capsys, keyed_env, monkeypatch):

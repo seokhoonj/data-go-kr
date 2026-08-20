@@ -92,9 +92,7 @@ class MidForecast:
         """중기육상예보 (``getMidLandFcst``) -- 강수확률·날씨 for ``region`` (a 예보구역코드
         such as ``11B00000``) announced at ``base_time`` (YYYYMMDDHHMM, the 0600 or 1800
         발표시각). ``clean=True`` (the default) returns typed rows; ``clean=False`` raw."""
-        if clean:
-            return self.fetch("land", region=region, base_time=base_time, clean=True)
-        return self.fetch("land", region=region, base_time=base_time, clean=False)
+        return self.fetch("land", region=region, base_time=base_time, clean=clean)
 
     @overload
     def temperature(self, *, region: str, base_time: str,
@@ -109,9 +107,7 @@ class MidForecast:
                     clean: bool = True) -> list[Row] | list[CleanRow]:
         """중기기온예보 (``getMidTa``) -- daily 최저·최고기온 for ``region`` (a 도시 예보구역
         코드 such as ``11B10101``). Args as :meth:`land`."""
-        if clean:
-            return self.fetch("temperature", region=region, base_time=base_time, clean=True)
-        return self.fetch("temperature", region=region, base_time=base_time, clean=False)
+        return self.fetch("temperature", region=region, base_time=base_time, clean=clean)
 
     @overload
     def fetch(self, name: str, *, region: str, base_time: str,

@@ -23,11 +23,14 @@ from .._spec import CleanRow, Field, Table
 from ..session import DataGoKrSession
 from ..types import Row
 
-__all__ = ["AGENCY", "BASE_URL", "Procurement", "SERVICE", "TABLES"]
+__all__ = ["AGENCY", "BASE_URL", "Procurement", "QueryBasis", "SERVICE", "TABLES"]
 
 SERVICE = "procurement"
 AGENCY = "조달청 (Public Procurement Service, 나라장터)"
 BASE_URL = "https://apis.data.go.kr/1230000/ad/BidPublicInfoService"
+
+# The window basis the vendor accepts as ``inqryDiv`` -- a closed two-value set.
+QueryBasis = Literal["1", "2"]   # "1" 공고게시일시, "2" 개찰일시
 
 # The header fields shared by every 업무구분's 입찰공고목록. ``budget_amount`` is absent on
 # 공사 announcements, so it stays ``None`` there rather than being a separate table.
@@ -81,86 +84,75 @@ class Procurement:
         return f"Procurement({self._session!r})"
 
     @overload
-    def goods(self, *, begin: str, end: str, query_basis: str = ...,
+    def goods(self, *, begin: str, end: str, query_basis: QueryBasis = ...,
               clean: Literal[True] = ...) -> list[CleanRow]: ...
     @overload
-    def goods(self, *, begin: str, end: str, query_basis: str = ...,
+    def goods(self, *, begin: str, end: str, query_basis: QueryBasis = ...,
               clean: Literal[False]) -> list[Row]: ...
     @overload
-    def goods(self, *, begin: str, end: str, query_basis: str = ...,
+    def goods(self, *, begin: str, end: str, query_basis: QueryBasis = ...,
               clean: bool) -> list[Row] | list[CleanRow]: ...
-    def goods(self, *, begin: str, end: str, query_basis: str = "1",
+    def goods(self, *, begin: str, end: str, query_basis: QueryBasis = "1",
               clean: bool = True) -> list[Row] | list[CleanRow]:
         """물품 입찰공고 over the ``begin``..``end`` window (YYYYMMDDHHMM). ``query_basis`` is
         the window basis (``"1"`` 공고게시일시, ``"2"`` 개찰일시). ``clean=True`` (the default)
         returns typed rows; ``clean=False`` raw."""
-        if clean:
-            return self.fetch("goods", begin=begin, end=end, query_basis=query_basis, clean=True)
-        return self.fetch("goods", begin=begin, end=end, query_basis=query_basis, clean=False)
+        return self.fetch("goods", begin=begin, end=end, query_basis=query_basis, clean=clean)
 
     @overload
-    def services(self, *, begin: str, end: str, query_basis: str = ...,
+    def services(self, *, begin: str, end: str, query_basis: QueryBasis = ...,
                  clean: Literal[True] = ...) -> list[CleanRow]: ...
     @overload
-    def services(self, *, begin: str, end: str, query_basis: str = ...,
+    def services(self, *, begin: str, end: str, query_basis: QueryBasis = ...,
                  clean: Literal[False]) -> list[Row]: ...
     @overload
-    def services(self, *, begin: str, end: str, query_basis: str = ...,
+    def services(self, *, begin: str, end: str, query_basis: QueryBasis = ...,
                  clean: bool) -> list[Row] | list[CleanRow]: ...
-    def services(self, *, begin: str, end: str, query_basis: str = "1",
+    def services(self, *, begin: str, end: str, query_basis: QueryBasis = "1",
                  clean: bool = True) -> list[Row] | list[CleanRow]:
         """용역 입찰공고. Args as :meth:`goods`."""
-        if clean:
-            return self.fetch("services", begin=begin, end=end,
-                              query_basis=query_basis, clean=True)
-        return self.fetch("services", begin=begin, end=end, query_basis=query_basis, clean=False)
+        return self.fetch("services", begin=begin, end=end, query_basis=query_basis, clean=clean)
 
     @overload
-    def construction(self, *, begin: str, end: str, query_basis: str = ...,
+    def construction(self, *, begin: str, end: str, query_basis: QueryBasis = ...,
                      clean: Literal[True] = ...) -> list[CleanRow]: ...
     @overload
-    def construction(self, *, begin: str, end: str, query_basis: str = ...,
+    def construction(self, *, begin: str, end: str, query_basis: QueryBasis = ...,
                      clean: Literal[False]) -> list[Row]: ...
     @overload
-    def construction(self, *, begin: str, end: str, query_basis: str = ...,
+    def construction(self, *, begin: str, end: str, query_basis: QueryBasis = ...,
                      clean: bool) -> list[Row] | list[CleanRow]: ...
-    def construction(self, *, begin: str, end: str, query_basis: str = "1",
+    def construction(self, *, begin: str, end: str, query_basis: QueryBasis = "1",
                      clean: bool = True) -> list[Row] | list[CleanRow]:
         """공사 입찰공고 (배정예산 미제공 -- ``budget_amount`` is ``None``). Args as
         :meth:`goods`."""
-        if clean:
-            return self.fetch("construction", begin=begin, end=end,
-                              query_basis=query_basis, clean=True)
         return self.fetch("construction", begin=begin, end=end,
-                          query_basis=query_basis, clean=False)
+                          query_basis=query_basis, clean=clean)
 
     @overload
-    def foreign(self, *, begin: str, end: str, query_basis: str = ...,
+    def foreign(self, *, begin: str, end: str, query_basis: QueryBasis = ...,
                 clean: Literal[True] = ...) -> list[CleanRow]: ...
     @overload
-    def foreign(self, *, begin: str, end: str, query_basis: str = ...,
+    def foreign(self, *, begin: str, end: str, query_basis: QueryBasis = ...,
                 clean: Literal[False]) -> list[Row]: ...
     @overload
-    def foreign(self, *, begin: str, end: str, query_basis: str = ...,
+    def foreign(self, *, begin: str, end: str, query_basis: QueryBasis = ...,
                 clean: bool) -> list[Row] | list[CleanRow]: ...
-    def foreign(self, *, begin: str, end: str, query_basis: str = "1",
+    def foreign(self, *, begin: str, end: str, query_basis: QueryBasis = "1",
                 clean: bool = True) -> list[Row] | list[CleanRow]:
         """외자 입찰공고. Args as :meth:`goods`."""
-        if clean:
-            return self.fetch("foreign", begin=begin, end=end,
-                              query_basis=query_basis, clean=True)
-        return self.fetch("foreign", begin=begin, end=end, query_basis=query_basis, clean=False)
+        return self.fetch("foreign", begin=begin, end=end, query_basis=query_basis, clean=clean)
 
     @overload
-    def fetch(self, name: str, *, begin: str, end: str, query_basis: str = ...,
+    def fetch(self, name: str, *, begin: str, end: str, query_basis: QueryBasis = ...,
               clean: Literal[True] = ...) -> list[CleanRow]: ...
     @overload
-    def fetch(self, name: str, *, begin: str, end: str, query_basis: str = ...,
+    def fetch(self, name: str, *, begin: str, end: str, query_basis: QueryBasis = ...,
               clean: Literal[False]) -> list[Row]: ...
     @overload
-    def fetch(self, name: str, *, begin: str, end: str, query_basis: str = ...,
+    def fetch(self, name: str, *, begin: str, end: str, query_basis: QueryBasis = ...,
               clean: bool) -> list[Row] | list[CleanRow]: ...
-    def fetch(self, name: str, *, begin: str, end: str, query_basis: str = "1",
+    def fetch(self, name: str, *, begin: str, end: str, query_basis: QueryBasis = "1",
               clean: bool = True) -> list[Row] | list[CleanRow]:
         """Any of the four 업무구분 by name (see :meth:`operations`) over one time window.
         ``clean=True`` (the default) returns typed rows; ``clean=False`` raw."""
