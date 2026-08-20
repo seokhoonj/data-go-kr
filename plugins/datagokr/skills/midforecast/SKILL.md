@@ -1,9 +1,9 @@
 ---
 name: midforecast
-description: "Fetch 기상청 중기예보 (KMA medium-range forecast, days 4-10) from data.go.kr (service 1360000, MidFcstInfoService) -- 중기육상예보 (`land`: 강수확률·날씨) and 중기기온예보 (`temperature`: 최저·최고기온) for a 예보구역 code. Holds no logic of its own -- it calls the data-go-kr package's CLI (`data-go-kr midforecast`) and shows the result to the user. Trigger phrases: 중기예보, 주간예보, 4일후, 일주일 날씨, 주간 기온, 중기기온, medium-range forecast, weekly forecast, 10-day forecast."
+description: "Fetch 기상청 중기예보 (KMA medium-range forecast, days 4-10) from data.go.kr (service 1360000, MidFcstInfoService) -- 중기육상예보 (`land`: 강수확률·날씨) and 중기기온예보 (`temperature`: 최저·최고기온) for a 예보구역 code. Holds no logic of its own -- it calls the pydatagokr package's CLI (`datagokr midforecast`) and shows the result to the user. Trigger phrases: 중기예보, 주간예보, 4일후, 일주일 날씨, 주간 기온, 중기기온, medium-range forecast, weekly forecast, 10-day forecast."
 ---
 
-# data-go-kr — 기상청 중기예보
+# datagokr — 기상청 중기예보
 
 Fetch the 4-to-10-day outlook for a forecast region. Where the `weather` skill covers the
 next ~3 days on a 5km grid, this covers days 4-10 for a coarser 예보구역 named by a
@@ -21,18 +21,18 @@ starts at day 5, the 0600 one reaches day 4).
 ## Prerequisite
 
 ```
-pipx install data-go-kr      # or: pip install data-go-kr
+pipx install pydatagokr      # or: pip install pydatagokr
 ```
 
 A data.go.kr **decoding** key must be configured (env `DATA_GO_KR_API_KEY` or
-`~/.config/data-go-kr/credentials.json`), and the 중기예보 dataset (service 1360000,
+`~/.config/pydatagokr/credentials.json`), and the 중기예보 dataset (service 1360000,
 MidFcstInfoService) applied for (활용신청) on that account.
 
 ## Running
 
 ```
-data-go-kr midforecast land        --region REGID --base-time YYYYMMDDHHMM [--json]
-data-go-kr midforecast temperature --region REGID --base-time YYYYMMDDHHMM [--json]
+datagokr midforecast land        --region REGID --base-time YYYYMMDDHHMM [--json]
+datagokr midforecast temperature --region REGID --base-time YYYYMMDDHHMM [--json]
 ```
 
 - `--region`: the 예보구역코드. 육상 uses a 광역 code (`11B00000` 서울/인천/경기, `11H20000`
@@ -46,12 +46,12 @@ data-go-kr midforecast temperature --region REGID --base-time YYYYMMDDHHMM [--js
    `base-time` (today or yesterday at 0600/1800).
 2. **Run.**
    ```bash
-   data-go-kr midforecast land --region 11B00000 --base-time 202608111800
+   datagokr midforecast land --region 11B00000 --base-time 202608111800
    ```
    Add `--json` for machine-readable data.
 3. **Relay the result.** Read the day columns in order; a `None` day was outside the
    announcement's range.
-4. **Error handling.** A one-line `data-go-kr: <message>` on stderr:
+4. **Error handling.** A one-line `datagokr: <message>` on stderr:
    - a `[30]`/`[20]` auth error -> the key is wrong, is the *encoding* form, or service
      1360000 is not applied for yet.
    - an empty result usually means a `base-time` that is not a real 0600/1800 announcement.

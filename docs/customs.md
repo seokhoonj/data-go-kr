@@ -12,7 +12,7 @@
 ## CLI
 
 ```bash
-data-go-kr customs item_trade 8542 --begin 202401 --end 202406
+datagokr customs item_trade 8542 --begin 202401 --end 202406
 ```
 
 첫 인자는 HS 부호(`8542` = 반도체 집적회로), `--begin`/`--end`는 조회 구간(YYYYMM).

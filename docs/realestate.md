@@ -15,7 +15,7 @@
 ## CLI
 
 ```bash
-data-go-kr realestate apt_trade 11110 --deal-ym 202401
+datagokr realestate apt_trade 11110 --deal-ym 202401
 ```
 
 첫 인자는 `LAWD_CD`(법정동 앞 5자리), `--deal-ym`은 계약년월(YYYYMM)입니다.
@@ -35,9 +35,9 @@ rows = client.realestate.apt_trade(region_code=code, deal_ym="202401")
 `LAWD_CD`는 법정동코드 앞 5자리입니다. 지역명으로 찾으세요:
 
 ```bash
-data-go-kr lawd 종로구        # -> 11110
-data-go-kr lawd "서울 중구"   # 이름이 여러 시도에 있으면 시도를 붙여 한정
-data-go-kr lawd "수원시 장안구"
+datagokr lawd 종로구        # -> 11110
+datagokr lawd "서울 중구"   # 이름이 여러 시도에 있으면 시도를 붙여 한정
+datagokr lawd "수원시 장안구"
 ```
 
 이름이 중복되면(예 `중구`) 후보 목록과 함께 실패하니 `"서울 중구"`처럼 시도를, 일반구는

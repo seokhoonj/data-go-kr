@@ -15,8 +15,8 @@
 ## CLI
 
 ```bash
-data-go-kr holidays --year 2026
-data-go-kr holidays solar_terms --year 2026
+datagokr holidays --year 2026
+datagokr holidays solar_terms --year 2026
 ```
 
 `--year`는 필수이고, `--month`(1~12)로 특정 달만 볼 수 있습니다. 오퍼레이션을 생략하면

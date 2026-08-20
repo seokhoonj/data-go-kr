@@ -171,4 +171,4 @@ def test_vendor_error_exits_1(capsys, keyed_env, monkeypatch):
     _fake_opener(monkeypatch, _body({"response": {
         "header": {"resultCode": "99", "resultMsg": "UNKNOWN_ERROR"}, "body": {}}}))
     assert main(["kofia", "market_funds"]) == 1
-    assert "data-go-kr: " in capsys.readouterr().err
+    assert "datagokr: " in capsys.readouterr().err

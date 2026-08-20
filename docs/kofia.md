@@ -19,7 +19,7 @@ ELS/DLS·신탁·해외파생 등 시장 통계를 기간으로 조회합니다.
 ## CLI
 
 ```bash
-data-go-kr kofia market_funds --begin 20240101 --end 20240131
+datagokr kofia market_funds --begin 20240101 --end 20240131
 ```
 
 `--begin`/`--end`는 조회 구간입니다(YYYYMMDD; 월간 통계는 YYYYMM).
@@ -35,4 +35,4 @@ els   = client.kofia.fetch("els_elb", begin="20240101", end="20240131")
 ```
 
 `market_funds`와 `credit_balance`는 편의 메서드로, 나머지 오퍼레이션은 `fetch(name, ...)`로
-조회합니다. 전체 목록은 `data-go-kr list` / `Kofia.operations()`.
+조회합니다. 전체 목록은 `datagokr list` / `Kofia.operations()`.

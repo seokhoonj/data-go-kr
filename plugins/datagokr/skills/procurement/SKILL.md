@@ -1,9 +1,9 @@
 ---
 name: procurement
-description: "Fetch 조달청 나라장터 입찰공고정보 (Korea Public Procurement Service bid announcements) from data.go.kr (service 1230000) -- one operation per 업무구분: `goods` (물품), `services` (용역), `construction` (공사), `foreign` (외자), over a 공고게시일시 time window. Holds no logic of its own -- it calls the data-go-kr package's CLI (`data-go-kr procurement`) and shows the result to the user. Trigger phrases: 나라장터, 입찰공고, 조달, 입찰, 공공조달, 물품 입찰, 용역 입찰, 공사 입찰, 관급공사, procurement, bid announcement, government tender, G2B."
+description: "Fetch 조달청 나라장터 입찰공고정보 (Korea Public Procurement Service bid announcements) from data.go.kr (service 1230000) -- one operation per 업무구분: `goods` (물품), `services` (용역), `construction` (공사), `foreign` (외자), over a 공고게시일시 time window. Holds no logic of its own -- it calls the pydatagokr package's CLI (`datagokr procurement`) and shows the result to the user. Trigger phrases: 나라장터, 입찰공고, 조달, 입찰, 공공조달, 물품 입찰, 용역 입찰, 공사 입찰, 관급공사, procurement, bid announcement, government tender, G2B."
 ---
 
-# data-go-kr — 조달청 나라장터 입찰공고
+# datagokr — 조달청 나라장터 입찰공고
 
 Fetch 나라장터 bid announcements over a time window. The vendor requires the operation to
 match the announcement's 업무구분, so there is one per kind. Clean columns (a curated header
@@ -23,17 +23,17 @@ subset of the vendor's ~100 fields): `notice_no`, `notice_ord`, `notice_name`,
 ## Prerequisite
 
 ```
-pipx install data-go-kr      # or: pip install data-go-kr
+pipx install pydatagokr      # or: pip install pydatagokr
 ```
 
 A data.go.kr **decoding** key must be configured (env `DATA_GO_KR_API_KEY` or
-`~/.config/data-go-kr/credentials.json`), and the 나라장터 입찰공고정보서비스 dataset (service
+`~/.config/pydatagokr/credentials.json`), and the 나라장터 입찰공고정보서비스 dataset (service
 1230000) applied for (활용신청). It is 자동승인 for a development account.
 
 ## Running
 
 ```
-data-go-kr procurement <kind> --begin YYYYMMDDHHMM --end YYYYMMDDHHMM [--inqry-div DIV] [--json]
+datagokr procurement <kind> --begin YYYYMMDDHHMM --end YYYYMMDDHHMM [--inqry-div DIV] [--json]
 ```
 
 - `<kind>`: `goods` / `services` / `construction` / `foreign`.
@@ -46,12 +46,12 @@ data-go-kr procurement <kind> --begin YYYYMMDDHHMM --end YYYYMMDDHHMM [--inqry-d
    use `construction`); keep the window modest (a few days) -- a large one returns many pages.
 2. **Run.**
    ```bash
-   data-go-kr procurement services --begin 202608010000 --end 202608102359
+   datagokr procurement services --begin 202608010000 --end 202608102359
    ```
    Add `--json` for machine-readable data.
 3. **Relay the result.** Report `notice_name`, the agencies, the 입찰마감·개찰 times, and the
    money (추정가격/배정예산 in 원); `notice_url` is the g2b.go.kr detail page.
-4. **Error handling.** A one-line `data-go-kr: <message>` on stderr:
+4. **Error handling.** A one-line `datagokr: <message>` on stderr:
    - a `[30]`/`[20]` auth error -> the key is wrong, is the *encoding* form, or service
      1230000 is not applied for yet.
    - no rows means no announcements of that 업무구분 in the window (try another kind/window).

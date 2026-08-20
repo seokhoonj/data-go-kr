@@ -13,8 +13,8 @@
 ## CLI
 
 ```bash
-data-go-kr airquality by_sido 서울
-data-go-kr airquality by_station 종로구 --data-term DAILY
+datagokr airquality by_sido 서울
+datagokr airquality by_station 종로구 --data-term DAILY
 ```
 
 `by_sido`는 시도명(서울/부산/경기 …), `by_station`은 측정소명을 받습니다. `--data-term`은

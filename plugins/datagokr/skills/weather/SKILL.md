@@ -1,9 +1,9 @@
 ---
 name: weather
-description: "Fetch 기상청 동네예보 (KMA village weather forecast) from data.go.kr (service 1360000) -- the 단기예보 (`forecast`, ~3 days), 초단기예보 (`ultra_forecast`, 6 hours), and 초단기실황 (`nowcast`, latest observation) for one 5km grid cell (nx, ny). Holds no logic of its own -- it calls the data-go-kr package's CLI (`data-go-kr weather`) and shows the result to the user. Trigger phrases: 날씨, 동네예보, 단기예보, 초단기예보, 기온, 강수확률, 하늘상태, weather forecast, temperature, rain probability."
+description: "Fetch 기상청 동네예보 (KMA village weather forecast) from data.go.kr (service 1360000) -- the 단기예보 (`forecast`, ~3 days), 초단기예보 (`ultra_forecast`, 6 hours), and 초단기실황 (`nowcast`, latest observation) for one 5km grid cell (nx, ny). Holds no logic of its own -- it calls the pydatagokr package's CLI (`datagokr weather`) and shows the result to the user. Trigger phrases: 날씨, 동네예보, 단기예보, 초단기예보, 기온, 강수확률, 하늘상태, weather forecast, temperature, rain probability."
 ---
 
-# data-go-kr — 기상청 동네예보
+# datagokr — 기상청 동네예보
 
 Fetch a grid cell's forecast or observation. The result is **long** -- one row per weather
 item (`category`) per time. Clean columns: `base_date`, `base_time`, `category`,
@@ -26,17 +26,17 @@ item (`category`) per time. Clean columns: `base_date`, `base_time`, `category`,
 ## Prerequisite
 
 ```
-pipx install data-go-kr      # or: pip install data-go-kr
+pipx install pydatagokr      # or: pip install pydatagokr
 ```
 
 A data.go.kr **decoding** key must be configured (env `DATA_GO_KR_API_KEY` or
-`~/.config/data-go-kr/credentials.json`), and the 단기예보 dataset (service 1360000,
+`~/.config/pydatagokr/credentials.json`), and the 단기예보 dataset (service 1360000,
 VilageFcstInfoService_2.0) applied for (활용신청) on that account.
 
 ## Running
 
 ```
-data-go-kr weather <operation> --base-date YYYYMMDD --base-time HHMM --nx NX --ny NY [--json]
+datagokr weather <operation> --base-date YYYYMMDD --base-time HHMM --nx NX --ny NY [--json]
 ```
 
 - `--base-date`/`--base-time`: the announcement time. 단기예보 is issued at 0200/0500/0800/
@@ -49,12 +49,12 @@ data-go-kr weather <operation> --base-date YYYYMMDD --base-time HHMM --nx NX --n
    do not guess). Pick a valid `base_date`/`base_time` for the operation.
 2. **Run.**
    ```bash
-   data-go-kr weather forecast --base-date 20260811 --base-time 0500 --nx 60 --ny 127
+   datagokr weather forecast --base-date 20260811 --base-time 0500 --nx 60 --ny 127
    ```
    Add `--json` for machine-readable data.
 3. **Relay the result.** The rows are long; group by `forecast_date`/`forecast_time` and
    read `forecast_value` per `category` (translate the codes above for the user).
-4. **Error handling.** A one-line `data-go-kr: <message>` on stderr:
+4. **Error handling.** A one-line `datagokr: <message>` on stderr:
    - a `[30]`/`[20]` auth error -> the key is wrong, is the *encoding* form by mistake,
      or service 1360000 is not applied for yet.
    - an empty result (no rows) usually means a `base_time` with no issued forecast yet.

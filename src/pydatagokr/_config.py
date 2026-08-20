@@ -51,7 +51,7 @@ def resolve_api_key(explicit: str | None) -> str:
 
 
 def credentials_path() -> Path:
-    """The path data-go-kr reads a stored key from (honoring ``$XDG_CONFIG_HOME``)."""
+    """The path pydatagokr reads a stored key from (honoring ``$XDG_CONFIG_HOME``)."""
     config_home = os.environ.get("XDG_CONFIG_HOME") or str(Path.home() / ".config")
     return Path(config_home) / _CONFIG_DIR / _CONFIG_FILE
 

@@ -45,6 +45,6 @@ def test_land_region_json(capsys):
 
 def test_region_unknown_exits_2(capsys):
     assert main(["land-region", "없는지역"]) == 2
-    assert "data-go-kr:" in capsys.readouterr().err
+    assert "datagokr:" in capsys.readouterr().err
     assert main(["temp-region", "없는도시"]) == 2
-    assert "data-go-kr:" in capsys.readouterr().err
+    assert "datagokr:" in capsys.readouterr().err

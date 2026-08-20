@@ -5,13 +5,13 @@ clean column schema offline. The fetch commands -- one per wrapped service: ``we
 ``airquality``, ``holidays``, ``realestate``, ``midforecast``, ``procurement``, ``customs``,
 ``kofia`` -- each take the same service and operation names the Python client uses.
 
-    $ data-go-kr list                                                # offline
-    $ data-go-kr fields weather forecast                             # offline
-    $ data-go-kr weather forecast --base-date 20260811 --base-time 0500 --nx 60 --ny 127
-    $ data-go-kr airquality by_sido 서울
-    $ data-go-kr midforecast land --region 11B00000 --base-time 202608111800
-    $ data-go-kr procurement services --begin 202608010000 --end 202608102359
-    $ data-go-kr customs item_trade 8542 --begin 202401 --end 202406
+    $ datagokr list                                                # offline
+    $ datagokr fields weather forecast                             # offline
+    $ datagokr weather forecast --base-date 20260811 --base-time 0500 --nx 60 --ny 127
+    $ datagokr airquality by_sido 서울
+    $ datagokr midforecast land --region 11B00000 --base-time 202608111800
+    $ datagokr procurement services --begin 202608010000 --end 202608102359
+    $ datagokr customs item_trade 8542 --begin 202401 --end 202406
 """
 
 from __future__ import annotations
@@ -35,7 +35,7 @@ from .services.procurement import Procurement
 from .services.realestate import RealEstate
 from .services.weather import Weather
 
-_PROG = "data-go-kr"
+_PROG = "datagokr"
 _ERROR_PREFIX = f"{_PROG}: "
 
 # How many rows the text view prints; the full result is always in --json.
@@ -46,7 +46,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     """Parse ``argv``, run one call, and return a process exit code.
 
     A failure -- a missing/rejected key, a vendor error, or a transport problem -- is
-    printed as a one-line ``data-go-kr: <message>`` to stderr and returns 1. A usage error
+    printed as a one-line ``datagokr: <message>`` to stderr and returns 1. A usage error
     caught here (an unknown operation, a ``ValueError`` from the client) returns 2;
     argparse's own usage errors (a bad flag or subcommand) raise ``SystemExit(2)``.
     """
@@ -77,7 +77,7 @@ def _make_parser() -> argparse.ArgumentParser:
 
     fields_cmd = commands.add_parser(
         "fields", help="show one operation's clean column schema (offline)")
-    fields_cmd.add_argument("service", help="service name, e.g. kofia (see `data-go-kr list`)")
+    fields_cmd.add_argument("service", help="service name, e.g. kofia (see `datagokr list`)")
     fields_cmd.add_argument("operation", help="operation name, e.g. market_funds")
     fields_cmd.add_argument("--json", action="store_true", help="emit JSON instead of text")
     fields_cmd.set_defaults(run=_run_fields)
@@ -108,7 +108,7 @@ def _make_parser() -> argparse.ArgumentParser:
 
     kofia_cmd = commands.add_parser("kofia", help="fetch one KOFIA 종합통계 operation")
     kofia_cmd.add_argument("operation",
-                           help="operation name, e.g. market_funds (see `data-go-kr list`)")
+                           help="operation name, e.g. market_funds (see `datagokr list`)")
     kofia_cmd.add_argument("--begin", default=None, metavar="YYYYMMDD",
                            help="range start (YYYYMM for monthly operations)")
     kofia_cmd.add_argument("--end", default=None, metavar="YYYYMMDD",

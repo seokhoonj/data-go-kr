@@ -1,10 +1,10 @@
 {
-  "name": "data-go-kr",
-  "interface": { "displayName": "data-go-kr" },
+  "name": "pydatagokr",
+  "interface": { "displayName": "pydatagokr" },
   "plugins": [
     {
-      "name": "data-go-kr",
-      "source": { "source": "local", "path": "./plugins/data-go-kr" },
+      "name": "datagokr",
+      "source": { "source": "local", "path": "./plugins/datagokr" },
       "policy": { "installation": "AVAILABLE", "authentication": "ON_INSTALL" },
       "category": "Productivity"
     }

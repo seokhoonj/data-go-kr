@@ -55,7 +55,7 @@ jobs:
       - name: Confirm the package has zero runtime dependencies
         # The zero-dependency claim is documented in the pyproject comment; a claim
         # nothing checks quietly stops being true. Installed into a bare
-        # environment, data-go-kr must import with the standard library alone, and
+        # environment, pydatagokr must import with the standard library alone, and
         # the console script must run.
         run: |
           uv venv /tmp/bare --python ${{ matrix.python-version }}
@@ -66,11 +66,11 @@ jobs:
           runtime = [r for r in requires if 'extra ==' not in r]
           assert runtime == [], f'unexpected runtime dependencies: {runtime}'
           import pydatagokr
-          print('data-go-kr imports with the standard library alone')
+          print('pydatagokr imports with the standard library alone')
           "
           # The console script runs, and its top-level --version prints (not shoved
           # into a required subcommand).
-          /tmp/bare/bin/data-go-kr --version
+          /tmp/bare/bin/datagokr --version
 
       - name: Confirm a user's type checker can see the hints
         # Every hint in this package is invisible to a user unless py.typed ships

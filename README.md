@@ -113,20 +113,20 @@ pl.DataFrame(rows)
   `excluUseAr`) 값이 전부 문자열입니다. 기본값 `clean=True`는 알아보는 이름과 실제
   타입으로 정리하고(`region_code`, `exclusive_area=84.97`, `deal_amount=82000`),
   `clean=False`는 원문 그대로 둡니다.
-- **탐색.** 어떤 서비스·오퍼레이션이 있는지는 `data-go-kr list`(또는 `catalog.services()`),
-  각 오퍼레이션이 받는 옵션은 `data-go-kr <서비스> <오퍼레이션> --help`로 봅니다.
+- **탐색.** 어떤 서비스·오퍼레이션이 있는지는 `datagokr list`(또는 `catalog.services()`),
+  각 오퍼레이션이 받는 옵션은 `datagokr <서비스> <오퍼레이션> --help`로 봅니다.
 - **에러·운영.** reason 코드, 활용신청 승인 방식, 트래픽 한도는 [docs/errors.md](docs/errors.md)에
   정리돼 있습니다.
 
 ## 4. 커맨드라인
 
 ```bash
-data-go-kr list                                         # 서비스·오퍼레이션 (오프라인, 키 불필요)
-data-go-kr holidays --year 2026                         # 공휴일
-data-go-kr realestate apt_trade 11110 --deal-ym 202401  # 아파트 매매 실거래가
+datagokr list                                         # 서비스·오퍼레이션 (오프라인, 키 불필요)
+datagokr holidays --year 2026                         # 공휴일
+datagokr realestate apt_trade 11110 --deal-ym 202401  # 아파트 매매 실거래가
 ```
 
-호출 형태는 `data-go-kr <서비스> <오퍼레이션> [옵션]`입니다. 기본 출력은 읽기 좋은
+호출 형태는 `datagokr <서비스> <오퍼레이션> [옵션]`입니다. 기본 출력은 읽기 좋은
 요약이고, `--json`을 붙이면 전체 결과를 JSON으로 냅니다. 서비스별 전체 명령과 옵션,
 코드를 찾는 법은 위 표의 문서를 참고하세요.
 
@@ -134,7 +134,7 @@ data-go-kr realestate apt_trade 11110 --deal-ym 202401  # 아파트 매매 실�
 
 이 저장소는 Claude Code·Codex용 플러그인 마켓플레이스도 겸합니다 -- `list`·`weather`·
 `airquality`·`holidays`·`realestate`·`midforecast`·`procurement`·`customs`·`kofia`를
-같은 이름의 `data-go-kr` 명령을 호출하는 스킬로 제공합니다. 먼저 위에서 패키지를
+같은 이름의 `datagokr` 명령을 호출하는 스킬로 제공합니다. 먼저 위에서 패키지를
 설치하세요(`list`는 키 없이, 조회는 키 필요).
 
 ### 5.1 Claude Code
@@ -143,11 +143,11 @@ Claude Code 채팅창에서 마켓플레이스를 추가하고 설치합니다:
 
 ```
 /plugin marketplace add seokhoonj/pydatagokr
-/plugin install data-go-kr@pydatagokr
+/plugin install datagokr@pydatagokr
 ```
 
 그런 다음 평범하게 물어보거나("서울 미세먼지 알려줘", "종로구 아파트 매매 실거래가"),
-스킬을 직접 호출하세요 -- `/data-go-kr:realestate apt_trade 11110 --deal-ym 202401`.
+스킬을 직접 호출하세요 -- `/datagokr:realestate apt_trade 11110 --deal-ym 202401`.
 
 ### 5.2 Codex
 
@@ -155,19 +155,19 @@ Claude Code 채팅창에서 마켓플레이스를 추가하고 설치합니다:
 
 ```
 codex plugin marketplace add seokhoonj/pydatagokr
-codex plugin add data-go-kr@pydatagokr
+codex plugin add datagokr@pydatagokr
 ```
 
-스킬은 관련 요청에 반응하며, `data-go-kr <서비스> <오퍼레이션>`으로 직접 실행해도 됩니다.
+스킬은 관련 요청에 반응하며, `datagokr <서비스> <오퍼레이션>`으로 직접 실행해도 됩니다.
 
 ### 5.3 플러그인 없이 (symlink)
 
 플러그인으로 설치하지 않고 쓰려면, 스킬을 스킬 디렉터리에 symlink한 뒤 접두사
-(`data-go-kr:`) 없이 `/weather`처럼 부르면 됩니다:
+(`datagokr:`) 없이 `/weather`처럼 부르면 됩니다:
 
 ```sh
-ln -s "$PWD/plugins/data-go-kr/skills/weather" ~/.claude/skills/weather   # Claude Code → /weather
-ln -s "$PWD/plugins/data-go-kr/skills/weather" ~/.codex/skills/weather    # Codex → $data-go-kr:weather
+ln -s "$PWD/plugins/datagokr/skills/weather" ~/.claude/skills/weather   # Claude Code → /weather
+ln -s "$PWD/plugins/datagokr/skills/weather" ~/.codex/skills/weather    # Codex → $datagokr:weather
 ```
 
 Claude Code는 바로 인식하고, Codex는 재시작해야 로딩됩니다.

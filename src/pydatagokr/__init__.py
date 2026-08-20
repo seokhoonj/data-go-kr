@@ -1,4 +1,4 @@
-"""data-go-kr -- read Korean government open-data services from data.go.kr.
+"""pydatagokr -- read Korean government open-data services from data.go.kr.
 
     from pydatagokr import DataGoKr
 

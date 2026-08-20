@@ -17,7 +17,7 @@
 ## CLI
 
 ```bash
-data-go-kr procurement services --begin 202608010000 --end 202608102359
+datagokr procurement services --begin 202608010000 --end 202608102359
 ```
 
 `--begin`/`--end`는 공고게시 구간(YYYYMMDDHHMM, 분 단위). `--inqry-div`로 기준을 바꿉니다

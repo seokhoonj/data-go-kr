@@ -16,8 +16,8 @@
 ## CLI
 
 ```bash
-data-go-kr midforecast land --region 11B00000 --base-time 202608110600
-data-go-kr midforecast temperature --region 11B10101 --base-time 202608110600
+datagokr midforecast land --region 11B00000 --base-time 202608110600
+datagokr midforecast temperature --region 11B10101 --base-time 202608110600
 ```
 
 `--base-time`은 발표시각(매일 `0600`·`1800`, YYYYMMDDHHMM). 0600 발표는 4일째까지,
@@ -36,8 +36,8 @@ temp = client.midforecast.temperature(region=temp_region("서울"), base_time="2
 ## 예보구역코드 찾기
 
 ```bash
-data-go-kr land-region 서울    # -> 11B00000  (중기육상 광역구역)
-data-go-kr temp-region 서울    # -> 11B10101  (중기기온 도시)
+datagokr land-region 서울    # -> 11B00000  (중기육상 광역구역)
+datagokr temp-region 서울    # -> 11B10101  (중기기온 도시)
 ```
 
 Python은 `land_region(query) -> str`, `temp_region(query) -> str`.

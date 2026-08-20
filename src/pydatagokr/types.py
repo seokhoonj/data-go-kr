@@ -1,4 +1,4 @@
-"""Shared type aliases for data-go-kr.
+"""Shared type aliases for pydatagokr.
 
 data.go.kr services return each row as a JSON object; this package normalizes every
 value to a string (``None`` becomes ``""``), so a row is ``dict[str, str]`` -- ``Row``.

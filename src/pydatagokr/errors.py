@@ -1,4 +1,4 @@
-"""Exception hierarchy for data-go-kr.
+"""Exception hierarchy for pydatagokr.
 
 Every operational error this package raises derives from :class:`DataGoKrError`, so one
 ``except DataGoKrError`` catches them all. The subclasses separate the failure modes a
@@ -48,7 +48,7 @@ _RATE_LIMIT_REASON_CODES = frozenset({"22", "23"})
 
 
 class DataGoKrError(RuntimeError):
-    """Base class for every operational error raised by data-go-kr."""
+    """Base class for every operational error raised by pydatagokr."""
 
 
 class DataGoKrConfigError(DataGoKrError):

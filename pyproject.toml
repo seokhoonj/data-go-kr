@@ -44,7 +44,7 @@ Repository = "https://github.com/seokhoonj/pydatagokr"
 Issues = "https://github.com/seokhoonj/pydatagokr/issues"
 
 [project.scripts]
-data-go-kr = "pydatagokr.cli:main"
+datagokr = "pydatagokr.cli:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/pydatagokr"]

@@ -14,7 +14,7 @@
 ## CLI
 
 ```bash
-data-go-kr weather forecast --base-date 20260811 --base-time 0500 --nx 60 --ny 127
+datagokr weather forecast --base-date 20260811 --base-time 0500 --nx 60 --ny 127
 ```
 
 `--base-time`은 발표시각(0200·0500·…·2300 중), `--nx`/`--ny`는 기상청 5km 격자좌표입니다.
@@ -37,7 +37,7 @@ rows = client.weather.forecast(base_date="20260811", base_time="0500", nx=g.nx, 
 `nx`/`ny`는 기상청 격자좌표입니다(서울 종로 ≈ 60,127). 위경도로 구하세요:
 
 ```bash
-data-go-kr grid 37.5714 126.9658    # -> 60 127
+datagokr grid 37.5714 126.9658    # -> 60 127
 ```
 
 Python은 `latlon_to_grid(lat, lon) -> Grid(nx, ny)` (`nx, ny = latlon_to_grid(...)`로 언패킹).
