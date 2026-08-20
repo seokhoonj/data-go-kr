@@ -1,6 +1,8 @@
 """clean() -- typed parsing per field kind, and the key-drop rules."""
 
-from pydatagokr._spec import clean
+import pytest
+
+from pydatagokr._spec import Field, Table, clean
 from pydatagokr.services.kofia import CMA_STATUS, DLS_DLB, MARKET_FUNDS, OVERSEAS_DERIVATIVES
 from pydatagokr.services.procurement import SERVICES
 
@@ -95,3 +97,83 @@ def test_date_column_is_none_for_a_wide_key_table_without_a_date_field():
     # A wide-key table keyed by a surrogate id, not a period, has no date field; the
     # property returns None rather than raising StopIteration.
     assert SERVICES.date_column is None
+
+
+# One single-field table per kind, so clean() exercises exactly one parser at a time.
+def _table(kind):
+    return Table("t", "op", "basDt", False, (Field("v", "value", kind),))
+
+
+_YMD     = _table("date_ymd")
+_YM      = _table("date_ym")
+_INT     = _table("int")
+_RATIO   = _table("ratio")
+_DECIMAL = _table("decimal")
+_TEXT    = _table("text")
+
+_DROP = object()   # sentinel: a required field parsed to None drops the whole row
+
+
+# (table, raw input, expected cleaned value) -- _DROP means the row is dropped entirely.
+# A date field is required (kind starts with "date"), so a None parse drops it; the other
+# kinds are not keys here, so a None parse is kept as a None value.
+_MATRIX = [
+    # date_ymd: 8-digit YYYYMMDD, else the row is dropped
+    (_YMD, "20240105", "2024-01-05"),
+    (_YMD, None,       _DROP),
+    (_YMD, "",         _DROP),
+    (_YMD, "-",        _DROP),
+    (_YMD, "20241301", _DROP),   # invalid month
+    (_YMD, "2024-01-05", _DROP), # separators -> not 8 digits
+    (_YMD, "1,234",    _DROP),
+    # date_ym: 6 digits after stripping separators, else dropped
+    (_YM, "202401", "2024-01"),
+    (_YM, "2026.01", "2026-01"),  # dotted customs form
+    (_YM, None,      _DROP),
+    (_YM, "",        _DROP),
+    (_YM, "-",       _DROP),
+    (_YM, "2024",    _DROP),      # only 4 digits
+    (_YM, "1,234",   _DROP),      # only 4 digits after stripping the comma
+    # int: exact int; commas stripped; a fractional value is None, not a round
+    (_INT, "1234",   1234),
+    (_INT, "1,234",  1234),
+    (_INT, "1234.0", 1234),       # decimal-formatted integer
+    (_INT, "3.8",    None),       # a real fraction is not an integer won/count
+    (_INT, None,     None),
+    (_INT, "",       None),
+    (_INT, "-",      None),
+    (_INT, "abc",    None),
+    # ratio: float; commas stripped
+    (_RATIO, "8.5",     8.5),
+    (_RATIO, "1,234.5", 1234.5),
+    (_RATIO, "1,234",   1234.0),
+    (_RATIO, None,      None),
+    (_RATIO, "",        None),
+    (_RATIO, "-",       None),
+    (_RATIO, "abc",     None),
+    # decimal: same parsing as ratio, a distinct kind for honest schemas
+    (_DECIMAL, "84.5",    84.5),
+    (_DECIMAL, "1,234.5", 1234.5),
+    (_DECIMAL, None,      None),
+    (_DECIMAL, "",        None),
+    (_DECIMAL, "-",       None),
+    (_DECIMAL, "abc",     None),
+    # text: stripped; only ""/"nan"/"None" are missing -- "-" and "1,234" are real text
+    (_TEXT, "  hello ", "hello"),
+    (_TEXT, "-",        "-"),
+    (_TEXT, "1,234",    "1,234"),
+    (_TEXT, "nan",      None),
+    (_TEXT, "None",     None),
+    (_TEXT, None,       None),
+    (_TEXT, "",         None),
+]
+
+
+@pytest.mark.parametrize("table,raw,expected", _MATRIX,
+                         ids=[f"{table.fields[0].kind}-{raw!r}" for table, raw, _ in _MATRIX])
+def test_parser_matrix(table, raw, expected):
+    rows = clean([{"v": raw}], table)
+    if expected is _DROP:
+        assert rows == []
+    else:
+        assert rows == [{"value": expected}]
