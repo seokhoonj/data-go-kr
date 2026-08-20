@@ -20,7 +20,7 @@
 datagokr procurement services --begin 202608010000 --end 202608102359
 ```
 
-`--begin`/`--end`는 공고게시 구간(YYYYMMDDHHMM, 분 단위). `--inqry-div`로 기준을 바꿉니다
+`--begin`/`--end`는 공고게시 구간(YYYYMMDDHHMM, 분 단위). `--query-basis`로 기준을 바꿉니다
 (`1` 공고게시일시 / `2` 개찰일시).
 
 ## Python

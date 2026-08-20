@@ -53,12 +53,9 @@ _NOWCAST = (
     Field("ny",        "ny",             "int", is_key=True),
 )
 
-FORECAST = Table("forecast", "getVilageFcst", "basDt", False, _FORECAST,
-                 is_wide_key=True)
-ULTRA_FORECAST = Table("ultra_forecast", "getUltraSrtFcst", "basDt", False, _FORECAST,
-                       is_wide_key=True)
-NOWCAST = Table("nowcast", "getUltraSrtNcst", "basDt", False, _NOWCAST,
-                is_wide_key=True)
+FORECAST = Table("forecast", "getVilageFcst", _FORECAST, is_wide_key=True)
+ULTRA_FORECAST = Table("ultra_forecast", "getUltraSrtFcst", _FORECAST, is_wide_key=True)
+NOWCAST = Table("nowcast", "getUltraSrtNcst", _NOWCAST, is_wide_key=True)
 
 TABLES: dict[str, Table] = {
     table.name: table for table in (FORECAST, ULTRA_FORECAST, NOWCAST)}

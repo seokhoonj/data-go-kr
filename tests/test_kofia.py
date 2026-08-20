@@ -47,7 +47,7 @@ def _kofia(raw):
 
 # (operation name, one representative raw row, its exact cleaned row, the vendor operation
 # path, the begin/end bound params) -- the daily tables filter on basDt (full YYYYMMDD), the
-# monthly ones on their date_token truncated to YYYYMM (basYm for 신탁규모, basDt for the rest).
+# monthly ones on their date field's token truncated to YYYYMM (basYm for 신탁규모, basDt else).
 _CASES = [
     (
         "market_funds",

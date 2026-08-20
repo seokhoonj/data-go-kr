@@ -49,7 +49,7 @@ _SALE_CORE = (
 )
 
 APT_TRADE = Table("apt_trade", "RTMSDataSvcAptTrade/getRTMSDataSvcAptTrade",
-                  "basYm", True, _SALE_CORE + (
+                  _SALE_CORE + (
     Field("aptDong",         "apt_dong",        "text"),                    # 동
     Field("landLeaseholdGbn", "land_leasehold", "text"),                   # 토지임대부 여부
     Field("rgstDate",        "register_date",   "text"),                    # 등기일자
@@ -57,7 +57,7 @@ APT_TRADE = Table("apt_trade", "RTMSDataSvcAptTrade/getRTMSDataSvcAptTrade",
 
 APT_TRADE_DETAIL = Table(
     "apt_trade_detail", "RTMSDataSvcAptTradeDev/getRTMSDataSvcAptTradeDev",
-    "basYm", True, _SALE_CORE + (
+    _SALE_CORE + (
     Field("aptDong",         "apt_dong",        "text"),
     Field("aptSeq",          "apt_seq",         "text"),                    # 단지 일련번호
     Field("bonbun",          "main_no",         "text"),                    # 본번
@@ -76,13 +76,13 @@ APT_TRADE_DETAIL = Table(
 ), is_wide_key=True)
 
 APT_PRESALE = Table("apt_presale", "RTMSDataSvcSilvTrade/getRTMSDataSvcSilvTrade",
-                    "basYm", True, _SALE_CORE + (
+                    _SALE_CORE + (
     Field("ownershipGbn",    "ownership_type",  "text"),                    # 권리구분(분양/입주권)
     Field("sggNm",           "region_name",     "text"),                    # 시군구명
 ), is_wide_key=True)
 
 APT_RENT = Table("apt_rent", "RTMSDataSvcAptRent/getRTMSDataSvcAptRent",
-                 "basYm", True, (
+                 (
     Field("dealDate",        "deal_date",       "date_ymd", is_key=True),
     Field("sggCd",           "region_code",     "text", is_key=True),
     Field("umdNm",           "dong",            "text", is_key=True),

@@ -33,12 +33,12 @@ A data.go.kr **decoding** key must be configured (env `DATAGOKR_API_KEY` or
 ## Running
 
 ```
-datagokr procurement <kind> --begin YYYYMMDDHHMM --end YYYYMMDDHHMM [--inqry-div DIV] [--json]
+datagokr procurement <kind> --begin YYYYMMDDHHMM --end YYYYMMDDHHMM [--query-basis BASIS] [--json]
 ```
 
 - `<kind>`: `goods` / `services` / `construction` / `foreign`.
 - `--begin`/`--end`: the window as `YYYYMMDDHHMM` (e.g. `202608010000` .. `202608102359`).
-- `--inqry-div`: the window basis -- `1` 공고게시일시 (default), `2` 개찰일시.
+- `--query-basis`: the window basis -- `1` 공고게시일시 (default), `2` 개찰일시.
 
 ## Procedure
 

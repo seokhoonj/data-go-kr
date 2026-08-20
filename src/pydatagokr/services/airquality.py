@@ -42,12 +42,12 @@ _MEASURE = (
     Field("no2Flag",   "no2_flag",    "text"),
 )
 
-BY_SIDO = Table("by_sido", "getCtprvnRltmMesureDnsty", "basDt", False, (
+BY_SIDO = Table("by_sido", "getCtprvnRltmMesureDnsty", (
     Field("sidoName",    "sido",    "text"),                    # 시도명
     Field("stationName", "station", "text", is_key=True),       # 측정소명
 ) + _MEASURE, is_wide_key=True)
 
-BY_STATION = Table("by_station", "getMsrstnAcctoRltmMesureDnsty", "basDt", False, (
+BY_STATION = Table("by_station", "getMsrstnAcctoRltmMesureDnsty", (
     Field("mangName",    "network", "text"),                    # 측정망 (도시대기 ...)
     Field("stationName", "station", "text", is_key=True),       # 측정소명
 ) + _MEASURE, is_wide_key=True)

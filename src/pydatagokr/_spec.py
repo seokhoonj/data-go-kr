@@ -29,7 +29,6 @@ from .types import Row
 __all__ = ["CleanRow", "CleanValue", "Field", "FieldKind", "Table", "clean"]
 
 FieldKind = Literal["date_ymd", "date_ym", "text", "int", "ratio", "decimal"]
-DateToken = Literal["basDt", "basYm", "year"]
 CleanValue = str | int | float | None
 CleanRow = dict[str, CleanValue]
 
@@ -47,15 +46,12 @@ class Field:
 
 @dataclass(frozen=True, slots=True)
 class Table:
-    """One operation's clean table: its name, the vendor operation path, the API date
-    field (and filter base), whether the cycle is monthly (begin/end are YYYYMM not
-    YYYYMMDD), its fields, and whether the natural key is too wide for a composite PK
-    (so a store uses a surrogate id + per-period replace)."""
+    """One operation's clean table: its name, the vendor operation path, its fields, and
+    whether the natural key is too wide for a composite PK (so a store uses a surrogate id
+    + per-period replace)."""
 
     name:        str
     operation:   str
-    date_token:  DateToken
-    monthly:     bool
     fields:      tuple[Field, ...]
     is_wide_key: bool = False   # True -> surrogate id + delete-by-date, not a composite PK
 

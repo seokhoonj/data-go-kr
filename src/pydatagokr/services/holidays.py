@@ -36,11 +36,11 @@ _FIELDS = (
     Field("seq",       "sequence",   "int"),                     # 순번
 )
 
-HOLIDAYS          = Table("holidays",          "getRestDeInfo",      "year", False, _FIELDS)
-NATIONAL_HOLIDAYS = Table("national_holidays", "getHoliDeInfo",      "year", False, _FIELDS)
-ANNIVERSARIES     = Table("anniversaries",     "getAnniversaryInfo", "year", False, _FIELDS)
-SOLAR_TERMS       = Table("solar_terms",       "get24DivisionsInfo", "year", False, _FIELDS)
-SUNDRY_DAYS       = Table("sundry_days",       "getSundryDayInfo",   "year", False, _FIELDS)
+HOLIDAYS          = Table("holidays",          "getRestDeInfo",      _FIELDS)
+NATIONAL_HOLIDAYS = Table("national_holidays", "getHoliDeInfo",      _FIELDS)
+ANNIVERSARIES     = Table("anniversaries",     "getAnniversaryInfo", _FIELDS)
+SOLAR_TERMS       = Table("solar_terms",       "get24DivisionsInfo", _FIELDS)
+SUNDRY_DAYS       = Table("sundry_days",       "getSundryDayInfo",   _FIELDS)
 
 TABLES: dict[str, Table] = {table.name: table for table in (
     HOLIDAYS, NATIONAL_HOLIDAYS, ANNIVERSARIES, SOLAR_TERMS, SUNDRY_DAYS,

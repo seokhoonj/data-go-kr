@@ -8,7 +8,7 @@ is its own method here. A row is one 입찰공고, keyed by its number and ordin
 announcement/close/opening times are the vendor's ``YYYY-MM-DD HH:MM:SS`` text.
 
 A query is a time window over the 공고 게시일시 (``begin``/``end`` = YYYYMMDDHHMM) plus the
-``inqry_div`` basis (``"1"`` 공고게시일시, ``"2"`` 개찰일시). Only a curated header subset of
+``query_basis`` basis (``"1"`` 공고게시일시, ``"2"`` 개찰일시). Only a curated header subset of
 the vendor's ~100 fields is mapped -- number, name, agencies, method, the money, the times,
 and the detail URL. ``clean=True`` (the default) returns typed rows, ``clean=False`` the raw
 vendor rows. The service answers XML.
@@ -50,13 +50,13 @@ _BID = (
     Field("rgstDt",            "registered_at",    "text"),                # 등록일시
 )
 
-GOODS = Table("goods", "getBidPblancListInfoThngPPSSrch", "basDt", False,
+GOODS = Table("goods", "getBidPblancListInfoThngPPSSrch",
               _BID, is_wide_key=True)
-SERVICES = Table("services", "getBidPblancListInfoServcPPSSrch", "basDt", False,
+SERVICES = Table("services", "getBidPblancListInfoServcPPSSrch",
                  _BID, is_wide_key=True)
-CONSTRUCTION = Table("construction", "getBidPblancListInfoCnstwkPPSSrch", "basDt", False,
+CONSTRUCTION = Table("construction", "getBidPblancListInfoCnstwkPPSSrch",
                      _BID, is_wide_key=True)
-FOREIGN = Table("foreign", "getBidPblancListInfoFrgcptPPSSrch", "basDt", False,
+FOREIGN = Table("foreign", "getBidPblancListInfoFrgcptPPSSrch",
                 _BID, is_wide_key=True)
 
 TABLES: dict[str, Table] = {table.name: table for table in (
@@ -81,86 +81,86 @@ class Procurement:
         return f"Procurement({self._session!r})"
 
     @overload
-    def goods(self, *, begin: str, end: str, inqry_div: str = ...,
+    def goods(self, *, begin: str, end: str, query_basis: str = ...,
               clean: Literal[True] = ...) -> list[CleanRow]: ...
     @overload
-    def goods(self, *, begin: str, end: str, inqry_div: str = ...,
+    def goods(self, *, begin: str, end: str, query_basis: str = ...,
               clean: Literal[False]) -> list[Row]: ...
     @overload
-    def goods(self, *, begin: str, end: str, inqry_div: str = ...,
+    def goods(self, *, begin: str, end: str, query_basis: str = ...,
               clean: bool) -> list[Row] | list[CleanRow]: ...
-    def goods(self, *, begin: str, end: str, inqry_div: str = "1",
+    def goods(self, *, begin: str, end: str, query_basis: str = "1",
               clean: bool = True) -> list[Row] | list[CleanRow]:
-        """물품 입찰공고 over the ``begin``..``end`` window (YYYYMMDDHHMM). ``inqry_div`` is
+        """물품 입찰공고 over the ``begin``..``end`` window (YYYYMMDDHHMM). ``query_basis`` is
         the window basis (``"1"`` 공고게시일시, ``"2"`` 개찰일시). ``clean=True`` (the default)
         returns typed rows; ``clean=False`` raw."""
         if clean:
-            return self.fetch("goods", begin=begin, end=end, inqry_div=inqry_div, clean=True)
-        return self.fetch("goods", begin=begin, end=end, inqry_div=inqry_div, clean=False)
+            return self.fetch("goods", begin=begin, end=end, query_basis=query_basis, clean=True)
+        return self.fetch("goods", begin=begin, end=end, query_basis=query_basis, clean=False)
 
     @overload
-    def services(self, *, begin: str, end: str, inqry_div: str = ...,
+    def services(self, *, begin: str, end: str, query_basis: str = ...,
                  clean: Literal[True] = ...) -> list[CleanRow]: ...
     @overload
-    def services(self, *, begin: str, end: str, inqry_div: str = ...,
+    def services(self, *, begin: str, end: str, query_basis: str = ...,
                  clean: Literal[False]) -> list[Row]: ...
     @overload
-    def services(self, *, begin: str, end: str, inqry_div: str = ...,
+    def services(self, *, begin: str, end: str, query_basis: str = ...,
                  clean: bool) -> list[Row] | list[CleanRow]: ...
-    def services(self, *, begin: str, end: str, inqry_div: str = "1",
+    def services(self, *, begin: str, end: str, query_basis: str = "1",
                  clean: bool = True) -> list[Row] | list[CleanRow]:
         """용역 입찰공고. Args as :meth:`goods`."""
         if clean:
             return self.fetch("services", begin=begin, end=end,
-                              inqry_div=inqry_div, clean=True)
-        return self.fetch("services", begin=begin, end=end, inqry_div=inqry_div, clean=False)
+                              query_basis=query_basis, clean=True)
+        return self.fetch("services", begin=begin, end=end, query_basis=query_basis, clean=False)
 
     @overload
-    def construction(self, *, begin: str, end: str, inqry_div: str = ...,
+    def construction(self, *, begin: str, end: str, query_basis: str = ...,
                      clean: Literal[True] = ...) -> list[CleanRow]: ...
     @overload
-    def construction(self, *, begin: str, end: str, inqry_div: str = ...,
+    def construction(self, *, begin: str, end: str, query_basis: str = ...,
                      clean: Literal[False]) -> list[Row]: ...
     @overload
-    def construction(self, *, begin: str, end: str, inqry_div: str = ...,
+    def construction(self, *, begin: str, end: str, query_basis: str = ...,
                      clean: bool) -> list[Row] | list[CleanRow]: ...
-    def construction(self, *, begin: str, end: str, inqry_div: str = "1",
+    def construction(self, *, begin: str, end: str, query_basis: str = "1",
                      clean: bool = True) -> list[Row] | list[CleanRow]:
         """공사 입찰공고 (배정예산 미제공 -- ``budget_amount`` is ``None``). Args as
         :meth:`goods`."""
         if clean:
             return self.fetch("construction", begin=begin, end=end,
-                              inqry_div=inqry_div, clean=True)
+                              query_basis=query_basis, clean=True)
         return self.fetch("construction", begin=begin, end=end,
-                          inqry_div=inqry_div, clean=False)
+                          query_basis=query_basis, clean=False)
 
     @overload
-    def foreign(self, *, begin: str, end: str, inqry_div: str = ...,
+    def foreign(self, *, begin: str, end: str, query_basis: str = ...,
                 clean: Literal[True] = ...) -> list[CleanRow]: ...
     @overload
-    def foreign(self, *, begin: str, end: str, inqry_div: str = ...,
+    def foreign(self, *, begin: str, end: str, query_basis: str = ...,
                 clean: Literal[False]) -> list[Row]: ...
     @overload
-    def foreign(self, *, begin: str, end: str, inqry_div: str = ...,
+    def foreign(self, *, begin: str, end: str, query_basis: str = ...,
                 clean: bool) -> list[Row] | list[CleanRow]: ...
-    def foreign(self, *, begin: str, end: str, inqry_div: str = "1",
+    def foreign(self, *, begin: str, end: str, query_basis: str = "1",
                 clean: bool = True) -> list[Row] | list[CleanRow]:
         """외자 입찰공고. Args as :meth:`goods`."""
         if clean:
             return self.fetch("foreign", begin=begin, end=end,
-                              inqry_div=inqry_div, clean=True)
-        return self.fetch("foreign", begin=begin, end=end, inqry_div=inqry_div, clean=False)
+                              query_basis=query_basis, clean=True)
+        return self.fetch("foreign", begin=begin, end=end, query_basis=query_basis, clean=False)
 
     @overload
-    def fetch(self, name: str, *, begin: str, end: str, inqry_div: str = ...,
+    def fetch(self, name: str, *, begin: str, end: str, query_basis: str = ...,
               clean: Literal[True] = ...) -> list[CleanRow]: ...
     @overload
-    def fetch(self, name: str, *, begin: str, end: str, inqry_div: str = ...,
+    def fetch(self, name: str, *, begin: str, end: str, query_basis: str = ...,
               clean: Literal[False]) -> list[Row]: ...
     @overload
-    def fetch(self, name: str, *, begin: str, end: str, inqry_div: str = ...,
+    def fetch(self, name: str, *, begin: str, end: str, query_basis: str = ...,
               clean: bool) -> list[Row] | list[CleanRow]: ...
-    def fetch(self, name: str, *, begin: str, end: str, inqry_div: str = "1",
+    def fetch(self, name: str, *, begin: str, end: str, query_basis: str = "1",
               clean: bool = True) -> list[Row] | list[CleanRow]:
         """Any of the four 업무구분 by name (see :meth:`operations`) over one time window.
         ``clean=True`` (the default) returns typed rows; ``clean=False`` raw."""
@@ -168,7 +168,7 @@ class Procurement:
             table = TABLES[name]
         except KeyError:
             raise ValueError(f"unknown operation {name!r}; valid: {list(TABLES)}") from None
-        rows = self._session.fetch(table.operation, type="xml", inqryDiv=inqry_div,
+        rows = self._session.fetch(table.operation, type="xml", inqryDiv=query_basis,
                                    inqryBgnDt=begin, inqryEndDt=end)
         return _spec.clean(rows, table) if clean else rows
 

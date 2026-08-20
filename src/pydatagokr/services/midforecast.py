@@ -45,12 +45,12 @@ def _half_day_fields(token: str, column: str, kind: _spec.FieldKind) -> tuple[Fi
     return tuple(fields)
 
 
-LAND = Table("land", "getMidLandFcst", "basDt", False, (
+LAND = Table("land", "getMidLandFcst", (
     Field("regId", "region", "text", is_key=True),               # 예보구역코드
 ) + _half_day_fields("rnSt", "precip_prob", "int")               # 강수확률(%)
   + _half_day_fields("wf", "sky", "text"), is_wide_key=True)     # 날씨(하늘상태 문구)
 
-TEMPERATURE = Table("temperature", "getMidTa", "basDt", False, (
+TEMPERATURE = Table("temperature", "getMidTa", (
     Field("regId", "region", "text", is_key=True),               # 예보구역코드(도시)
 ) + tuple(
     field

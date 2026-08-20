@@ -199,8 +199,8 @@ def _make_parser() -> argparse.ArgumentParser:
                             help="공고게시 시작")
         op_cmd.add_argument("--end", required=True, metavar="YYYYMMDDHHMM",
                             help="공고게시 종료")
-        op_cmd.add_argument("--inqry-div", default="1", dest="inqry_div", metavar="DIV",
-                            help="조회구분 (1 공고게시일시 / 2 개찰일시)")
+        op_cmd.add_argument("--query-basis", default="1", dest="query_basis", metavar="BASIS",
+                            help="조회 기준 (1 공고게시일시 / 2 개찰일시)")
         op_cmd.add_argument("--json", action="store_true", help="emit JSON instead of text")
         op_cmd.set_defaults(run=_run_procurement, operation=op)
 
@@ -315,7 +315,7 @@ def _run_midforecast(args: argparse.Namespace) -> int:
 
 def _run_procurement(args: argparse.Namespace) -> int:
     rows = Procurement().fetch(args.operation, begin=args.begin, end=args.end,
-                               inqry_div=args.inqry_div)
+                               query_basis=args.query_basis)
     _emit(rows, args.json)
     return 0
 

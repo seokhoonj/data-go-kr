@@ -101,7 +101,7 @@ def test_date_column_is_none_for_a_wide_key_table_without_a_date_field():
 
 # One single-field table per kind, so clean() exercises exactly one parser at a time.
 def _table(kind):
-    return Table("t", "op", "basDt", False, (Field("v", "value", kind),))
+    return Table("t", "op", (Field("v", "value", kind),))
 
 
 _YMD     = _table("date_ymd")
