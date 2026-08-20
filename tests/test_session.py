@@ -3,6 +3,7 @@
 import http.client
 import io
 import json
+import traceback
 import urllib.error
 import urllib.parse
 from email.message import Message
@@ -467,27 +468,58 @@ def test_xml_mode_omits_the_json_param():
 
 # --- the secret never appears ------------------------------------------------
 
+_DEEP_XML = (b"<r>" * 3000 + b"x" + b"</r>" * 3000)   # nests past the recursion limit
+
+
 def _failing_sessions():
+    # Every failure branch of the transport, each carrying the key in its request URL, so a
+    # regression that let the URL reach a message/traceback or chained a key-bearing
+    # exception would surface the key here. Covers: HTTP status errors (incl. redirect and
+    # rate-limit), URLError, a mid-read HTTPException/OSError, a body that is neither JSON
+    # nor XML, invalid UTF-8, a body that over-nests the XML walk, both fault envelopes
+    # (JSON and XML), and the error-A resultCode path.
     return [
         _session(_http_error(500))[0],
         _session(_http_error(429))[0],
+        _session(_http_error(302))[0],
         _session(urllib.error.URLError(OSError("dns")))[0],
-        _session(b"<xml/>")[0],
+        _session(_ReadFails(http.client.IncompleteRead(b"")))[0],
         _session(_ReadFails(ConnectionResetError("reset")))[0],
+        _session(b"{not json and not xml")[0],
+        _session(b"\xff\xfe\x00 not utf-8")[0],
+        _session(_DEEP_XML)[0],
         _session(_fault("30", auth_msg="SERVICE_KEY_IS_NOT_REGISTERED_ERROR"))[0],
         _session(_envelope(None, code="99", message="UNKNOWN_ERROR"))[0],
+        _session(_xml_fault("30", auth_msg="BAD"), response_format="xml")[0],
+        _session(b"<response><header>", response_format="xml")[0],
+        _session(_DEEP_XML, response_format="xml")[0],
     ]
 
 
 def test_key_never_appears_in_any_error():
-    encoded = urllib.parse.quote_plus(_KEY)
+    # The key must be absent -- raw, query-encoded (quote_plus), and path-encoded (quote) --
+    # from BOTH the exception message and the full formatted traceback (which would include
+    # any chained __cause__/__context__), and the chain must be detached.
+    forms = [_KEY, urllib.parse.quote_plus(_KEY), urllib.parse.quote(_KEY)]
     for session in _failing_sessions():
-        with pytest.raises(Exception) as exc:
+        with pytest.raises(DataGoKrError) as exc:
             session.fetch("getThing")
-        assert _KEY not in str(exc.value)
-        assert encoded not in str(exc.value)
+        tb = "".join(traceback.format_exception(
+            type(exc.value), exc.value, exc.value.__traceback__))
+        for form in forms:
+            assert form not in str(exc.value)
+            assert form not in tb
         assert exc.value.__cause__ is None                   # the chain is broken
         assert exc.value.__context__ is None
+
+
+def test_over_nested_body_becomes_a_network_error_not_a_recursion_error():
+    # A pathological deeply-nested body must surface as our network error, not leak a bare
+    # RecursionError from the XML walk.
+    for mode in ("json", "xml"):
+        session, _ = _session(_DEEP_XML, response_format=mode)
+        with pytest.raises(DataGoKrNetworkError):
+            session.fetch("getThing")
 
 
 def test_vendor_message_echoing_the_key_is_redacted():
@@ -525,6 +557,13 @@ def test_repr_never_shows_the_key():
 def test_invalid_timeout_is_rejected(timeout):
     with pytest.raises(ValueError):
         DataGoKrSession(_BASE, _KEY, timeout=timeout)
+
+
+@pytest.mark.parametrize("num_of_rows", [0, -1, True, 3.5, "100"])
+def test_invalid_num_of_rows_is_rejected(num_of_rows):
+    session, _ = _session(_envelope([], total=0))
+    with pytest.raises(ValueError):
+        session.fetch("getThing", num_of_rows=num_of_rows)
 
 
 def test_base_url_trailing_slash_is_normalized():

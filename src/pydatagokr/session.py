@@ -150,8 +150,10 @@ class DataGoKrSession:
 
         Filter values (date bounds, an HS code, ...) are passed to the vendor unvalidated:
         the vendor is the authority on its own filter grammar, so this transport checks
-        only its own inputs (e.g. the timeout) and forwards the filters as given.
+        only its own inputs (e.g. the timeout, the page size) and forwards the filters as given.
         """
+        if isinstance(num_of_rows, bool) or not isinstance(num_of_rows, int) or num_of_rows <= 0:
+            raise ValueError("num_of_rows must be a positive integer")
         rows: list[Row] = []
         for page in range(1, _PAGE_CAP + 1):
             page_rows, total = self._fetch_page(operation, page, num_of_rows, filters)
@@ -256,11 +258,12 @@ class DataGoKrSession:
             # proxy/maintenance page), cause detached.
             try:
                 root = ET.fromstring(raw.decode("utf-8"))
-            except (ET.ParseError, UnicodeDecodeError):
+                payload = {root.tag: _xml_to_dict(root)}
+            except (ET.ParseError, UnicodeDecodeError, RecursionError):
                 failure = DataGoKrNetworkError(
                     f"non-JSON response from data.go.kr for {operation}")
             else:
-                return {root.tag: _xml_to_dict(root)}
+                return payload
         raise failure from None
 
     def _payload_from_xml(self, raw: bytes, operation: str) -> dict[str, Any]:
@@ -272,11 +275,12 @@ class DataGoKrSession:
         failure: DataGoKrError
         try:
             root = ET.fromstring(raw.decode("utf-8"))
-        except (ET.ParseError, UnicodeDecodeError):
+            payload = {root.tag: _xml_to_dict(root)}
+        except (ET.ParseError, UnicodeDecodeError, RecursionError):
             failure = DataGoKrNetworkError(
                 f"non-XML response from data.go.kr for {operation}")
         else:
-            return {root.tag: _xml_to_dict(root)}
+            return payload
         raise failure from None
 
     def _page_from_payload(self, payload: dict[str, Any],
