@@ -5,13 +5,13 @@
 [![Python](https://img.shields.io/pypi/pyversions/pydatagokr)](https://pypi.org/project/pydatagokr/)
 [![License](https://img.shields.io/pypi/l/pydatagokr)](https://github.com/seokhoonj/pydatagokr/blob/main/LICENSE)
 
-공공데이터포털 **data.go.kr**의 오픈 API를 키 하나로 읽어옵니다. 포털에는 수천 개 기관
-API가 있고, 그중 조회수와 활용신청이 높은 데이터들 -- 기상·대기·공휴일·부동산·중기예보·
-조달·관세·금융투자 -- 을 미리 만들어 두었습니다.
+[공공데이터포털 data.go.kr](https://www.data.go.kr)의 오픈 API를 읽어옵니다. 포털에는 수천 개
+기관 API가 있고, 그중 조회수·활용신청이 높은 것들 -- 기상·대기·공휴일·부동산·중기예보·조달·
+관세·금융투자 -- 을 미리 만들어 두었습니다.
 
-미리 만든 서비스는 `client.weather.forecast(...)`처럼 **접근자**로 바로 꺼내고, 그 밖의
-서비스는 base URL만 주면 전송 계층이 그대로 조회합니다. 결과는 어느 쪽이든
-`pandas.DataFrame` / `polars.DataFrame`이 바로 받는 `list[dict]`입니다.
+미리 만든 서비스는 `client.weather.forecast(...)`처럼 접근자로 부르고, 그 밖의 서비스는
+base URL만 주면 전송 계층이 그대로 조회합니다. 결과는 `list[dict]`이라 `pandas.DataFrame` /
+`polars.DataFrame`으로 바로 만듭니다.
 
 ## 1. 설치
 
