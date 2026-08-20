@@ -2,7 +2,7 @@
 
 import pytest
 
-from data_go_kr.services.airquality import AirQuality
+from pydatagokr.services.airquality import AirQuality
 
 
 def _xml(items, total):

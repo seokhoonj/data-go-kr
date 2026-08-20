@@ -5,14 +5,14 @@ from pathlib import Path
 
 import pytest
 
-from data_go_kr._config import credentials_path, resolve_api_key
-from data_go_kr.errors import DataGoKrConfigError
+from pydatagokr._config import credentials_path, resolve_api_key
+from pydatagokr.errors import DataGoKrConfigError
 
 
 def _point_config_at(tmp_path, monkeypatch):
     monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path))
     monkeypatch.delenv("DATA_GO_KR_API_KEY", raising=False)
-    return tmp_path / "data-go-kr" / "credentials.json"
+    return tmp_path / "pydatagokr" / "credentials.json"
 
 
 def _write(path, data):
@@ -98,4 +98,4 @@ def test_present_but_unreadable_raises(tmp_path, monkeypatch):
 
 def test_credentials_path_honors_xdg(tmp_path, monkeypatch):
     monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path))
-    assert credentials_path() == tmp_path / "data-go-kr" / "credentials.json"
+    assert credentials_path() == tmp_path / "pydatagokr" / "credentials.json"

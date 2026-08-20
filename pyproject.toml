@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "data-go-kr"
+name = "pydatagokr"
 version = "0.1.0"
 description = "Read Korean government open-data services from data.go.kr: KOFIA market statistics, customs item trade."
 readme = "README.md"
@@ -44,10 +44,10 @@ Repository = "https://github.com/seokhoonj/data-go-kr"
 Issues = "https://github.com/seokhoonj/data-go-kr/issues"
 
 [project.scripts]
-data-go-kr = "data_go_kr.cli:main"
+data-go-kr = "pydatagokr.cli:main"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/data_go_kr"]
+packages = ["src/pydatagokr"]
 
 [tool.ruff]
 # 100, not 88: the table specs align vendor tokens, clean columns, and Korean field
@@ -61,9 +61,9 @@ select = ["E", "F", "I", "UP", "B", "SIM"]
 [tool.ruff.lint.per-file-ignores]
 # The table specs are aligned data tables of vendor tokens and Korean field names; a
 # few rows run past the line length and read better whole than wrapped.
-"src/data_go_kr/_spec.py" = ["E501"]
-"src/data_go_kr/services/kofia.py" = ["E501"]
-"src/data_go_kr/services/customs.py" = ["E501"]
+"src/pydatagokr/_spec.py" = ["E501"]
+"src/pydatagokr/services/kofia.py" = ["E501"]
+"src/pydatagokr/services/customs.py" = ["E501"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

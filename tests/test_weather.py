@@ -2,7 +2,7 @@
 
 import pytest
 
-from data_go_kr.services.weather import Weather
+from pydatagokr.services.weather import Weather
 
 
 def _xml(items, total):

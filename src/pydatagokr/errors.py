@@ -21,7 +21,7 @@ The service key travels in the query string, so **no error message here is ever 
 from a transport exception's string or a request URL** -- those embed the key. Messages
 are built from safe structured fields only (the HTTP status, redacted vendor message
 fields, the operation path), and the cause chain is broken at the raise site (see
-:mod:`data_go_kr.session`).
+:mod:`pydatagokr.session`).
 """
 
 from __future__ import annotations

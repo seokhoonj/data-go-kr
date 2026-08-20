@@ -1,6 +1,6 @@
 """Client wiring -- lazy cached surfaces sharing one key and timeout, no network."""
 
-from data_go_kr import Customs, DataGoKr, Kofia
+from pydatagokr import Customs, DataGoKr, Kofia
 
 
 def test_construction_needs_no_key(tmp_path, monkeypatch):

@@ -1,6 +1,6 @@
 import pytest
 
-from data_go_kr import land_region, lawd_code, temp_region
+from pydatagokr import land_region, lawd_code, temp_region
 
 
 def test_lawd_unique():

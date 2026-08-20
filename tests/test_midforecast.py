@@ -2,7 +2,7 @@
 
 import pytest
 
-from data_go_kr.services.midforecast import MidForecast
+from pydatagokr.services.midforecast import MidForecast
 
 
 def _xml(items, total):

@@ -2,7 +2,7 @@
 
 import pytest
 
-from data_go_kr.services.procurement import Procurement
+from pydatagokr.services.procurement import Procurement
 
 
 def _xml(items, total):

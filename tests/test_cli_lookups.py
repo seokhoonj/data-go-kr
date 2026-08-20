@@ -1,6 +1,6 @@
 import json
 
-from data_go_kr.cli import main
+from pydatagokr.cli import main
 
 
 def test_grid_prints_nx_ny(capsys):

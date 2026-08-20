@@ -4,7 +4,7 @@ data.go.kr services return each row as a JSON object; this package normalizes ev
 value to a string (``None`` becomes ``""``), so a row is ``dict[str, str]`` -- ``Row``.
 The client passes rows through with the vendor's own field names, and a caller frames a
 list of rows into a table in one line (``pandas.DataFrame(rows)`` /
-``polars.DataFrame(rows)``) or hands them to :func:`data_go_kr.clean` for typed,
+``polars.DataFrame(rows)``) or hands them to :func:`pydatagokr.clean` for typed,
 snake_case columns.
 
 ``JsonParam`` is the portal's *closed* vocabulary for the "answer in JSON" query

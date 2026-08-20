@@ -25,7 +25,7 @@ data-go-kr holidays solar_terms --year 2026
 ## Python
 
 ```python
-from data_go_kr import DataGoKr
+from pydatagokr import DataGoKr
 
 client = DataGoKr()
 공휴일 = client.holidays.holidays(year=2026)

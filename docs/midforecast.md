@@ -26,7 +26,7 @@ data-go-kr midforecast temperature --region 11B10101 --base-time 202608110600
 ## Python
 
 ```python
-from data_go_kr import DataGoKr, land_region, temp_region
+from pydatagokr import DataGoKr, land_region, temp_region
 
 client = DataGoKr()
 land = client.midforecast.land(region=land_region("서울"), base_time="202608110600")

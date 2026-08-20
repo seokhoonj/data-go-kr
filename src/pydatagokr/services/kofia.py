@@ -3,7 +3,7 @@
 One service with eight operations. The two most-watched flow series -- 증시자금추이
 (예탁금·미수금·반대매매, ``market_funds``) and 신용공여잔고추이 (신용거래융자·대주·담보융자,
 ``credit_balance``) -- are typed methods, and every operation is reachable through
-:meth:`Kofia.fetch` by name. Each operation's :class:`~data_go_kr._spec.Table` maps the
+:meth:`Kofia.fetch` by name. Each operation's :class:`~pydatagokr._spec.Table` maps the
 vendor's field tokens (``invrDpsgAmt``, ``crdTrFingWhl``, ...) to clean snake_case
 columns; ``clean=True`` (the default) returns those typed rows, ``clean=False`` the raw
 vendor rows.

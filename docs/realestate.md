@@ -23,7 +23,7 @@ data-go-kr realestate apt_trade 11110 --deal-ym 202401
 ## Python
 
 ```python
-from data_go_kr import DataGoKr, lawd_code
+from pydatagokr import DataGoKr, lawd_code
 
 client = DataGoKr()
 code = lawd_code("종로구")                  # "11110"

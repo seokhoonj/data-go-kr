@@ -1,4 +1,4 @@
-from data_go_kr import _regions_data as d
+from pydatagokr import _regions_data as d
 
 
 def test_sigungu_anchor():

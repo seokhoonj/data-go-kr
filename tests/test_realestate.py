@@ -3,7 +3,7 @@ three-digit result code, offline."""
 
 import pytest
 
-from data_go_kr.services.realestate import Realestate
+from pydatagokr.services.realestate import Realestate
 
 
 def _xml(items, total):

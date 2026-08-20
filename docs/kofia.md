@@ -27,7 +27,7 @@ data-go-kr kofia market_funds --begin 20240101 --end 20240131
 ## Python
 
 ```python
-from data_go_kr import DataGoKr
+from pydatagokr import DataGoKr
 
 client = DataGoKr()
 예탁금 = client.kofia.market_funds(begin="20240101", end="20240131")

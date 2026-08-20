@@ -1,5 +1,5 @@
-from data_go_kr import latlon_to_grid
-from data_go_kr.grid import Grid
+from pydatagokr import latlon_to_grid
+from pydatagokr.grid import Grid
 
 
 def test_seoul_reference_point():

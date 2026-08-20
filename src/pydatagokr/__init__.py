@@ -1,6 +1,6 @@
 """data-go-kr -- read Korean government open-data services from data.go.kr.
 
-    from data_go_kr import DataGoKr
+    from pydatagokr import DataGoKr
 
     client = DataGoKr()                    # or set DATA_GO_KR_API_KEY (the *decoding* key)
     rows   = client.weather.forecast(base_date="20260811", base_time="0500", nx=60, ny=127)
@@ -11,7 +11,7 @@ envelope and paging protocol, and each wrapped agency -- 기상청 동네예보,
 국토교통부 아파트 실거래가, ... -- is a thin surface over it. Rows come back as ``list[dict]``
 with the vendor's own field names (or cleaned to typed snake_case columns via the
 per-operation table specs) -- frame them your own way, e.g. ``pandas.DataFrame(rows)`` or
-``polars.DataFrame(rows)``. The offline :mod:`data_go_kr.catalog` lists every service and
+``polars.DataFrame(rows)``. The offline :mod:`pydatagokr.catalog` lists every service and
 operation without a call.
 """
 
@@ -46,7 +46,7 @@ from .session import DataGoKrSession
 from .types import Row
 
 try:
-    __version__ = version("data-go-kr")   # single source of truth: pyproject.toml
+    __version__ = version("pydatagokr")   # single source of truth: pyproject.toml
 except PackageNotFoundError:              # running from source without an install
     __version__ = "0.0.0+unknown"
 

@@ -3,7 +3,7 @@
 Built from one data.go.kr service key (constructor, ``DATA_GO_KR_API_KEY`` env, or the
 config file), it exposes the wrapped services as lazy sub-surfaces -- ``kofia``
 (금융투자협회 종합통계) and ``customs`` (관세청 수출입 무역통계) -- each holding its own
-:class:`~data_go_kr.session.DataGoKrSession` built with the same key and timeout. A
+:class:`~pydatagokr.session.DataGoKrSession` built with the same key and timeout. A
 surface is constructed on first access (``@cached_property``), so building ``DataGoKr()``
 itself needs no key at all.
 """
@@ -32,7 +32,7 @@ class DataGoKr:
         raw  = client.customs.item_trade("8542", begin="202401", end="202406")
 
     One data.go.kr account key serves every dataset it has applied for (활용신청); a call
-    to one not yet approved raises :class:`~data_go_kr.errors.DataGoKrAuthError`.
+    to one not yet approved raises :class:`~pydatagokr.errors.DataGoKrAuthError`.
     """
 
     _api_key: str | None

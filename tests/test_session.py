@@ -9,14 +9,14 @@ from email.message import Message
 
 import pytest
 
-from data_go_kr.errors import (
+from pydatagokr.errors import (
     DataGoKrAuthError,
     DataGoKrError,
     DataGoKrNetworkError,
     DataGoKrRateLimitError,
     DataGoKrResponseError,
 )
-from data_go_kr.session import _PAGE_CAP, DataGoKrSession
+from pydatagokr.session import _PAGE_CAP, DataGoKrSession
 
 _BASE = "https://apis.data.go.kr/0000000/service/TestService"
 # A key with reserved characters, so single- vs double-encoding is observable.

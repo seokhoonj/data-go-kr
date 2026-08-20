@@ -20,7 +20,7 @@ data-go-kr customs item_trade 8542 --begin 202401 --end 202406
 ## Python
 
 ```python
-from data_go_kr import DataGoKr
+from pydatagokr import DataGoKr
 
 client = DataGoKr()
 rows = client.customs.item_trade("8542", begin="202401", end="202406")

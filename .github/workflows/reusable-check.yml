@@ -1,19 +1,19 @@
 name: reusable check
 
 # The full check -- tests, lint, types, and the packaging assertions -- factored
-# into one reusable job so `check.yml` (on push / PR) and any future release gate
-# run the *identical* thing. One definition is what makes "publish gates on the
-# full check" true; a second hand-maintained copy would drift, and a check added
-# here silently would not gate releases.
+# into one reusable job so both `check.yml` (on push / PR) and the release gate in
+# `publish.yml` run the *identical* thing. One definition is what makes "publish
+# gates on the full check" true; a second hand-maintained copy would drift, and a
+# check added here silently would not gate releases.
 
 on:
   workflow_call:
 
-# The floor lives on the shared body, not only on `check.yml`: a release gate
-# calling this same workflow would otherwise run it with the repo-default
-# (possibly write) token. Declared here, the check is read-only from every
-# caller. A reusable workflow can only downscope from the caller, so this never
-# widens anyone's token.
+# The floor lives on the shared body, not only on `check.yml`: `publish.yml`'s gate
+# calls this same workflow, and if the floor were only on `check.yml` the gate would
+# run this check with the repo-default (possibly write) token. Declared here, the
+# check is read-only from every caller. A reusable workflow can only downscope from
+# the caller, so this never widens anyone's token.
 permissions:
   contents: read
 
@@ -62,10 +62,10 @@ jobs:
           uv pip install --python /tmp/bare/bin/python .
           /tmp/bare/bin/python -c "
           import importlib.metadata as md
-          requires = md.requires('data-go-kr') or []
+          requires = md.requires('pydatagokr') or []
           runtime = [r for r in requires if 'extra ==' not in r]
           assert runtime == [], f'unexpected runtime dependencies: {runtime}'
-          import data_go_kr
+          import pydatagokr
           print('data-go-kr imports with the standard library alone')
           "
           # The console script runs, and its top-level --version prints (not shoved
@@ -75,14 +75,14 @@ jobs:
       - name: Confirm a user's type checker can see the hints
         # Every hint in this package is invisible to a user unless py.typed ships
         # alongside it (PEP 561), and the source cannot answer whether it did:
-        # src/data_go_kr/py.typed can sit in git while the built wheel omits it. So
+        # src/pydatagokr/py.typed can sit in git while the built wheel omits it. So
         # ask it the way a user does -- install the built package into a clean
         # environment and run their checker over their code.
         run: |
           uv venv /tmp/typed --python ${{ matrix.python-version }}
           uv pip install --python /tmp/typed/bin/python . mypy
           cat > /tmp/user_code.py <<'PY'
-          from data_go_kr import DataGoKr
+          from pydatagokr import DataGoKr
 
           # timeout takes a float; a str is not one, so a checker that can see the
           # shipped hints must reject it and name the expected type.

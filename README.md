@@ -1,9 +1,9 @@
-# data-go-kr
+# pydatagokr
 
 [![check](https://github.com/seokhoonj/data-go-kr/actions/workflows/check.yml/badge.svg)](https://github.com/seokhoonj/data-go-kr/actions/workflows/check.yml)
-[![PyPI](https://img.shields.io/pypi/v/data-go-kr)](https://pypi.org/project/data-go-kr/)
-[![Python](https://img.shields.io/pypi/pyversions/data-go-kr)](https://pypi.org/project/data-go-kr/)
-[![License](https://img.shields.io/pypi/l/data-go-kr)](https://github.com/seokhoonj/data-go-kr/blob/main/LICENSE)
+[![PyPI](https://img.shields.io/pypi/v/pydatagokr)](https://pypi.org/project/pydatagokr/)
+[![Python](https://img.shields.io/pypi/pyversions/pydatagokr)](https://pypi.org/project/pydatagokr/)
+[![License](https://img.shields.io/pypi/l/pydatagokr)](https://github.com/seokhoonj/data-go-kr/blob/main/LICENSE)
 
 공공데이터포털 **data.go.kr**의 오픈 API를 키 하나로 읽어옵니다. 포털에는 수천 개 기관
 API가 있고, 그중 조회수와 활용신청이 높은 데이터들 -- 기상·대기·공휴일·부동산·중기예보·
@@ -16,12 +16,12 @@ API가 있고, 그중 조회수와 활용신청이 높은 데이터들 -- 기상
 ## 1. 설치
 
 ```bash
-pip install data-go-kr
+pip install pydatagokr
 ```
 
 data.go.kr 인증키가 필요합니다 -- 반드시 **디코딩**(원문) 키를 쓰세요(퍼센트 인코딩된
 인코딩 키는 이중 인코딩되어 거부됩니다). 한 번 저장해 두려면
-`~/.config/data-go-kr/credentials.json`:
+`~/.config/pydatagokr/credentials.json`:
 
 ```json
 { "DATA_GO_KR_API_KEY": "발급받은-디코딩-키" }
@@ -35,7 +35,7 @@ data.go.kr 인증키가 필요합니다 -- 반드시 **디코딩**(원문) 키�
 **미리 만들어 둔 서비스**는 한 클라이언트에서 바로 씁니다:
 
 ```python
-from data_go_kr import DataGoKr
+from pydatagokr import DataGoKr
 
 client = DataGoKr()
 
@@ -52,7 +52,7 @@ trades = client.realestate.apt_trade(region_code="11110", deal_ym="202401")
 URL·오퍼레이션 경로·파라미터명을 얻습니다):
 
 ```python
-from data_go_kr import DataGoKrSession
+from pydatagokr import DataGoKrSession
 
 session = DataGoKrSession("https://apis.data.go.kr/1613000", response_format="xml")
 rows = session.fetch(

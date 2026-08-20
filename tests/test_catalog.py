@@ -2,7 +2,7 @@
 
 import pytest
 
-from data_go_kr import catalog
+from pydatagokr import catalog
 
 
 def test_services_are_registry_derived():

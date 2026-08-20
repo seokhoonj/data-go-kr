@@ -23,7 +23,7 @@ data-go-kr airquality by_station 종로구 --data-term DAILY
 ## Python
 
 ```python
-from data_go_kr import DataGoKr
+from pydatagokr import DataGoKr
 
 client = DataGoKr()
 rows = client.airquality.by_sido(sido="서울")

@@ -2,7 +2,7 @@
 
 import pytest
 
-from data_go_kr.services.holidays import Holidays
+from pydatagokr.services.holidays import Holidays
 
 
 def _xml(items, total):

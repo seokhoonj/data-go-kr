@@ -5,8 +5,8 @@ import json
 
 import pytest
 
-from data_go_kr import session as session_mod
-from data_go_kr.cli import main
+from pydatagokr import session as session_mod
+from pydatagokr.cli import main
 
 
 def _body(payload) -> bytes:

@@ -49,7 +49,7 @@ from .types import JsonParam, ResponseFormat, Row
 
 __all__ = ["DataGoKrSession"]
 
-_USER_AGENT = "data-go-kr"
+_USER_AGENT = "pydatagokr"
 _RATE_LIMIT_STATUS = 429
 _OK_CODE = "00"
 _NO_DATA_CODE = "03"
@@ -110,7 +110,7 @@ class DataGoKrSession:
     ``json_param`` "answer in JSON" flag (``resultType`` for older services, ``_type`` for
     newer ones); ``"xml"`` (an XML-only service like customs) omits that flag entirely and
     parses the XML into the same nested shape. The key comes from ``api_key``, then
-    ``$DATA_GO_KR_API_KEY``, then ``~/.config/data-go-kr/credentials.json``; construction
+    ``$DATA_GO_KR_API_KEY``, then ``~/.config/pydatagokr/credentials.json``; construction
     raises :class:`DataGoKrConfigError` when none of them supplies one.
     """
 

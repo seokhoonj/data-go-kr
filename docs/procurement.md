@@ -26,7 +26,7 @@ data-go-kr procurement services --begin 202608010000 --end 202608102359
 ## Python
 
 ```python
-from data_go_kr import DataGoKr
+from pydatagokr import DataGoKr
 
 client = DataGoKr()
 rows = client.procurement.services(begin="202608010000", end="202608102359")

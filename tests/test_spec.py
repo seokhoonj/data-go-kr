@@ -1,8 +1,8 @@
 """clean() -- typed parsing per field kind, and the key-drop rules."""
 
-from data_go_kr._spec import clean
-from data_go_kr.services.kofia import CMA_STATUS, DLS_DLB, MARKET_FUNDS, OVERSEAS_DERIVATIVES
-from data_go_kr.services.procurement import SERVICES
+from pydatagokr._spec import clean
+from pydatagokr.services.kofia import CMA_STATUS, DLS_DLB, MARKET_FUNDS, OVERSEAS_DERIVATIVES
+from pydatagokr.services.procurement import SERVICES
 
 
 def test_market_funds_row_parses_every_kind():

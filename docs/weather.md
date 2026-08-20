@@ -22,7 +22,7 @@ data-go-kr weather forecast --base-date 20260811 --base-time 0500 --nx 60 --ny 1
 ## Python
 
 ```python
-from data_go_kr import DataGoKr, latlon_to_grid
+from pydatagokr import DataGoKr, latlon_to_grid
 
 client = DataGoKr()
 g = latlon_to_grid(37.5714, 126.9658)      # 위경도 -> Grid(nx=60, ny=127)

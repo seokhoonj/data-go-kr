@@ -1,6 +1,6 @@
 """Customs -- the XML session, clean-by-default rows, and the raw passthrough, offline."""
 
-from data_go_kr.services.customs import Customs
+from pydatagokr.services.customs import Customs
 
 
 def _xml(items, total):
