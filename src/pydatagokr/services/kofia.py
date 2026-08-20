@@ -140,7 +140,7 @@ def _date_filters(table: Table, begin: str | None, end: str | None) -> dict[str,
 
 class Kofia:
     """The KOFIA 종합통계 surface. Construct with a data.go.kr decoding key (or let it
-    resolve ``DATA_GO_KR_API_KEY`` / the config file)::
+    resolve ``DATAGOKR_API_KEY`` / the config file)::
 
         kofia = Kofia()
         rows = kofia.market_funds(begin="20240101", end="20240131")

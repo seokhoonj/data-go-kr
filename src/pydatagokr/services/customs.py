@@ -47,7 +47,7 @@ TABLES: dict[str, Table] = {ITEM_TRADE.name: ITEM_TRADE}
 
 class Customs:
     """The 관세청 수출입 무역통계 surface. Construct with a data.go.kr decoding key (or
-    let it resolve ``DATA_GO_KR_API_KEY`` / the config file)::
+    let it resolve ``DATAGOKR_API_KEY`` / the config file)::
 
         customs = Customs()
         rows = customs.item_trade("8542311000", begin="202601", end="202606")

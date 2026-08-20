@@ -24,10 +24,10 @@ data.go.kr 인증키가 필요합니다 -- 반드시 **디코딩**(원문) 키�
 `~/.config/pydatagokr/credentials.json`:
 
 ```json
-{ "DATA_GO_KR_API_KEY": "발급받은-디코딩-키" }
+{ "DATAGOKR_API_KEY": "발급받은-디코딩-키" }
 ```
 
-환경변수 `DATA_GO_KR_API_KEY`나 `api_key=` 인자로도 넣을 수 있습니다. 각 데이터셋은
+환경변수 `DATAGOKR_API_KEY`나 `api_key=` 인자로도 넣을 수 있습니다. 각 데이터셋은
 계정에서 별도로 활용신청해야 합니다.
 
 ## 2. 빠른 시작

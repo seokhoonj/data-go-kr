@@ -63,7 +63,7 @@ TABLES: dict[str, Table] = {
 
 class Weather:
     """The 동네예보 surface. Construct with a data.go.kr decoding key (or let it resolve
-    ``DATA_GO_KR_API_KEY`` / the config file)::
+    ``DATAGOKR_API_KEY`` / the config file)::
 
         weather = Weather()
         rows = weather.forecast(base_date="20260811", base_time="0500", nx=60, ny=127)

@@ -2,7 +2,7 @@
 
     from pydatagokr import DataGoKr
 
-    client = DataGoKr()                    # or set DATA_GO_KR_API_KEY (the *decoding* key)
+    client = DataGoKr()                    # or set DATAGOKR_API_KEY (the *decoding* key)
     rows   = client.weather.forecast(base_date="20260811", base_time="0500", nx=60, ny=127)
     trades = client.realestate.apt_trade(region_code="11110", deal_ym="202401")
 

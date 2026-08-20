@@ -64,7 +64,7 @@ TABLES: dict[str, Table] = {LAND.name: LAND, TEMPERATURE.name: TEMPERATURE}
 
 class MidForecast:
     """The 중기예보 surface. Construct with a data.go.kr decoding key (or let it resolve
-    ``DATA_GO_KR_API_KEY`` / the config file)::
+    ``DATAGOKR_API_KEY`` / the config file)::
 
         mid = MidForecast()
         rows = mid.land(region="11B00000", base_time="202608111800")        # 육상(강수·날씨)

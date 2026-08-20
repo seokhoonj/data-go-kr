@@ -1,6 +1,6 @@
 """DataGoKr -- the entry point.
 
-Built from one data.go.kr service key (constructor, ``DATA_GO_KR_API_KEY`` env, or the
+Built from one data.go.kr service key (constructor, ``DATAGOKR_API_KEY`` env, or the
 config file), it exposes the wrapped services as lazy sub-surfaces -- ``kofia``
 (금융투자협회 종합통계) and ``customs`` (관세청 수출입 무역통계) -- each holding its own
 :class:`~pydatagokr.session.DataGoKrSession` built with the same key and timeout. A
@@ -27,7 +27,7 @@ __all__ = ["DataGoKr"]
 class DataGoKr:
     """Client for the wrapped data.go.kr services. Groups them as sub-surfaces::
 
-        client = DataGoKr()                    # or set DATA_GO_KR_API_KEY
+        client = DataGoKr()                    # or set DATAGOKR_API_KEY
         rows = client.kofia.market_funds(begin="20240101", end="20240131")
         raw  = client.customs.item_trade("8542", begin="202401", end="202406")
 

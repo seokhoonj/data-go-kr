@@ -10,8 +10,8 @@ The key is looked up in a fixed order, so an explicit value always wins and a se
 environment variable beats a file on disk:
 
 1. the ``api_key`` passed to ``DataGoKr(...)`` / a service surface / a session
-2. the ``DATA_GO_KR_API_KEY`` environment variable
-3. ``"DATA_GO_KR_API_KEY"`` in ``$XDG_CONFIG_HOME/pydatagokr/credentials.json``
+2. the ``DATAGOKR_API_KEY`` environment variable
+3. ``"DATAGOKR_API_KEY"`` in ``$XDG_CONFIG_HOME/pydatagokr/credentials.json``
    (``$XDG_CONFIG_HOME`` defaults to ``~/.config``)
 
 The file is optional -- its absence just means "no key here." But a file that is present
@@ -27,7 +27,7 @@ from pathlib import Path
 
 from .errors import DataGoKrConfigError
 
-_ENV_VAR = "DATA_GO_KR_API_KEY"
+_ENV_VAR = "DATAGOKR_API_KEY"
 _CONFIG_DIR = "pydatagokr"
 _CONFIG_FILE = "credentials.json"
 

@@ -53,14 +53,14 @@ def _fake_opener(monkeypatch, body: bytes):
 @pytest.fixture
 def keyed_env(tmp_path, monkeypatch):
     monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path))
-    monkeypatch.setenv("DATA_GO_KR_API_KEY", "test-key")
+    monkeypatch.setenv("DATAGOKR_API_KEY", "test-key")
 
 
 # --- list (offline, keyless) -------------------------------------------------
 
 def test_list_needs_no_key(capsys, tmp_path, monkeypatch):
     monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path))
-    monkeypatch.delenv("DATA_GO_KR_API_KEY", raising=False)
+    monkeypatch.delenv("DATAGOKR_API_KEY", raising=False)
     assert main(["list"]) == 0
     out = capsys.readouterr().out
     assert "kofia market_funds" in out
@@ -81,7 +81,7 @@ def test_list_json(capsys):
 
 def test_fields_needs_no_key(capsys, tmp_path, monkeypatch):
     monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path))
-    monkeypatch.delenv("DATA_GO_KR_API_KEY", raising=False)
+    monkeypatch.delenv("DATAGOKR_API_KEY", raising=False)
     assert main(["fields", "kofia", "market_funds"]) == 0
     out = capsys.readouterr().out
     assert "basDt" in out and "bas_dt" in out and "date_ymd" in out

@@ -130,7 +130,7 @@ def _deal_date(row: Row) -> str:
 
 class Realestate:
     """The 아파트 실거래가 surface. Construct with a data.go.kr decoding key (or let it
-    resolve ``DATA_GO_KR_API_KEY`` / the config file)::
+    resolve ``DATAGOKR_API_KEY`` / the config file)::
 
         re = Realestate()
         rows = re.apt_trade(region_code="11110", deal_ym="202401")   # 종로구 2024-01 매매

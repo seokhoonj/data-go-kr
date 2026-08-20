@@ -55,7 +55,7 @@ class DataGoKrConfigError(DataGoKrError):
     """The client is misconfigured; raised before any request goes out.
 
     The usual cause is a missing service key -- neither passed to the client nor present
-    in the ``DATA_GO_KR_API_KEY`` environment variable nor the config file.
+    in the ``DATAGOKR_API_KEY`` environment variable nor the config file.
     """
 
 

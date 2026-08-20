@@ -49,7 +49,7 @@ TABLES: dict[str, Table] = {table.name: table for table in (
 
 class Holidays:
     """The 특일 정보 surface. Construct with a data.go.kr decoding key (or let it resolve
-    ``DATA_GO_KR_API_KEY`` / the config file)::
+    ``DATAGOKR_API_KEY`` / the config file)::
 
         holidays = Holidays()
         rows = holidays.holidays(year=2026)            # 관공서 공휴일

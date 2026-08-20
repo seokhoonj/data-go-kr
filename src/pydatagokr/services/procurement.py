@@ -66,7 +66,7 @@ TABLES: dict[str, Table] = {table.name: table for table in (
 
 class Procurement:
     """The 나라장터 입찰공고 surface. Construct with a data.go.kr decoding key (or let it
-    resolve ``DATA_GO_KR_API_KEY`` / the config file)::
+    resolve ``DATAGOKR_API_KEY`` / the config file)::
 
         pr = Procurement()
         rows = pr.services(begin="202608010000", end="202608102359")   # 용역 입찰공고

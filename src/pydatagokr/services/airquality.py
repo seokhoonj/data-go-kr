@@ -57,7 +57,7 @@ TABLES: dict[str, Table] = {BY_SIDO.name: BY_SIDO, BY_STATION.name: BY_STATION}
 
 class AirQuality:
     """The 에어코리아 대기오염정보 surface. Construct with a data.go.kr decoding key (or let
-    it resolve ``DATA_GO_KR_API_KEY`` / the config file)::
+    it resolve ``DATAGOKR_API_KEY`` / the config file)::
 
         air = AirQuality()
         rows = air.by_sido(sido="서울")          # 서울 전 측정소 최신값

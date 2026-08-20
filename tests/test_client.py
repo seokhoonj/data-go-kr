@@ -5,7 +5,7 @@ from pydatagokr import Customs, DataGoKr, Kofia
 
 def test_construction_needs_no_key(tmp_path, monkeypatch):
     monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path))
-    monkeypatch.delenv("DATA_GO_KR_API_KEY", raising=False)
+    monkeypatch.delenv("DATAGOKR_API_KEY", raising=False)
     # Surfaces are lazy: construction resolves no key and builds no sub-surface.
     assert "kofia" not in vars(DataGoKr())
 

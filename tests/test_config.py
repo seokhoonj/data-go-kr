@@ -11,7 +11,7 @@ from pydatagokr.errors import DataGoKrConfigError
 
 def _point_config_at(tmp_path, monkeypatch):
     monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path))
-    monkeypatch.delenv("DATA_GO_KR_API_KEY", raising=False)
+    monkeypatch.delenv("DATAGOKR_API_KEY", raising=False)
     return tmp_path / "pydatagokr" / "credentials.json"
 
 
@@ -22,21 +22,21 @@ def _write(path, data):
 
 def test_explicit_key_wins(tmp_path, monkeypatch):
     path = _point_config_at(tmp_path, monkeypatch)
-    _write(path, json.dumps({"DATA_GO_KR_API_KEY": "from-file"}))
-    monkeypatch.setenv("DATA_GO_KR_API_KEY", "from-env")
+    _write(path, json.dumps({"DATAGOKR_API_KEY": "from-file"}))
+    monkeypatch.setenv("DATAGOKR_API_KEY", "from-env")
     assert resolve_api_key("from-arg") == "from-arg"
 
 
 def test_env_beats_file(tmp_path, monkeypatch):
     path = _point_config_at(tmp_path, monkeypatch)
-    _write(path, json.dumps({"DATA_GO_KR_API_KEY": "from-file"}))
-    monkeypatch.setenv("DATA_GO_KR_API_KEY", "from-env")
+    _write(path, json.dumps({"DATAGOKR_API_KEY": "from-file"}))
+    monkeypatch.setenv("DATAGOKR_API_KEY", "from-env")
     assert resolve_api_key(None) == "from-env"
 
 
 def test_file_is_last_resort(tmp_path, monkeypatch):
     path = _point_config_at(tmp_path, monkeypatch)
-    _write(path, json.dumps({"DATA_GO_KR_API_KEY": "from-file"}))
+    _write(path, json.dumps({"DATAGOKR_API_KEY": "from-file"}))
     assert resolve_api_key(None) == "from-file"
 
 
@@ -48,7 +48,7 @@ def test_missing_everywhere_raises(tmp_path, monkeypatch):
 
 def test_whitespace_key_is_not_a_key(tmp_path, monkeypatch):
     path = _point_config_at(tmp_path, monkeypatch)
-    _write(path, json.dumps({"DATA_GO_KR_API_KEY": "   "}))
+    _write(path, json.dumps({"DATAGOKR_API_KEY": "   "}))
     with pytest.raises(DataGoKrConfigError):
         resolve_api_key("   ")
 
@@ -86,7 +86,7 @@ def test_key_with_control_char_raises_and_never_echoes_the_key():
 
 def test_present_but_unreadable_raises(tmp_path, monkeypatch):
     path = _point_config_at(tmp_path, monkeypatch)
-    _write(path, json.dumps({"DATA_GO_KR_API_KEY": "x"}))
+    _write(path, json.dumps({"DATAGOKR_API_KEY": "x"}))
 
     def boom(self, *args, **kwargs):
         raise PermissionError("locked")
