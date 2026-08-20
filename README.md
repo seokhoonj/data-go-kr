@@ -168,7 +168,7 @@ codex plugin add datagokr@pydatagokr
 
 ```sh
 ln -s "$PWD/plugins/datagokr/skills/weather" ~/.claude/skills/weather   # Claude Code → /weather
-ln -s "$PWD/plugins/datagokr/skills/weather" ~/.codex/skills/weather    # Codex → $datagokr:weather
+ln -s "$PWD/plugins/datagokr/skills/weather" ~/.codex/skills/weather    # Codex → $weather
 ```
 
 Claude Code는 바로 인식하고, Codex는 재시작해야 로딩됩니다.
