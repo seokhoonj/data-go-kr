@@ -67,10 +67,10 @@ def test_date_ym_parses_and_rejects():
     rows = [{"basDt": "202401", "ctgDlbDls": "합계", "ctgPrplcPsub": "공모",
              "presCtg": "발행실적", "amt": "9", "ccnt": "2"}]
     cleaned = clean(rows, DLS_DLB)
-    assert cleaned[0]["base_year_month"] == "2024-01"
+    assert cleaned[0]["base_ym"] == "2024-01"
     assert cleaned[0]["amount_krw"] == 9             # unit encoded in the column name
     dotted = [{**rows[0], "basDt": "2026.01"}]       # customs "YYYY.MM" -> separators stripped
-    assert clean(dotted, DLS_DLB)[0]["base_year_month"] == "2026-01"
+    assert clean(dotted, DLS_DLB)[0]["base_ym"] == "2026-01"
     bad = [{**rows[0], "basDt": "2024"}]             # not a YYYYMM -> row dropped
     assert clean(bad, DLS_DLB) == []
 

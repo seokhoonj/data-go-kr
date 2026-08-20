@@ -10,11 +10,11 @@ from __future__ import annotations
 from .airquality import AirQuality
 from .customs import Customs
 from .holidays import Holidays
-from .kofia import Kofia
+from .kofia import KOFIA
 from .midforecast import MidForecast
 from .procurement import Procurement
-from .realestate import Realestate
+from .realestate import RealEstate
 from .weather import Weather
 
-__all__ = ["AirQuality", "Customs", "Holidays", "Kofia", "MidForecast",
-           "Procurement", "Realestate", "Weather"]
+__all__ = ["AirQuality", "Customs", "Holidays", "KOFIA", "MidForecast",
+           "Procurement", "RealEstate", "Weather"]

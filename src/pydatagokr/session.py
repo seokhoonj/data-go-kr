@@ -46,7 +46,7 @@ from .errors import (
     DataGoKrRateLimitError,
     _error_for,
 )
-from .types import JsonParam, ResponseFormat, Row
+from .types import JSONParam, ResponseFormat, Row
 
 __all__ = ["DataGoKrSession"]
 
@@ -117,7 +117,7 @@ class DataGoKrSession:
     """
 
     def __init__(self, base_url: str, api_key: str | None = None, *,
-                 timeout: float = 30.0, json_param: JsonParam = "resultType",
+                 timeout: float = 30.0, json_param: JSONParam = "resultType",
                  response_format: ResponseFormat = "json",
                  opener: _Opener | None = None) -> None:
         if isinstance(timeout, bool) or not isinstance(timeout, (int, float)):
@@ -126,7 +126,7 @@ class DataGoKrSession:
             raise ValueError("timeout must be a finite positive number")
         self.base_url = base_url.rstrip("/")
         self.timeout = float(timeout)
-        self.json_param: JsonParam = json_param
+        self.json_param: JSONParam = json_param
         self.response_format: ResponseFormat = response_format
         self._api_key = resolve_api_key(api_key)
         self._opener = opener if opener is not None else cast(_Opener, _OPENER)

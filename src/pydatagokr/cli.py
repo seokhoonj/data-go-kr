@@ -29,10 +29,10 @@ from .regions import land_region, lawd_code, temp_region
 from .services.airquality import AirQuality
 from .services.customs import Customs
 from .services.holidays import Holidays
-from .services.kofia import Kofia
+from .services.kofia import KOFIA
 from .services.midforecast import MidForecast
 from .services.procurement import Procurement
-from .services.realestate import Realestate
+from .services.realestate import RealEstate
 from .services.weather import Weather
 
 _PROG = "data-go-kr"
@@ -257,13 +257,13 @@ def _run_temp_region(args: argparse.Namespace) -> int:
 
 
 def _run_kofia(args: argparse.Namespace) -> int:
-    # Validated before Kofia(), so a misused command is a usage error (exit 2)
+    # Validated before KOFIA(), so a misused command is a usage error (exit 2)
     # without needing a service key.
     if args.operation not in catalog.operations("kofia"):
         print(f"{_ERROR_PREFIX}unknown operation {args.operation!r} "
               f"(try `{_PROG} list`)", file=sys.stderr)
         return 2
-    rows = Kofia().fetch(args.operation, begin=args.begin, end=args.end)
+    rows = KOFIA().fetch(args.operation, begin=args.begin, end=args.end)
     _emit(rows, args.json)
     return 0
 
@@ -285,7 +285,7 @@ def _run_holidays(args: argparse.Namespace) -> int:
 
 
 def _run_realestate(args: argparse.Namespace) -> int:
-    rows = Realestate().fetch(args.operation, region_code=args.region_code,
+    rows = RealEstate().fetch(args.operation, region_code=args.region_code,
                               deal_ym=args.deal_ym)
     _emit(rows, args.json)
     return 0

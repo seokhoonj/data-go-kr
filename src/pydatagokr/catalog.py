@@ -6,7 +6,7 @@ Derived from the in-code registries: each service module exposes ``SERVICE``, ``
 tuple -- nothing here enumerates operations by hand, so the catalog cannot drift from what
 the client actually calls, and there is no bundled data file. :func:`services` names the
 wrapped services, :func:`operations` lists what each one's surface accepts (exactly the
-names ``Kofia.fetch`` and the CLI take), and :func:`fields` gives one operation's clean
+names ``KOFIA.fetch`` and the CLI take), and :func:`fields` gives one operation's clean
 column schema.
 """
 
@@ -72,7 +72,7 @@ def operations(service: str) -> list[str]:
     """The operation names one service's surface accepts, in declared order.
 
     Raises ``ValueError`` for an unknown service -- a caller mistake, the same signal
-    ``Kofia.fetch`` gives for an unknown operation.
+    ``KOFIA.fetch`` gives for an unknown operation.
     """
     return list(_module(service).TABLES)
 

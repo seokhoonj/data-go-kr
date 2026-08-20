@@ -1,6 +1,6 @@
 """Client wiring -- lazy cached surfaces sharing one key and timeout, no network."""
 
-from pydatagokr import Customs, DataGoKr, Kofia
+from pydatagokr import KOFIA, Customs, DataGoKr
 
 
 def test_construction_needs_no_key(tmp_path, monkeypatch):
@@ -15,7 +15,7 @@ def test_surfaces_are_lazy_and_cached():
     assert "kofia" not in vars(client)           # not built at construction
     assert "customs" not in vars(client)
     kofia = client.kofia
-    assert isinstance(kofia, Kofia)
+    assert isinstance(kofia, KOFIA)
     assert client.kofia is kofia                 # cached_property: built once
     assert isinstance(client.customs, Customs)
 

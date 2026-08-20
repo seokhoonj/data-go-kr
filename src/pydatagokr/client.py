@@ -15,10 +15,10 @@ from functools import cached_property
 from .services.airquality import AirQuality
 from .services.customs import Customs
 from .services.holidays import Holidays
-from .services.kofia import Kofia
+from .services.kofia import KOFIA
 from .services.midforecast import MidForecast
 from .services.procurement import Procurement
-from .services.realestate import Realestate
+from .services.realestate import RealEstate
 from .services.weather import Weather
 
 __all__ = ["DataGoKr"]
@@ -47,10 +47,10 @@ class DataGoKr:
         return "DataGoKr(...)"
 
     @cached_property
-    def kofia(self) -> Kofia:
+    def kofia(self) -> KOFIA:
         """금융투자협회 (KOFIA) 종합통계 -- 예탁금, 신용잔고, 펀드, CMA, ELS/DLS, 신탁,
         해외파생."""
-        return Kofia(self._api_key, timeout=self._timeout)
+        return KOFIA(self._api_key, timeout=self._timeout)
 
     @cached_property
     def customs(self) -> Customs:
@@ -63,9 +63,9 @@ class DataGoKr:
         return Holidays(self._api_key, timeout=self._timeout)
 
     @cached_property
-    def realestate(self) -> Realestate:
+    def realestate(self) -> RealEstate:
         """국토교통부 아파트 실거래가 -- 매매·매매상세·전월세·분양권전매."""
-        return Realestate(self._api_key, timeout=self._timeout)
+        return RealEstate(self._api_key, timeout=self._timeout)
 
     @cached_property
     def weather(self) -> Weather:

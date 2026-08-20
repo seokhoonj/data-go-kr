@@ -1,4 +1,4 @@
-"""Realestate -- 국토교통부 아파트 실거래가 on data.go.kr (service 1613000, RTMS).
+"""RealEstate -- 국토교통부 아파트 실거래가 on data.go.kr (service 1613000, RTMS).
 
 Four sibling services under one org, grouped as one surface: 아파트 매매 (`apt_trade`),
 매매 상세 (`apt_trade_detail`, adds the road address), 전월세 (`apt_rent`), and 분양권전매
@@ -22,7 +22,7 @@ from .._spec import CleanRow, Field, Table
 from ..session import DataGoKrSession
 from ..types import Row
 
-__all__ = ["AGENCY", "BASE_URL", "Realestate", "SERVICE", "TABLES"]
+__all__ = ["AGENCY", "BASE_URL", "RealEstate", "SERVICE", "TABLES"]
 
 SERVICE = "realestate"
 AGENCY = "국토교통부 (Ministry of Land, Infrastructure and Transport)"
@@ -128,11 +128,11 @@ def _deal_date(row: Row) -> str:
         return ""
 
 
-class Realestate:
+class RealEstate:
     """The 아파트 실거래가 surface. Construct with a data.go.kr decoding key (or let it
     resolve ``DATAGOKR_API_KEY`` / the config file)::
 
-        re = Realestate()
+        re = RealEstate()
         rows = re.apt_trade(region_code="11110", deal_ym="202401")   # 종로구 2024-01 매매
         rows = re.apt_rent(region_code="11110", deal_ym="202401")    # 전월세
     """
@@ -142,7 +142,7 @@ class Realestate:
                                         timeout=timeout, response_format="xml")
 
     def __repr__(self) -> str:
-        return f"Realestate({self._session!r})"
+        return f"RealEstate({self._session!r})"
 
     @overload
     def apt_trade(self, *, region_code: str, deal_ym: str,

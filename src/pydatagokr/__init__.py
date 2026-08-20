@@ -33,13 +33,13 @@ from .errors import (
 from .grid import Grid, latlon_to_grid
 from .regions import land_region, lawd_code, temp_region
 from .services import (
+    KOFIA,
     AirQuality,
     Customs,
     Holidays,
-    Kofia,
     MidForecast,
     Procurement,
-    Realestate,
+    RealEstate,
     Weather,
 )
 from .session import DataGoKrSession
@@ -64,10 +64,10 @@ __all__ = [
     "Field",
     "Grid",
     "Holidays",
-    "Kofia",
+    "KOFIA",
     "MidForecast",
     "Procurement",
-    "Realestate",
+    "RealEstate",
     "Row",
     "Table",
     "Weather",

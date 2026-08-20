@@ -1,9 +1,9 @@
-"""Realestate -- deal_date synthesis, decimal area, the four operations, and the RTMS
+"""RealEstate -- deal_date synthesis, decimal area, the four operations, and the RTMS
 three-digit result code, offline."""
 
 import pytest
 
-from pydatagokr.services.realestate import Realestate
+from pydatagokr.services.realestate import RealEstate
 
 
 def _xml(items, total):
@@ -58,7 +58,7 @@ _TRADE_ROW = {
 
 
 def _re(raw):
-    realestate = Realestate(api_key="k")
+    realestate = RealEstate(api_key="k")
     opener = _FakeOpener(raw)
     realestate._session._opener = opener
     return realestate, opener

@@ -1,9 +1,9 @@
-"""Kofia -- the 금융투자협회 (KOFIA) 종합통계 service on data.go.kr (service 1160100).
+"""KOFIA -- the 금융투자협회 (KOFIA) 종합통계 service on data.go.kr (service 1160100).
 
 One service with eight operations. The two most-watched flow series -- 증시자금추이
 (예탁금·미수금·반대매매, ``market_funds``) and 신용공여잔고추이 (신용거래융자·대주·담보융자,
 ``credit_balance``) -- are typed methods, and every operation is reachable through
-:meth:`Kofia.fetch` by name. Each operation's :class:`~pydatagokr._spec.Table` maps the
+:meth:`KOFIA.fetch` by name. Each operation's :class:`~pydatagokr._spec.Table` maps the
 vendor's field tokens (``invrDpsgAmt``, ``crdTrFingWhl``, ...) to clean snake_case
 columns; ``clean=True`` (the default) returns those typed rows, ``clean=False`` the raw
 vendor rows.
@@ -22,7 +22,7 @@ from .._spec import CleanRow, Field, Table
 from ..session import DataGoKrSession
 from ..types import Row
 
-__all__ = ["AGENCY", "BASE_URL", "Kofia", "SERVICE", "TABLES"]
+__all__ = ["AGENCY", "BASE_URL", "KOFIA", "SERVICE", "TABLES"]
 
 SERVICE = "kofia"
 AGENCY = "금융투자협회 (Korea Financial Investment Association)"
@@ -75,36 +75,36 @@ CMA_STATUS = Table("cma_status", "getCMAStatus", "basDt", False, (
 ))
 
 DLS_DLB = Table("dls_dlb", "getDLSAndDLBInfo", "basDt", True, (
-    Field("basDt",        "base_year_month", "date_ym", is_key=True),
-    Field("ctgDlbDls",    "product_type",    "text", is_key=True),      # 원금보장/비보장/합계
-    Field("ctgPrplcPsub", "offering_type",   "text", is_key=True),      # 공모/사모/합계
-    Field("presCtg",      "status_type",     "text", is_key=True),      # 발행실적/미상환잔고/상환현황
-    Field("amt",          "amount_krw",      "int"),                    # 금액 (원)
-    Field("ccnt",         "deal_count",      "int"),                    # 건수
+    Field("basDt",        "base_ym",       "date_ym", is_key=True),
+    Field("ctgDlbDls",    "product_type",  "text", is_key=True),      # 원금보장/비보장/합계
+    Field("ctgPrplcPsub", "offering_type", "text", is_key=True),      # 공모/사모/합계
+    Field("presCtg",      "status_type",   "text", is_key=True),      # 발행실적/미상환잔고/상환현황
+    Field("amt",          "amount_krw",    "int"),                    # 금액 (원)
+    Field("ccnt",         "deal_count",    "int"),                    # 건수
 ))
 
 ELS_ELB = Table("els_elb", "getELSAndELBInfo", "basDt", True, (
-    Field("basDt",        "base_year_month", "date_ym", is_key=True),
-    Field("ctgElbEls",    "product_type",    "text", is_key=True),      # ELB/ELS 구분
-    Field("ctgPrplcPsub", "offering_type",   "text", is_key=True),      # 공모/사모
-    Field("presCtg",      "status_type",     "text", is_key=True),      # 발행실적/미상환잔고/상환현황
-    Field("amt",          "amount_krw",      "int"),                    # 금액 (원)
-    Field("ccnt",         "deal_count",      "int"),                    # 건수
+    Field("basDt",        "base_ym",       "date_ym", is_key=True),
+    Field("ctgElbEls",    "product_type",  "text", is_key=True),      # ELB/ELS 구분
+    Field("ctgPrplcPsub", "offering_type", "text", is_key=True),      # 공모/사모
+    Field("presCtg",      "status_type",   "text", is_key=True),      # 발행실적/미상환잔고/상환현황
+    Field("amt",          "amount_krw",    "int"),                    # 금액 (원)
+    Field("ccnt",         "deal_count",    "int"),                    # 건수
 ))
 
 TRUST_SCALE = Table("trust_scale", "getTrustScaleInfo", "basYm", True, (
-    Field("basYm",  "base_year_month", "date_ym", is_key=True),
-    Field("bzds",   "sector",          "text", is_key=True),      # 업권 (증권 ...)
-    Field("tstCtg", "trust_type",      "text", is_key=True),      # 신탁구분
-    Field("kind",   "trust_kind",      "text", is_key=True),      # 종류
-    Field("iqBs",   "measure_basis",   "text", is_key=True),      # 조회기준 (고객수/계약수/수탁총액)
-    Field("val",    "measure_value",   "int"),                    # 조회기준별 값
+    Field("basYm",  "base_ym",       "date_ym", is_key=True),
+    Field("bzds",   "sector",        "text", is_key=True),      # 업권 (증권 ...)
+    Field("tstCtg", "trust_type",    "text", is_key=True),      # 신탁구분
+    Field("kind",   "trust_kind",    "text", is_key=True),      # 종류
+    Field("iqBs",   "measure_basis", "text", is_key=True),      # 조회기준 (고객수/계약수/수탁총액)
+    Field("val",    "measure_value", "int"),                    # 조회기준별 값
 ))
 
 # high-dimensional product-level series -> surrogate id + per-month replace (a 10-column,
 # 200-char-name composite key would blow a btree index-row limit).
 OVERSEAS_DERIVATIVES = Table("overseas_derivatives", "getDerivationProductTradingInfo", "basDt", True, (
-    Field("basDt",           "base_year_month",        "date_ym", is_key=True),
+    Field("basDt",           "base_ym",                "date_ym", is_key=True),
     Field("byPrdGrp",        "product_group",          "text", is_key=True),      # 상품군별
     Field("actCtg",          "account_type",           "text", is_key=True),      # 자기/중개/총괄
     Field("ctgBsonCntrForm", "contract_form",          "text", is_key=True),      # 계약형태 (콜옵션 ...)
@@ -138,11 +138,11 @@ def _date_filters(table: Table, begin: str | None, end: str | None) -> dict[str,
     return {f"begin{cap}": lo, f"end{cap}": hi}
 
 
-class Kofia:
+class KOFIA:
     """The KOFIA 종합통계 surface. Construct with a data.go.kr decoding key (or let it
     resolve ``DATAGOKR_API_KEY`` / the config file)::
 
-        kofia = Kofia()
+        kofia = KOFIA()
         rows = kofia.market_funds(begin="20240101", end="20240131")
     """
 
@@ -151,7 +151,7 @@ class Kofia:
                                         timeout=timeout, json_param="resultType")
 
     def __repr__(self) -> str:
-        return f"Kofia({self._session!r})"
+        return f"KOFIA({self._session!r})"
 
     @overload
     def market_funds(self, *, begin: str | None = ..., end: str | None = ...,
