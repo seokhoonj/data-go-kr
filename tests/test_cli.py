@@ -84,13 +84,13 @@ def test_fields_needs_no_key(capsys, tmp_path, monkeypatch):
     monkeypatch.delenv("DATAGOKR_API_KEY", raising=False)
     assert main(["fields", "kofia", "market_funds"]) == 0
     out = capsys.readouterr().out
-    assert "basDt" in out and "bas_dt" in out and "date_ymd" in out
+    assert "basDt" in out and "base_date" in out and "date_ymd" in out
 
 
 def test_fields_json(capsys):
     assert main(["fields", "kofia", "market_funds", "--json"]) == 0
     schema = json.loads(capsys.readouterr().out)
-    assert schema[0] == {"token": "basDt", "column": "bas_dt",
+    assert schema[0] == {"token": "basDt", "column": "base_date",
                          "kind": "date_ymd", "is_key": True}
 
 
@@ -128,7 +128,7 @@ def test_kofia_fetch_renders_clean_rows(capsys, keyed_env, monkeypatch):
         [{"basDt": "20240105", "invrDpsgAmt": "50,123"}], total=1))
     assert main(["kofia", "market_funds", "--begin", "20240105", "--end", "20240105"]) == 0
     out = capsys.readouterr().out
-    assert "bas_dt" in out and "2024-01-05" in out           # cleaned columns
+    assert "base_date" in out and "2024-01-05" in out           # cleaned columns
     assert "50123" in out
     assert "beginBasDt=20240105" in urls[0]
     assert "resultType=json" in urls[0]
@@ -138,7 +138,7 @@ def test_kofia_fetch_json(capsys, keyed_env, monkeypatch):
     _fake_opener(monkeypatch, _envelope([{"basDt": "20240105"}], total=1))
     assert main(["kofia", "market_funds", "--json"]) == 0
     rows = json.loads(capsys.readouterr().out)
-    assert rows[0]["bas_dt"] == "2024-01-05"
+    assert rows[0]["base_date"] == "2024-01-05"
 
 
 # --- customs -----------------------------------------------------------------

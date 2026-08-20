@@ -140,7 +140,11 @@ def _xml_fault(code, *, err_msg="SERVICE ERROR.", auth_msg=None):
 
 
 def _http_error(status):
-    return urllib.error.HTTPError("https://x", status, "msg", Message(), io.BytesIO(b""))
+    # The URL carries the key exactly as the real request URL does (serviceKey=...), so a
+    # regression that leaked HTTPError.url into a message would surface the key and trip
+    # the secret-safety assertions rather than pass on a harmless placeholder URL.
+    url = f"{_BASE}/getThing?serviceKey={urllib.parse.quote_plus(_KEY)}&pageNo=1"
+    return urllib.error.HTTPError(url, status, "msg", Message(), io.BytesIO(b""))
 
 
 # --- request building --------------------------------------------------------
@@ -326,6 +330,26 @@ def test_http_500_raises_network_error():
     session, _ = _session(_http_error(500))
     with pytest.raises(DataGoKrNetworkError):
         session.fetch("getThing")
+
+
+@pytest.mark.parametrize("status", [401, 403])
+def test_http_401_403_raise_auth_error(status):
+    # The gateway rejects a bad/unregistered key with 401/403 before the reason-code body
+    # exists; that is an auth failure (not retryable), not a transient network error.
+    session, _ = _session(_http_error(status))
+    with pytest.raises(DataGoKrAuthError) as exc:
+        session.fetch("getThing")
+    assert exc.value.code == str(status)
+
+
+def test_json_mode_xml_fault_is_classified_by_reason_code():
+    # data.go.kr's gateway can return its XML fault at HTTP 200 even when JSON was
+    # requested (it faults before applying the json flag); the JSON path must still
+    # surface the reason code, not a generic network error.
+    session, _ = _session(_xml_fault("30", auth_msg="SERVICE_KEY_IS_NOT_REGISTERED_ERROR"))
+    with pytest.raises(DataGoKrAuthError) as exc:
+        session.fetch("getThing")
+    assert exc.value.code == "30"
 
 
 def test_urlerror_raises_network_error():

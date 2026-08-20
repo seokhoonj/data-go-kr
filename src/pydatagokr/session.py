@@ -40,6 +40,7 @@ from typing import IO, Any, Protocol, cast
 
 from ._config import resolve_api_key
 from .errors import (
+    DataGoKrAuthError,
     DataGoKrError,
     DataGoKrNetworkError,
     DataGoKrRateLimitError,
@@ -51,6 +52,7 @@ __all__ = ["DataGoKrSession"]
 
 _USER_AGENT = "pydatagokr"
 _RATE_LIMIT_STATUS = 429
+_AUTH_STATUSES = frozenset({401, 403})   # gateway rejects a bad/unregistered key here
 _OK_CODE = "00"
 _NO_DATA_CODE = "03"
 _PAGE_CAP = 1000   # runaway guard: 1000 pages x default 1000 rows covers any series
@@ -154,9 +156,14 @@ class DataGoKrSession:
         for page in range(1, _PAGE_CAP + 1):
             page_rows, total = self._fetch_page(operation, page, num_of_rows, filters)
             rows.extend(page_rows)
-            last_page = (not page_rows
-                         or len(page_rows) < num_of_rows
-                         or (total is not None and len(rows) >= total))
+            # When the service reports a totalCount it is authoritative: a page shorter
+            # than num_of_rows can be a mid-result page from a service that caps its own
+            # page size, so a short page must not end paging while the count says rows
+            # remain. Without a count, a short (or empty) page is the only last-page signal.
+            if total is not None:
+                last_page = not page_rows or len(rows) >= total
+            else:
+                last_page = not page_rows or len(page_rows) < num_of_rows
             if last_page:
                 return rows
         # The cap was reached without any last-page signal: rather than silently return a
@@ -197,6 +204,13 @@ class DataGoKrSession:
                 if err.code == _RATE_LIMIT_STATUS:
                     failure = DataGoKrRateLimitError(
                         "429", f"data.go.kr rate-limited {operation} (HTTP 429)")
+                elif err.code in _AUTH_STATUSES:
+                    # The gateway rejects a bad/unregistered key with 401/403 before the
+                    # reason-code body is ever produced; that is an auth failure, not a
+                    # transient network one, so it must not be retried.
+                    failure = DataGoKrAuthError(
+                        str(err.code),
+                        f"data.go.kr rejected the service key for {operation} (HTTP {err.code})")
                 else:
                     failure = DataGoKrNetworkError(
                         f"HTTP {err.code} from data.go.kr for {operation}")
@@ -235,10 +249,18 @@ class DataGoKrSession:
         try:
             return json.loads(raw.decode("utf-8"))
         except (ValueError, UnicodeDecodeError, RecursionError):
-            # A 200 whose body is not JSON -- the portal's XML fault, or a
-            # proxy/maintenance page -- must surface through our error, cause detached.
-            failure = DataGoKrNetworkError(
-                f"non-JSON response from data.go.kr for {operation}")
+            # A 200 whose body is not JSON is usually the portal's XML fault envelope --
+            # the gateway can fault (unregistered key, traffic limit) before it applies
+            # the json flag. Parse it as XML so the reason code still routes to
+            # _error_from_fault; only if it is not XML either do we give up (a
+            # proxy/maintenance page), cause detached.
+            try:
+                root = ET.fromstring(raw.decode("utf-8"))
+            except (ET.ParseError, UnicodeDecodeError):
+                failure = DataGoKrNetworkError(
+                    f"non-JSON response from data.go.kr for {operation}")
+            else:
+                return {root.tag: _xml_to_dict(root)}
         raise failure from None
 
     def _payload_from_xml(self, raw: bytes, operation: str) -> dict[str, Any]:

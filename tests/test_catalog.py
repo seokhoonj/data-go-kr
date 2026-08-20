@@ -35,7 +35,7 @@ def test_customs_fields_are_the_confirmed_tokens():
 
 def test_fields_returns_the_clean_column_schema():
     schema = catalog.fields("kofia", "market_funds")
-    assert schema[0] == {"token": "basDt", "column": "bas_dt",
+    assert schema[0] == {"token": "basDt", "column": "base_date",
                          "kind": "date_ymd", "is_key": True}
     columns = [field["column"] for field in schema]
     assert "investor_deposit" in columns

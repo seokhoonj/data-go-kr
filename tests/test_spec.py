@@ -16,7 +16,7 @@ def test_market_funds_row_parses_every_kind():
         "ucolMnyVsOppsTrdRlImpt":    "8.5",
     }]
     assert clean(rows, MARKET_FUNDS) == [{
-        "bas_dt":                          "2024-01-05",
+        "base_date":                          "2024-01-05",
         "investor_deposit":                50123,
         "derivatives_deposit":             1234,
         "customer_rp_sale_balance":        None,
@@ -67,10 +67,10 @@ def test_date_ym_parses_and_rejects():
     rows = [{"basDt": "202401", "ctgDlbDls": "합계", "ctgPrplcPsub": "공모",
              "presCtg": "발행실적", "amt": "9", "ccnt": "2"}]
     cleaned = clean(rows, DLS_DLB)
-    assert cleaned[0]["bas_ym"] == "2024-01"
+    assert cleaned[0]["base_year_month"] == "2024-01"
     assert cleaned[0]["amount_krw"] == 9             # unit encoded in the column name
     dotted = [{**rows[0], "basDt": "2026.01"}]       # customs "YYYY.MM" -> separators stripped
-    assert clean(dotted, DLS_DLB)[0]["bas_ym"] == "2026-01"
+    assert clean(dotted, DLS_DLB)[0]["base_year_month"] == "2026-01"
     bad = [{**rows[0], "basDt": "2024"}]             # not a YYYYMM -> row dropped
     assert clean(bad, DLS_DLB) == []
 
@@ -84,10 +84,10 @@ def test_blank_and_marker_text_is_none():
 
 
 def test_table_derived_properties():
-    assert MARKET_FUNDS.date_column == "bas_dt"
-    assert MARKET_FUNDS.key_columns == ("bas_dt",)
-    assert MARKET_FUNDS.columns[0] == "bas_dt"
-    assert CMA_STATUS.key_columns == ("bas_dt", "management_target", "investor_type")
+    assert MARKET_FUNDS.date_column == "base_date"
+    assert MARKET_FUNDS.key_columns == ("base_date",)
+    assert MARKET_FUNDS.columns[0] == "base_date"
+    assert CMA_STATUS.key_columns == ("base_date", "management_target", "investor_type")
     assert OVERSEAS_DERIVATIVES.is_wide_key
 
 

@@ -12,9 +12,9 @@ column schema.
 
 from __future__ import annotations
 
-from typing import Protocol
+from typing import Protocol, TypedDict
 
-from ._spec import Table
+from ._spec import FieldKind, Table
 from .services import (
     airquality,
     customs,
@@ -26,7 +26,24 @@ from .services import (
     weather,
 )
 
-__all__ = ["fields", "operations", "services"]
+__all__ = ["FieldSpec", "ServiceInfo", "fields", "operations", "services"]
+
+
+class ServiceInfo(TypedDict):
+    """One wrapped service's registry line: its accessor name, agency, and base URL."""
+
+    service:  str
+    agency:   str
+    base_url: str
+
+
+class FieldSpec(TypedDict):
+    """One clean column's schema: the vendor token, the clean column, its kind, is-key."""
+
+    token:  str
+    column: str
+    kind:   FieldKind
+    is_key: bool
 
 
 class _ServiceModule(Protocol):
@@ -45,10 +62,10 @@ _SERVICES: tuple[_ServiceModule, ...] = (
 )
 
 
-def services() -> list[dict[str, str]]:
+def services() -> list[ServiceInfo]:
     """The wrapped data.go.kr services, each as ``{service, agency, base_url}``."""
-    return [{"service": module.SERVICE, "agency": module.AGENCY,
-             "base_url": module.BASE_URL} for module in _SERVICES]
+    return [ServiceInfo(service=module.SERVICE, agency=module.AGENCY,
+                        base_url=module.BASE_URL) for module in _SERVICES]
 
 
 def operations(service: str) -> list[str]:
@@ -60,7 +77,7 @@ def operations(service: str) -> list[str]:
     return list(_module(service).TABLES)
 
 
-def fields(service: str, operation: str) -> list[dict[str, object]]:
+def fields(service: str, operation: str) -> list[FieldSpec]:
     """One operation's clean column schema: a dict per field with its vendor ``token``,
     clean ``column``, ``kind``, and ``is_key`` flag, in table order.
 
@@ -75,8 +92,8 @@ def fields(service: str, operation: str) -> list[dict[str, object]]:
     except KeyError:
         raise ValueError(f"unknown operation {operation!r} for service {service!r}; "
                          f"valid: {list(tables)}") from None
-    return [{"token": field.token, "column": field.column,
-             "kind": field.kind, "is_key": field.is_key} for field in table.fields]
+    return [FieldSpec(token=field.token, column=field.column,
+                      kind=field.kind, is_key=field.is_key) for field in table.fields]
 
 
 def _module(service: str) -> _ServiceModule:

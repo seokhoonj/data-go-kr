@@ -68,7 +68,7 @@ def test_apt_trade_synthesizes_deal_date_and_types_the_measures():
     realestate, _ = _re(_xml([_TRADE_ROW], 1))
     row = realestate.apt_trade(region_code="11110", deal_ym="202401")[0]
     assert row["deal_date"] == "2024-01-19"       # from dealYear/dealMonth/dealDay
-    assert row["exclusive_area"] == 84.9478       # decimal -> float
+    assert row["exclusive_area"] == pytest.approx(84.9478)       # decimal -> float
     assert row["deal_amount"] == 101300           # comma stripped -> int
     assert row["floor"] == 13
     assert row["apt_name"] == "종로청계힐스테이트"

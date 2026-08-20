@@ -35,7 +35,7 @@ BASE_URL = "https://apis.data.go.kr/1160100/service/GetKofiaStatisticsInfoServic
 # -- daily flow series (date is the whole key) -------------------------------------------
 
 MARKET_FUNDS = Table("market_funds", "getSecuritiesMarketTotalCapitalInfo", "basDt", False, (
-    Field("basDt",                     "bas_dt",                          "date_ymd", is_key=True),
+    Field("basDt",                     "base_date",                       "date_ymd", is_key=True),
     Field("invrDpsgAmt",               "investor_deposit",                "int"),                     # 투자자예탁금
     Field("onbdDrvPrdTrRcAdvAmt",      "derivatives_deposit",             "int"),                     # 장내파생상품거래예수금
     Field("toCstRpchCndBndSlgBal",     "customer_rp_sale_balance",        "int"),                     # 대고객RP매도잔고
@@ -45,7 +45,7 @@ MARKET_FUNDS = Table("market_funds", "getSecuritiesMarketTotalCapitalInfo", "bas
 ))
 
 CREDIT_BALANCE = Table("credit_balance", "getGrantingOfCreditBalanceInfo", "basDt", False, (
-    Field("basDt",           "bas_dt",             "date_ymd", is_key=True),
+    Field("basDt",           "base_date",          "date_ymd", is_key=True),
     Field("crdTrFingWhl",    "margin_loan_total",  "int"),                     # 신용거래융자 전체
     Field("crdTrFingScrs",   "margin_loan_kospi",  "int"),                     # 신용거래융자 유가증권
     Field("crdTrFingKosdaq", "margin_loan_kosdaq", "int"),                     # 신용거래융자 코스닥
@@ -59,14 +59,14 @@ CREDIT_BALANCE = Table("credit_balance", "getGrantingOfCreditBalanceInfo", "basD
 # -- category-dimensioned series (date + dimensions are the key) -------------------------
 
 FUND_NET_ASSET = Table("fund_net_asset", "getFundTotalNetEssetInfo", "basDt", False, (
-    Field("basDt",      "bas_dt",          "date_ymd", is_key=True),
+    Field("basDt",      "base_date",       "date_ymd", is_key=True),
     Field("ctg",        "fund_type",       "text", is_key=True),       # 펀드 구분 (PEF ...)
     Field("tstMthdCtg", "offering_type",   "text", is_key=True),       # 공모/사모
     Field("nPptTotAmt", "net_asset_total", "int"),                     # 순자산총액
 ))
 
 CMA_STATUS = Table("cma_status", "getCMAStatus", "basDt", False, (
-    Field("basDt",       "bas_dt",                "date_ymd", is_key=True),
+    Field("basDt",       "base_date",             "date_ymd", is_key=True),
     Field("mngInvTgt",   "management_target",     "text", is_key=True),       # RP형/MMF형/합계 ...
     Field("invrCtg",     "investor_type",         "text", is_key=True),       # 개인/기관
     Field("scrtCmpyCnt", "securities_firm_count", "int"),                     # 증권회사수
@@ -75,36 +75,36 @@ CMA_STATUS = Table("cma_status", "getCMAStatus", "basDt", False, (
 ))
 
 DLS_DLB = Table("dls_dlb", "getDLSAndDLBInfo", "basDt", True, (
-    Field("basDt",        "bas_ym",        "date_ym", is_key=True),
-    Field("ctgDlbDls",    "product_type",  "text", is_key=True),      # 원금보장/비보장/합계
-    Field("ctgPrplcPsub", "offering_type", "text", is_key=True),      # 공모/사모/합계
-    Field("presCtg",      "status_type",   "text", is_key=True),      # 발행실적/미상환잔고/상환현황
-    Field("amt",          "amount_krw",    "int"),                    # 금액 (원)
-    Field("ccnt",         "deal_count",    "int"),                    # 건수
+    Field("basDt",        "base_year_month", "date_ym", is_key=True),
+    Field("ctgDlbDls",    "product_type",    "text", is_key=True),      # 원금보장/비보장/합계
+    Field("ctgPrplcPsub", "offering_type",   "text", is_key=True),      # 공모/사모/합계
+    Field("presCtg",      "status_type",     "text", is_key=True),      # 발행실적/미상환잔고/상환현황
+    Field("amt",          "amount_krw",      "int"),                    # 금액 (원)
+    Field("ccnt",         "deal_count",      "int"),                    # 건수
 ))
 
 ELS_ELB = Table("els_elb", "getELSAndELBInfo", "basDt", True, (
-    Field("basDt",        "bas_ym",        "date_ym", is_key=True),
-    Field("ctgElbEls",    "product_type",  "text", is_key=True),      # ELB/ELS 구분
-    Field("ctgPrplcPsub", "offering_type", "text", is_key=True),      # 공모/사모
-    Field("presCtg",      "status_type",   "text", is_key=True),      # 발행실적/미상환잔고/상환현황
-    Field("amt",          "amount_krw",    "int"),                    # 금액 (원)
-    Field("ccnt",         "deal_count",    "int"),                    # 건수
+    Field("basDt",        "base_year_month", "date_ym", is_key=True),
+    Field("ctgElbEls",    "product_type",    "text", is_key=True),      # ELB/ELS 구분
+    Field("ctgPrplcPsub", "offering_type",   "text", is_key=True),      # 공모/사모
+    Field("presCtg",      "status_type",     "text", is_key=True),      # 발행실적/미상환잔고/상환현황
+    Field("amt",          "amount_krw",      "int"),                    # 금액 (원)
+    Field("ccnt",         "deal_count",      "int"),                    # 건수
 ))
 
 TRUST_SCALE = Table("trust_scale", "getTrustScaleInfo", "basYm", True, (
-    Field("basYm",  "bas_ym",        "date_ym", is_key=True),
-    Field("bzds",   "sector",        "text", is_key=True),      # 업권 (증권 ...)
-    Field("tstCtg", "trust_type",    "text", is_key=True),      # 신탁구분
-    Field("kind",   "trust_kind",    "text", is_key=True),      # 종류
-    Field("iqBs",   "measure_basis", "text", is_key=True),      # 조회기준 (고객수/계약수/수탁총액)
-    Field("val",    "measure_value", "int"),                    # 조회기준별 값
+    Field("basYm",  "base_year_month", "date_ym", is_key=True),
+    Field("bzds",   "sector",          "text", is_key=True),      # 업권 (증권 ...)
+    Field("tstCtg", "trust_type",      "text", is_key=True),      # 신탁구분
+    Field("kind",   "trust_kind",      "text", is_key=True),      # 종류
+    Field("iqBs",   "measure_basis",   "text", is_key=True),      # 조회기준 (고객수/계약수/수탁총액)
+    Field("val",    "measure_value",   "int"),                    # 조회기준별 값
 ))
 
 # high-dimensional product-level series -> surrogate id + per-month replace (a 10-column,
 # 200-char-name composite key would blow a btree index-row limit).
 OVERSEAS_DERIVATIVES = Table("overseas_derivatives", "getDerivationProductTradingInfo", "basDt", True, (
-    Field("basDt",           "bas_ym",                 "date_ym", is_key=True),
+    Field("basDt",           "base_year_month",        "date_ym", is_key=True),
     Field("byPrdGrp",        "product_group",          "text", is_key=True),      # 상품군별
     Field("actCtg",          "account_type",           "text", is_key=True),      # 자기/중개/총괄
     Field("ctgBsonCntrForm", "contract_form",          "text", is_key=True),      # 계약형태 (콜옵션 ...)
