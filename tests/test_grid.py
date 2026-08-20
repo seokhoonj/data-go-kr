@@ -34,3 +34,11 @@ def test_pole_latitude_is_a_clear_error_not_a_zero_division(lat):
     # ValueError rather than a bare ZeroDivisionError from the formula.
     with pytest.raises(ValueError, match="lat must be between"):
         latlon_to_grid(lat, 126.0)
+
+
+@pytest.mark.parametrize("lon", [float("nan"), float("inf"), float("-inf")])
+def test_non_finite_longitude_is_a_clear_error(lon):
+    # A non-finite lon reaches int()/math.sin() with an opaque message; guard it symmetrically
+    # with lat so the contract failure reads as a domain error.
+    with pytest.raises(ValueError, match="lon must be a finite"):
+        latlon_to_grid(37.5, lon)

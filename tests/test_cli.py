@@ -210,10 +210,51 @@ def test_procurement_omitted_query_basis_uses_the_library_default(keyed_env, mon
     assert "inqryDiv=1" in urls[0]
 
 
+def test_procurement_query_basis_is_forwarded_only_when_supplied(keyed_env, monkeypatch):
+    # A URL check alone can't prove the SUPPRESS delegation -- inqryDiv=1 would appear whether
+    # the CLI supplied "1" or the library defaulted to it. Spy on fetch and assert the keyword
+    # is absent when the flag is omitted (so the library default applies), present when given.
+    seen: dict[str, object] = {}
+
+    def spy(self, name, **kwargs):
+        seen.clear()
+        seen.update(kwargs)
+        return []
+
+    monkeypatch.setattr("pydatagokr.services.procurement.Procurement.fetch", spy)
+
+    assert main(["procurement", "goods",
+                 "--begin", "202608010000", "--end", "202608102359"]) == 0
+    assert "query_basis" not in seen                     # delegated to the library default
+
+    assert main(["procurement", "goods", "--begin", "202608010000",
+                 "--end", "202608102359", "--query-basis", "2"]) == 0
+    assert seen["query_basis"] == "2"                    # forwarded exactly as given
+
+
 def test_airquality_rejects_an_invalid_data_term():
     with pytest.raises(SystemExit) as exc:
         main(["airquality", "by_station", "종로구", "--data-term", "WEEKLY"])
     assert exc.value.code == 2
+
+
+def test_airquality_data_term_is_forwarded_only_when_supplied(keyed_env, monkeypatch):
+    # SUPPRESS: omitting --data-term must forward nothing, so by_station's own default applies;
+    # supplying it forwards the value.
+    seen: dict[str, object] = {}
+
+    def spy(self, *, station, **kwargs):
+        seen.clear()
+        seen.update(kwargs)
+        return []
+
+    monkeypatch.setattr("pydatagokr.services.airquality.AirQuality.by_station", spy)
+
+    assert main(["airquality", "by_station", "종로구"]) == 0
+    assert "data_term" not in seen                        # delegated to the library default
+
+    assert main(["airquality", "by_station", "종로구", "--data-term", "MONTH"]) == 0
+    assert seen.get("data_term") == "MONTH"
 
 
 # --- failures ----------------------------------------------------------------

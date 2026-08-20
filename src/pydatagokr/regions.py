@@ -33,24 +33,29 @@ def lawd_code(query: str) -> str:
     hints = tokens[:-1]
     # A 일반구 is stored as "<시>구" (e.g. "수원시장안구"), so a suffix match must land on that
     # 시-seam -- otherwise "천안 남구" would silently match "천안시동남구" (천안 has no 남구).
-    cands = [
-        (sido, sg, code)
-        for (sido, sg, code) in SIGUNGU
-        if sg == name or (sg.endswith(name) and sg[: -len(name)].endswith("시"))
+    candidates = [
+        (sido, sigungu, code)
+        for (sido, sigungu, code) in SIGUNGU
+        if sigungu == name
+        or (sigungu.endswith(name) and sigungu[: -len(name)].endswith("시"))
     ]
     # Each leading token narrows independently -- a 시도 ("경기도") or the parent 시 name as a
     # prefix ("수원시") -- so a fully qualified "경기도 수원시 장안구" resolves as well as the
     # bare "수원시 장안구", instead of the two being mashed into one unmatchable hint.
     for hint in hints:
-        cands = [c for c in cands if _sido_matches(hint, c[0]) or c[1].startswith(hint)]
-    if not cands:
+        candidates = [
+            (sido, sigungu, code) for (sido, sigungu, code) in candidates
+            if _sido_matches(hint, sido) or sigungu.startswith(hint)
+        ]
+    if not candidates:
         raise ValueError(f"no 시군구 matches {query!r}")
-    if len(cands) > 1:
-        listing = ", ".join(f"{sido} {sg}" for (sido, sg, _) in cands)
+    if len(candidates) > 1:
+        listing = ", ".join(f"{sido} {sigungu}" for (sido, sigungu, _) in candidates)
         raise ValueError(
             f"{query!r} matches several 시군구: {listing} -- add the 시도 to disambiguate"
         )
-    return cands[0][2]
+    _, _, code = candidates[0]
+    return code
 
 
 def land_region(query: str) -> str:
@@ -68,14 +73,15 @@ def temp_region(query: str) -> str:
 def _resolve_named(query: str, table: tuple[tuple[str, str], ...], label: str) -> str:
     """Match ``query`` against ``table`` of (name, code): an exact name wins outright,
     otherwise fall back to a substring match. Raises ``ValueError`` on no/ambiguous match."""
-    q = query.strip()
-    exact = [(nm, code) for (nm, code) in table if nm == q]
-    cands = exact or [(nm, code) for (nm, code) in table if q in nm]
-    if not cands:
+    normalized = query.strip()
+    exact = [(name, code) for (name, code) in table if name == normalized]
+    candidates = exact or [(name, code) for (name, code) in table if normalized in name]
+    if not candidates:
         raise ValueError(f"no {label} matches {query!r}")
-    if len(cands) > 1:
-        listing = ", ".join(nm for (nm, _) in cands)
+    if len(candidates) > 1:
+        listing = ", ".join(name for (name, _) in candidates)
         raise ValueError(
             f"{query!r} matches several {label}: {listing} -- use a more specific name"
         )
-    return cands[0][1]
+    _, code = candidates[0]
+    return code

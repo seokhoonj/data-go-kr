@@ -6,8 +6,9 @@ caller handles differently: a misconfiguration caught before any request
 (:class:`DataGoKrConfigError`), a rejected or un-applied service key
 (:class:`DataGoKrAuthError`), a traffic-limit rejection (:class:`DataGoKrRateLimitError`),
 any other vendor-reported error inside a well-formed response
-(:class:`DataGoKrResponseError`), and a transport failure that never produced a portal
-body (:class:`DataGoKrNetworkError`). Invalid *caller* input -- an unknown operation name
+(:class:`DataGoKrResponseError`), a transport failure that never produced a portal body
+(:class:`DataGoKrNetworkError`), and a paging run that never saw a last-page signal
+(:class:`DataGoKrPagingError`). Invalid *caller* input -- an unknown operation name
 -- raises ``ValueError``, the usual signal for a caller mistake rather than a runtime
 failure.
 

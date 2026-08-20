@@ -45,9 +45,12 @@ class Grid(NamedTuple):
 def latlon_to_grid(lat: float, lon: float) -> Grid:
     """The KMA grid cell containing decimal-degree ``lat``/``lon`` (Seoul -> ``Grid(60, 127)``).
 
-    ``lat`` must be within (-90, 90); the projection is singular at the poles."""
+    ``lat`` must be within (-90, 90) -- the projection is singular at the poles -- and ``lon``
+    must be finite (any longitude is accepted; it is normalized into range)."""
     if not -90.0 < lat < 90.0:
         raise ValueError(f"lat must be between -90 and 90 degrees, got {lat}")
+    if not math.isfinite(lon):
+        raise ValueError(f"lon must be a finite number of degrees, got {lon}")
     ra = math.tan(math.pi * 0.25 + lat * _DEGRAD * 0.5)
     ra = _RE_GRID * _SF / (ra ** _SN)
     theta = lon * _DEGRAD - _OLON_RAD

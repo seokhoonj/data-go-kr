@@ -481,7 +481,9 @@ def test_xml_mode_omits_the_json_param():
 
 # --- the secret never appears ------------------------------------------------
 
-_DEEP_XML = (b"<r>" * 3000 + b"x" + b"</r>" * 3000)   # nests past the recursion limit
+# Nests well past sys.recursionlimit; on the supported CPython matrix (3.11-3.14) this raises
+# RecursionError (not a C-stack segfault), which the session catches as DataGoKrNetworkError.
+_DEEP_XML = (b"<r>" * 3000 + b"x" + b"</r>" * 3000)
 
 
 def _failing_sessions():

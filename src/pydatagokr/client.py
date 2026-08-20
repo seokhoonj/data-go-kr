@@ -29,8 +29,8 @@ class DataGoKr:
     """Client for the wrapped data.go.kr services. Groups them as sub-surfaces::
 
         client = DataGoKr()                    # or set DATAGOKR_API_KEY
-        rows = client.kofia.market_funds(begin="20240101", end="20240131")
-        raw  = client.customs.item_trade("8542", begin="202401", end="202406")
+        rows  = client.kofia.market_funds(begin="20240101", end="20240131")
+        trade = client.customs.item_trade("8542", begin="202401", end="202406")
 
     One data.go.kr account key serves every dataset it has applied for (활용신청); a call
     to one not yet approved raises :class:`~pydatagokr.errors.DataGoKrAuthError`.

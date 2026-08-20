@@ -117,10 +117,11 @@ codes it needs.
 - **Apply first.** Each service must be applied for separately (활용신청) on your data.go.kr
   account before it can be called.
 - **Readable names and real types (`clean`).** The agency's rows are hard to read by field name
-  alone (`sggCd`, `excluUseAr`) and every value is a string. By default `clean=True` does not
-  touch the data itself — it **renames fields to readable names and parses string values into
-  real types** (`region_code`, `exclusive_area=84.97`, `deal_amount=82000`). `clean=False`
-  leaves the agency's raw rows as they are.
+  alone (`sggCd`, `excluUseAr`) and every value is a string. By default `clean=True` **renames
+  fields to readable names and parses string values into real types** (`region_code`,
+  `exclusive_area=84.97`, `deal_amount=82000`); an unparsable value becomes `None`, and a row
+  missing its date or key is dropped from the result. `clean=False` leaves the agency's raw rows
+  as they are.
 - **Discovery.** `datagokr list` (or `catalog.services()`) shows the services and operations;
   `datagokr <service> <operation> --help` shows each operation's options; `datagokr fields
   <service> <operation>` shows the tidied column schema.
