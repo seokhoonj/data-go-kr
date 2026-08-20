@@ -33,7 +33,7 @@ _FIELDS = (
     Field("dateName",  "name",       "text", is_key=True),       # 명칭
     Field("isHoliday", "is_holiday", "text"),                    # 공공기관 휴일 여부 (Y/N)
     Field("dateKind",  "kind_code",  "text"),                    # 종류 코드 (01 공휴일 ...)
-    Field("seq",       "seq",        "int"),                     # 순번
+    Field("seq",       "sequence",   "int"),                     # 순번
 )
 
 HOLIDAYS          = Table("holidays",          "getRestDeInfo",      "year", False, _FIELDS)
@@ -69,6 +69,9 @@ class Holidays:
     @overload
     def holidays(self, *, year: int, month: int | None = ...,
                  clean: Literal[False]) -> list[Row]: ...
+    @overload
+    def holidays(self, *, year: int, month: int | None = ...,
+                 clean: bool) -> list[Row] | list[CleanRow]: ...
     def holidays(self, *, year: int, month: int | None = None,
                  clean: bool = True) -> list[Row] | list[CleanRow]:
         """관공서 공휴일 (``getRestDeInfo``) for ``year`` (YYYY); ``month`` (1-12) narrows to
@@ -84,6 +87,9 @@ class Holidays:
     @overload
     def fetch(self, name: str, *, year: int, month: int | None = ...,
               clean: Literal[False]) -> list[Row]: ...
+    @overload
+    def fetch(self, name: str, *, year: int, month: int | None = ...,
+              clean: bool) -> list[Row] | list[CleanRow]: ...
     def fetch(self, name: str, *, year: int, month: int | None = None,
               clean: bool = True) -> list[Row] | list[CleanRow]:
         """Any of the five operations by name (see :meth:`operations`) for one solar year,

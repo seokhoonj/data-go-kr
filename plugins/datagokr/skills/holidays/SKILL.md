@@ -6,7 +6,7 @@ description: "Fetch Korean special days from data.go.kr (한국천문연구원 �
 # datagokr — 한국천문연구원 특일 정보
 
 Fetch a solar year's special days -- the clean columns are `date`, `name`, `is_holiday`
-(`Y`/`N`), `kind_code`, `seq`. Five operations, one shape:
+(`Y`/`N`), `kind_code`, `sequence`. Five operations, one shape:
 
 | operation | 특일 |
 |---|---|

@@ -86,6 +86,9 @@ class Procurement:
     @overload
     def goods(self, *, begin: str, end: str, inqry_div: str = ...,
               clean: Literal[False]) -> list[Row]: ...
+    @overload
+    def goods(self, *, begin: str, end: str, inqry_div: str = ...,
+              clean: bool) -> list[Row] | list[CleanRow]: ...
     def goods(self, *, begin: str, end: str, inqry_div: str = "1",
               clean: bool = True) -> list[Row] | list[CleanRow]:
         """물품 입찰공고 over the ``begin``..``end`` window (YYYYMMDDHHMM). ``inqry_div`` is
@@ -101,6 +104,9 @@ class Procurement:
     @overload
     def services(self, *, begin: str, end: str, inqry_div: str = ...,
                  clean: Literal[False]) -> list[Row]: ...
+    @overload
+    def services(self, *, begin: str, end: str, inqry_div: str = ...,
+                 clean: bool) -> list[Row] | list[CleanRow]: ...
     def services(self, *, begin: str, end: str, inqry_div: str = "1",
                  clean: bool = True) -> list[Row] | list[CleanRow]:
         """용역 입찰공고. Args as :meth:`goods`."""
@@ -115,6 +121,9 @@ class Procurement:
     @overload
     def construction(self, *, begin: str, end: str, inqry_div: str = ...,
                      clean: Literal[False]) -> list[Row]: ...
+    @overload
+    def construction(self, *, begin: str, end: str, inqry_div: str = ...,
+                     clean: bool) -> list[Row] | list[CleanRow]: ...
     def construction(self, *, begin: str, end: str, inqry_div: str = "1",
                      clean: bool = True) -> list[Row] | list[CleanRow]:
         """공사 입찰공고 (배정예산 미제공 -- ``budget_amount`` is ``None``). Args as
@@ -131,6 +140,9 @@ class Procurement:
     @overload
     def foreign(self, *, begin: str, end: str, inqry_div: str = ...,
                 clean: Literal[False]) -> list[Row]: ...
+    @overload
+    def foreign(self, *, begin: str, end: str, inqry_div: str = ...,
+                clean: bool) -> list[Row] | list[CleanRow]: ...
     def foreign(self, *, begin: str, end: str, inqry_div: str = "1",
                 clean: bool = True) -> list[Row] | list[CleanRow]:
         """외자 입찰공고. Args as :meth:`goods`."""
@@ -145,6 +157,9 @@ class Procurement:
     @overload
     def fetch(self, name: str, *, begin: str, end: str, inqry_div: str = ...,
               clean: Literal[False]) -> list[Row]: ...
+    @overload
+    def fetch(self, name: str, *, begin: str, end: str, inqry_div: str = ...,
+              clean: bool) -> list[Row] | list[CleanRow]: ...
     def fetch(self, name: str, *, begin: str, end: str, inqry_div: str = "1",
               clean: bool = True) -> list[Row] | list[CleanRow]:
         """Any of the four 업무구분 by name (see :meth:`operations`) over one time window.

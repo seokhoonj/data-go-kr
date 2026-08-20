@@ -84,6 +84,9 @@ class MidForecast:
     @overload
     def land(self, *, region: str, base_time: str,
              clean: Literal[False]) -> list[Row]: ...
+    @overload
+    def land(self, *, region: str, base_time: str,
+             clean: bool) -> list[Row] | list[CleanRow]: ...
     def land(self, *, region: str, base_time: str,
              clean: bool = True) -> list[Row] | list[CleanRow]:
         """중기육상예보 (``getMidLandFcst``) -- 강수확률·날씨 for ``region`` (a 예보구역코드
@@ -99,6 +102,9 @@ class MidForecast:
     @overload
     def temperature(self, *, region: str, base_time: str,
                     clean: Literal[False]) -> list[Row]: ...
+    @overload
+    def temperature(self, *, region: str, base_time: str,
+                    clean: bool) -> list[Row] | list[CleanRow]: ...
     def temperature(self, *, region: str, base_time: str,
                     clean: bool = True) -> list[Row] | list[CleanRow]:
         """중기기온예보 (``getMidTa``) -- daily 최저·최고기온 for ``region`` (a 도시 예보구역
@@ -113,6 +119,9 @@ class MidForecast:
     @overload
     def fetch(self, name: str, *, region: str, base_time: str,
               clean: Literal[False]) -> list[Row]: ...
+    @overload
+    def fetch(self, name: str, *, region: str, base_time: str,
+              clean: bool) -> list[Row] | list[CleanRow]: ...
     def fetch(self, name: str, *, region: str, base_time: str,
               clean: bool = True) -> list[Row] | list[CleanRow]:
         """Either operation by name (``land`` / ``temperature``) for one ``region`` and

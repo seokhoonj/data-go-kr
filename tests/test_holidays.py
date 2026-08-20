@@ -62,7 +62,7 @@ def test_holidays_clean_by_default():
         "name":       "1월1일",
         "is_holiday": "Y",
         "kind_code":  "01",
-        "seq":        1,
+        "sequence":   1,
     }]
 
 
@@ -92,3 +92,19 @@ def test_fetch_rejects_an_unknown_operation():
     holidays, _ = _holidays(_xml([], 0))
     with pytest.raises(ValueError, match="unknown operation"):
         holidays.fetch("nope", year=2026)
+
+
+@pytest.mark.parametrize("name,operation", [
+    ("holidays",          "getRestDeInfo"),
+    ("national_holidays", "getHoliDeInfo"),
+    ("anniversaries",     "getAnniversaryInfo"),
+    ("solar_terms",       "get24DivisionsInfo"),
+    ("sundry_days",       "getSundryDayInfo"),
+])
+def test_each_operation_hits_its_own_path_with_the_year_and_month(name, operation):
+    holidays, opener = _holidays(_xml([], 0))
+    holidays.fetch(name, year=2026, month=3)
+    query = opener.requests[0].full_url
+    assert operation in query        # the operation's own vendor path
+    assert "solYear=2026" in query
+    assert "solMonth=03" in query    # zero-padded

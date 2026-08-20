@@ -77,6 +77,9 @@ class AirQuality:
     @overload
     def by_sido(self, *, sido: str, ver: str = ...,
                 clean: Literal[False]) -> list[Row]: ...
+    @overload
+    def by_sido(self, *, sido: str, ver: str = ...,
+                clean: bool) -> list[Row] | list[CleanRow]: ...
     def by_sido(self, *, sido: str, ver: str = "1.0",
                 clean: bool = True) -> list[Row] | list[CleanRow]:
         """시도별 실시간 측정정보 (``getCtprvnRltmMesureDnsty``) -- every station in ``sido``
@@ -91,6 +94,9 @@ class AirQuality:
     @overload
     def by_station(self, *, station: str, data_term: str = ..., ver: str = ...,
                    clean: Literal[False]) -> list[Row]: ...
+    @overload
+    def by_station(self, *, station: str, data_term: str = ..., ver: str = ...,
+                   clean: bool) -> list[Row] | list[CleanRow]: ...
     def by_station(self, *, station: str, data_term: str = "DAILY", ver: str = "1.0",
                    clean: bool = True) -> list[Row] | list[CleanRow]:
         """측정소별 실시간 측정정보 (``getMsrstnAcctoRltmMesureDnsty``) for one ``station``

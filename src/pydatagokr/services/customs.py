@@ -66,6 +66,9 @@ class Customs:
     @overload
     def item_trade(self, hs_code: str, *, begin: str, end: str,
                    clean: Literal[False]) -> list[Row]: ...
+    @overload
+    def item_trade(self, hs_code: str, *, begin: str, end: str,
+                   clean: bool) -> list[Row] | list[CleanRow]: ...
     def item_trade(self, hs_code: str, *, begin: str, end: str,
                    clean: bool = True) -> list[Row] | list[CleanRow]:
         """품목별 수출입실적 (``getItemtradeList``) for one HS code, monthly over
@@ -74,3 +77,8 @@ class Customs:
         rows = self._session.fetch(ITEM_TRADE.operation,
                                    strtYymm=begin, endYymm=end, hsSgn=hs_code)
         return _spec.clean(rows, ITEM_TRADE) if clean else rows
+
+    @staticmethod
+    def operations() -> tuple[str, ...]:
+        """The operation names this surface exposes."""
+        return tuple(TABLES)

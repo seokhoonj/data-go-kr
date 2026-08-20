@@ -150,6 +150,9 @@ class RealEstate:
     @overload
     def apt_trade(self, *, region_code: str, deal_ym: str,
                   clean: Literal[False]) -> list[Row]: ...
+    @overload
+    def apt_trade(self, *, region_code: str, deal_ym: str,
+                  clean: bool) -> list[Row] | list[CleanRow]: ...
     def apt_trade(self, *, region_code: str, deal_ym: str,
                   clean: bool = True) -> list[Row] | list[CleanRow]:
         """아파트 매매 실거래가 for one 법정동 (``region_code``) and 계약년월 (``deal_ym`` =
@@ -165,6 +168,9 @@ class RealEstate:
     @overload
     def apt_trade_detail(self, *, region_code: str, deal_ym: str,
                          clean: Literal[False]) -> list[Row]: ...
+    @overload
+    def apt_trade_detail(self, *, region_code: str, deal_ym: str,
+                         clean: bool) -> list[Row] | list[CleanRow]: ...
     def apt_trade_detail(self, *, region_code: str, deal_ym: str,
                          clean: bool = True) -> list[Row] | list[CleanRow]:
         """아파트 매매 실거래가 상세 (adds the road address). Args as :meth:`apt_trade`."""
@@ -180,6 +186,9 @@ class RealEstate:
     @overload
     def apt_rent(self, *, region_code: str, deal_ym: str,
                  clean: Literal[False]) -> list[Row]: ...
+    @overload
+    def apt_rent(self, *, region_code: str, deal_ym: str,
+                 clean: bool) -> list[Row] | list[CleanRow]: ...
     def apt_rent(self, *, region_code: str, deal_ym: str,
                  clean: bool = True) -> list[Row] | list[CleanRow]:
         """아파트 전월세 실거래가 (보증금·월세). Args as :meth:`apt_trade`."""
@@ -194,6 +203,9 @@ class RealEstate:
     @overload
     def apt_presale(self, *, region_code: str, deal_ym: str,
                     clean: Literal[False]) -> list[Row]: ...
+    @overload
+    def apt_presale(self, *, region_code: str, deal_ym: str,
+                    clean: bool) -> list[Row] | list[CleanRow]: ...
     def apt_presale(self, *, region_code: str, deal_ym: str,
                     clean: bool = True) -> list[Row] | list[CleanRow]:
         """아파트 분양권전매 실거래가. Args as :meth:`apt_trade`."""
@@ -208,6 +220,9 @@ class RealEstate:
     @overload
     def fetch(self, name: str, *, region_code: str, deal_ym: str,
               clean: Literal[False]) -> list[Row]: ...
+    @overload
+    def fetch(self, name: str, *, region_code: str, deal_ym: str,
+              clean: bool) -> list[Row] | list[CleanRow]: ...
     def fetch(self, name: str, *, region_code: str, deal_ym: str,
               clean: bool = True) -> list[Row] | list[CleanRow]:
         """Any of the four operations by name (see :meth:`operations`) for one 법정동 and

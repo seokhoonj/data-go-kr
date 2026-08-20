@@ -135,6 +135,9 @@ class Weather:
     @overload
     def forecast(self, *, base_date: str | None = ..., base_time: str | None = ...,
                  nx: int, ny: int, clean: Literal[False]) -> list[Row]: ...
+    @overload
+    def forecast(self, *, base_date: str | None = ..., base_time: str | None = ...,
+                 nx: int, ny: int, clean: bool) -> list[Row] | list[CleanRow]: ...
     def forecast(self, *, base_date: str | None = None, base_time: str | None = None,
                  nx: int, ny: int, clean: bool = True) -> list[Row] | list[CleanRow]:
         """단기예보 (``getVilageFcst``), to ~3 days, for the grid cell ``nx``/``ny`` at the
@@ -151,6 +154,9 @@ class Weather:
     @overload
     def ultra_forecast(self, *, base_date: str | None = ..., base_time: str | None = ...,
                        nx: int, ny: int, clean: Literal[False]) -> list[Row]: ...
+    @overload
+    def ultra_forecast(self, *, base_date: str | None = ..., base_time: str | None = ...,
+                       nx: int, ny: int, clean: bool) -> list[Row] | list[CleanRow]: ...
     def ultra_forecast(self, *, base_date: str | None = None, base_time: str | None = None,
                        nx: int, ny: int, clean: bool = True) -> list[Row] | list[CleanRow]:
         """초단기예보 (``getUltraSrtFcst``), to 6 hours. Args as :meth:`fetch`."""
@@ -166,6 +172,9 @@ class Weather:
     @overload
     def nowcast(self, *, base_date: str | None = ..., base_time: str | None = ...,
                 nx: int, ny: int, clean: Literal[False]) -> list[Row]: ...
+    @overload
+    def nowcast(self, *, base_date: str | None = ..., base_time: str | None = ...,
+                nx: int, ny: int, clean: bool) -> list[Row] | list[CleanRow]: ...
     def nowcast(self, *, base_date: str | None = None, base_time: str | None = None,
                 nx: int, ny: int, clean: bool = True) -> list[Row] | list[CleanRow]:
         """초단기실황 (``getUltraSrtNcst``), the latest observation. Args as :meth:`fetch`."""
@@ -181,6 +190,9 @@ class Weather:
     @overload
     def fetch(self, name: str, *, base_date: str | None = ..., base_time: str | None = ...,
               nx: int, ny: int, clean: Literal[False]) -> list[Row]: ...
+    @overload
+    def fetch(self, name: str, *, base_date: str | None = ..., base_time: str | None = ...,
+              nx: int, ny: int, clean: bool) -> list[Row] | list[CleanRow]: ...
     def fetch(self, name: str, *, base_date: str | None = None, base_time: str | None = None,
               nx: int, ny: int, clean: bool = True) -> list[Row] | list[CleanRow]:
         """Any of the three operations by name (see :meth:`operations`) for one grid cell.
