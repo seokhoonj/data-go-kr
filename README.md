@@ -33,7 +33,11 @@ data.go.kr 인증키가 필요합니다 -- 반드시 **디코딩**(원문) 키�
 from data_go_kr import DataGoKr
 
 client = DataGoKr()
-rows   = client.weather.forecast(base_date="20260811", base_time="0500", nx=60, ny=127)
+
+# 단기예보 -- 서울 종로 격자(nx 60, ny 127), 2026-08-11 0500 발표
+forecast = client.weather.forecast(base_date="20260811", base_time="0500", nx=60, ny=127)
+
+# 아파트 매매 실거래 -- 종로구(11110), 2024년 1월
 trades = client.realestate.apt_trade(region_code="11110", deal_ym="202401")
 ```
 
@@ -106,19 +110,45 @@ data-go-kr realestate apt_trade 11110 --deal-ym 202401  # 아파트 매매 실�
 
 ## 5. AI 코딩 에이전트에서 사용
 
-이 저장소는 Claude Code와 Codex의 플러그인 마켓플레이스를 겸합니다. `list` 외 여덟
-서비스 스킬이 각각 같은 이름의 `data-go-kr` 명령을 얇게 감쌉니다(패키지를 먼저
-설치하세요; `list`는 키 없이 동작, 조회는 키 필요).
+이 저장소는 Claude Code·Codex용 플러그인 마켓플레이스도 겸합니다 -- `list`·`weather`·
+`airquality`·`holidays`·`realestate`·`midforecast`·`procurement`·`customs`·`kofia`를
+같은 이름의 `data-go-kr` 명령을 호출하는 스킬로 제공합니다. 먼저 위에서 패키지를
+설치하세요(`list`는 키 없이, 조회는 키 필요).
+
+### 5.1 Claude Code
+
+Claude Code 채팅창에서 마켓플레이스를 추가하고 설치합니다:
 
 ```
-# Claude Code (채팅)
 /plugin marketplace add seokhoonj/data-go-kr
 /plugin install data-go-kr@data-go-kr
+```
 
-# Codex (터미널)
+그런 다음 평범하게 물어보거나("서울 미세먼지 알려줘", "종로구 아파트 매매 실거래가"),
+스킬을 직접 호출하세요 -- `/data-go-kr:realestate apt_trade 11110 --deal-ym 202401`.
+
+### 5.2 Codex
+
+터미널에서 마켓플레이스를 추가하고 설치합니다:
+
+```
 codex plugin marketplace add seokhoonj/data-go-kr
 codex plugin add data-go-kr@data-go-kr
 ```
+
+스킬은 관련 요청에 반응하며, `data-go-kr <서비스> <오퍼레이션>`으로 직접 실행해도 됩니다.
+
+### 5.3 플러그인 없이 (symlink)
+
+플러그인으로 설치하지 않고 쓰려면, 스킬을 스킬 디렉터리에 symlink한 뒤 접두사
+(`data-go-kr:`) 없이 `/weather`처럼 부르면 됩니다:
+
+```sh
+ln -s "$PWD/plugins/data-go-kr/skills/weather" ~/.claude/skills/weather   # Claude Code → /weather
+ln -s "$PWD/plugins/data-go-kr/skills/weather" ~/.codex/skills/weather    # Codex → $data-go-kr:weather
+```
+
+Claude Code는 바로 인식하고, Codex는 재시작해야 로딩됩니다.
 
 ## 6. 라이선스
 
