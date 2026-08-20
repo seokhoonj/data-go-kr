@@ -9,9 +9,9 @@
 기관 API가 있고, 그중 조회수·활용신청이 높은 것들 -- 기상·대기·공휴일·부동산·중기예보·조달·
 관세·금융투자 -- 을 미리 만들어 두었습니다.
 
-미리 만든 서비스는 `client.weather.forecast(...)`처럼 접근자로 부르고, 그 밖의 서비스는
-base URL만 주면 전송 계층이 그대로 조회합니다. 결과는 `list[dict]`이라 `pandas.DataFrame` /
-`polars.DataFrame`으로 바로 만듭니다.
+미리 만든 서비스는 `client.weather.forecast(...)`처럼 접근자(accessor)로 부르고, 목록에
+없는 서비스도 요청 주소만 알면 직접 가져올 수 있습니다(아래 2.2). 결과는 딕셔너리 목록
+(`list[dict]`)이라 `pandas.DataFrame(...)`으로 바로 표가 됩니다.
 
 ## 1. 설치
 
@@ -34,8 +34,9 @@ data.go.kr 인증키가 필요합니다 -- [data.go.kr](https://www.data.go.kr)�
 **③ 환경변수** -- macOS·Linux는 `export DATAGOKR_API_KEY=발급받은-디코딩-키`, Windows
 PowerShell은 `setx DATAGOKR_API_KEY "발급받은-디코딩-키"`.
 
-각 데이터셋은 data.go.kr 계정에서 따로 **활용신청**해야 호출됩니다 -- 스펙 페이지의
-"활용신청"으로 신청하고, 마이페이지 > 데이터 활용 > Open API에서 승인 상태를 봅니다.
+데이터마다 data.go.kr에서 따로 **활용신청**(사용 신청)을 해야 불러올 수 있습니다 -- 그
+데이터의 안내 페이지에서 "활용신청"을 누르고, 마이페이지 > 데이터 활용 > Open API에서
+승인됐는지 봅니다.
 
 ## 2. 빠른 시작
 
@@ -55,31 +56,34 @@ forecast = client.weather.forecast(nx=60, ny=127)
 trades = client.realestate.apt_trade(region_code="11110", deal_ym="202401")
 ```
 
-### 2.2 미지원 서비스
+### 2.2 목록에 없는 서비스
 
-전송 계층으로 직접 조립합니다. 스펙 페이지([아파트 매매
-실거래가](https://www.data.go.kr/data/15126469/openapi.do))에서 아래 셋을 확인해 넣습니다:
+미리 만든 것 말고 다른 데이터가 필요하면 `DataGoKrSession`으로 직접 부릅니다. data.go.kr에서
+그 데이터의 안내 페이지([아파트 매매
+실거래가](https://www.data.go.kr/data/15126469/openapi.do))를 열고 아래 셋을 찾아 넣습니다:
 
 | 넣을 것 | 아파트 매매 실거래가 |
 |---|---|
-| 요청 주소 (base URL) | `https://apis.data.go.kr/1613000` |
+| 요청 주소 | `https://apis.data.go.kr/1613000` |
 | 기능 이름 (오퍼레이션) | `RTMSDataSvcAptTrade/getRTMSDataSvcAptTrade` |
 | 요청 항목 (필터) | `LAWD_CD`(법정동코드 앞 5자리), `DEAL_YMD`(계약년월) |
 
-디코딩키 주입·페이징·에러 처리는 전송 계층이 맡고, 기관 원본 필드명 그대로 돌려줍니다:
+인증키 넣기, 여러 페이지로 나뉜 결과 이어받기, 오류 처리는 `DataGoKrSession`이 알아서 하고,
+기관이 준 원래 항목 이름 그대로 돌려줍니다:
 
 ```python
 from pydatagokr import DataGoKrSession
 
+# XML로 답하는 서비스면 response_format="xml" (대부분 XML)
 session = DataGoKrSession("https://apis.data.go.kr/1613000", response_format="xml")
 rows = session.fetch(
-    "RTMSDataSvcAptTrade/getRTMSDataSvcAptTrade",  # 오퍼레이션 경로
-    LAWD_CD="11110",                               # 법정동 시군구코드 (앞 5자리)
-    DEAL_YMD="202401",                             # 계약년월 YYYYMM
+    "RTMSDataSvcAptTrade/getRTMSDataSvcAptTrade",  # 기능 이름
+    LAWD_CD="11110",                               # 법정동코드 앞 5자리
+    DEAL_YMD="202401",                             # 계약년월(YYYYMM)
 )
 ```
 
-결과는 어느 쪽이든 `list[dict]`이라 pandas·polars 표로 바로 만듭니다:
+결과는 접근자로 부른 것과 똑같이 `list[dict]`이라 pandas·polars 표로 바로 만듭니다:
 
 ```python
 # pandas
