@@ -1,3 +1,5 @@
+import pytest
+
 from pydatagokr import latlon_to_grid
 from pydatagokr.grid import Grid
 
@@ -24,3 +26,11 @@ def test_regression_pins():
     # projection constant is caught. Seoul/부산 above are the real published anchors.
     assert latlon_to_grid(33.4996, 126.5312) == Grid(53, 38)   # 제주
     assert latlon_to_grid(36.3620, 127.3563) == Grid(67, 101)  # 대전 유성
+
+
+@pytest.mark.parametrize("lat", [-90.0, 90.0, 91.0, -100.0])
+def test_pole_latitude_is_a_clear_error_not_a_zero_division(lat):
+    # The projection is singular at the poles; an out-of-range latitude must raise a clear
+    # ValueError rather than a bare ZeroDivisionError from the formula.
+    with pytest.raises(ValueError, match="lat must be between"):
+        latlon_to_grid(lat, 126.0)

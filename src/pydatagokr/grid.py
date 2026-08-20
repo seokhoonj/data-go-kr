@@ -20,6 +20,20 @@ _OLAT = 38.0       # reference latitude (deg)
 _XO = 43           # reference X grid point
 _YO = 136          # reference Y grid point
 
+# Derived projection constants -- these depend only on the fixed parameters above, so they
+# are computed once at import rather than on every call.
+_DEGRAD = math.pi / 180.0
+_RE_GRID = _RE / _GRID
+_OLON_RAD = _OLON * _DEGRAD
+_SLAT1_RAD = _SLAT1 * _DEGRAD
+_SLAT2_RAD = _SLAT2 * _DEGRAD
+_OLAT_RAD = _OLAT * _DEGRAD
+_SN = (math.log(math.cos(_SLAT1_RAD) / math.cos(_SLAT2_RAD))
+       / math.log(math.tan(math.pi * 0.25 + _SLAT2_RAD * 0.5)
+                  / math.tan(math.pi * 0.25 + _SLAT1_RAD * 0.5)))
+_SF = (math.tan(math.pi * 0.25 + _SLAT1_RAD * 0.5) ** _SN) * math.cos(_SLAT1_RAD) / _SN
+_RO = _RE_GRID * _SF / (math.tan(math.pi * 0.25 + _OLAT_RAD * 0.5) ** _SN)
+
 
 class Grid(NamedTuple):
     """A KMA grid cell -- ``nx``/``ny`` as the `weather` service's ``nx``/``ny`` take them."""
@@ -29,30 +43,20 @@ class Grid(NamedTuple):
 
 
 def latlon_to_grid(lat: float, lon: float) -> Grid:
-    """The KMA grid cell containing decimal-degree ``lat``/``lon`` (Seoul -> ``Grid(60, 127)``)."""
-    degrad = math.pi / 180.0
-    re = _RE / _GRID
-    slat1 = _SLAT1 * degrad
-    slat2 = _SLAT2 * degrad
-    olon = _OLON * degrad
-    olat = _OLAT * degrad
+    """The KMA grid cell containing decimal-degree ``lat``/``lon`` (Seoul -> ``Grid(60, 127)``).
 
-    sn = math.tan(math.pi * 0.25 + slat2 * 0.5) / math.tan(math.pi * 0.25 + slat1 * 0.5)
-    sn = math.log(math.cos(slat1) / math.cos(slat2)) / math.log(sn)
-    sf = math.tan(math.pi * 0.25 + slat1 * 0.5)
-    sf = (sf ** sn) * math.cos(slat1) / sn
-    ro = math.tan(math.pi * 0.25 + olat * 0.5)
-    ro = re * sf / (ro ** sn)
-
-    ra = math.tan(math.pi * 0.25 + lat * degrad * 0.5)
-    ra = re * sf / (ra ** sn)
-    theta = lon * degrad - olon
+    ``lat`` must be within (-90, 90); the projection is singular at the poles."""
+    if not -90.0 < lat < 90.0:
+        raise ValueError(f"lat must be between -90 and 90 degrees, got {lat}")
+    ra = math.tan(math.pi * 0.25 + lat * _DEGRAD * 0.5)
+    ra = _RE_GRID * _SF / (ra ** _SN)
+    theta = lon * _DEGRAD - _OLON_RAD
     if theta > math.pi:
         theta -= 2.0 * math.pi
     if theta < -math.pi:
         theta += 2.0 * math.pi
-    theta *= sn
+    theta *= _SN
 
     nx = int(ra * math.sin(theta) + _XO + 0.5)
-    ny = int(ro - ra * math.cos(theta) + _YO + 0.5)
+    ny = int(_RO - ra * math.cos(theta) + _YO + 0.5)
     return Grid(nx, ny)
