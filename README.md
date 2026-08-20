@@ -19,15 +19,23 @@ base URL만 주면 전송 계층이 그대로 조회합니다. 결과는 `list[d
 pip install pydatagokr
 ```
 
-data.go.kr 인증키가 필요합니다 -- 발급 페이지의 **Decoding(디코딩)** 키를 복사해 쓰세요
-(Encoding 키가 아닙니다). 한 번 저장해 두려면 `~/.config/pydatagokr/credentials.json`:
+data.go.kr 인증키가 필요합니다 -- [data.go.kr](https://www.data.go.kr)에서 발급받은
+**Decoding(디코딩)** 키를 복사하세요(Encoding 키가 아닙니다). 키를 넣는 방법은 세 가지입니다.
+
+**① 코드에서 직접** -- `DataGoKr(api_key="발급받은-디코딩-키")` (아래 빠른 시작).
+
+**② 파일에 저장**(권장 -- 한 번 넣으면 이후 `DataGoKr()`만 써도 됨) --
+`~/.config/pydatagokr/credentials.json`:
 
 ```json
 { "DATAGOKR_API_KEY": "발급받은-디코딩-키" }
 ```
 
-환경변수 `DATAGOKR_API_KEY`나 `api_key=` 인자로도 넣을 수 있습니다. 각 데이터셋은
-계정에서 별도로 활용신청해야 합니다.
+**③ 환경변수** -- macOS·Linux는 `export DATAGOKR_API_KEY=발급받은-디코딩-키`, Windows
+PowerShell은 `setx DATAGOKR_API_KEY "발급받은-디코딩-키"`.
+
+각 데이터셋은 data.go.kr 계정에서 따로 **활용신청**해야 호출됩니다 -- 스펙 페이지의
+"활용신청"으로 신청하고, 마이페이지 > 데이터 활용 > Open API에서 승인 상태를 봅니다.
 
 ## 2. 빠른 시작
 
@@ -36,7 +44,7 @@ data.go.kr 인증키가 필요합니다 -- 발급 페이지의 **Decoding(디코
 ```python
 from pydatagokr import DataGoKr
 
-client = DataGoKr()
+client = DataGoKr(api_key="발급받은-디코딩-키")   # 저장해 뒀으면 DataGoKr()
 
 # 단기예보 -- 서울 종로 격자(nx 60, ny 127), 2026-08-11 0500 발표
 forecast = client.weather.forecast(base_date="20260811", base_time="0500", nx=60, ny=127)
