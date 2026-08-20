@@ -122,6 +122,7 @@ pl.DataFrame(rows)
 ## 4. 커맨드라인
 
 ```bash
+datagokr --version                                    # 버전 출력
 datagokr list                                         # 서비스·오퍼레이션 (오프라인, 키 불필요)
 datagokr holidays --year 2026                         # 공휴일
 datagokr realestate apt_trade 11110 --deal-ym 202401  # 아파트 매매 실거래가

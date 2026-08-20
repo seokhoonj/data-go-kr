@@ -9,6 +9,7 @@
 | `DataGoKrRateLimitError` | 트래픽 제한 |
 | `DataGoKrResponseError` | 벤더 에러 코드 |
 | `DataGoKrNetworkError` | 전송 실패 |
+| `DataGoKrPagingError` | 페이징이 안전 상한을 넘어 결과가 잘렸을 수 있음(반환 거부) |
 
 에러 메시지에 키나 요청 URL은 절대 담기지 않습니다.
 

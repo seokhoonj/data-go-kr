@@ -131,7 +131,10 @@ def _date_filters(table: Table, begin: str | None, end: str | None) -> dict[str,
     (daily) or ``beginBasYm``/``endBasYm`` -- and a monthly cycle (a ``date_ym`` date field)
     takes the YYYYMM prefix of a YYYYMMDD bound. A ``None`` bound stays ``None`` (the session
     omits it). Kept beside the KOFIA tables so a consumer never re-derives the vendor names."""
-    date_field = next(field for field in table.fields if field.kind.startswith("date"))
+    date_field = next(
+        (field for field in table.fields if field.kind.startswith("date")), None)
+    if date_field is None:
+        return {}   # a table with no date field takes no begin/end bounds
     monthly = date_field.kind == "date_ym"
     lo = begin[:6] if (monthly and begin) else begin
     hi = end[:6] if (monthly and end) else end

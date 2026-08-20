@@ -69,6 +69,17 @@ class DataGoKrNetworkError(DataGoKrError):
     """
 
 
+class DataGoKrPagingError(DataGoKrError):
+    """Paging ran past the safety cap without a last-page signal.
+
+    A guard against a vendor that never signals the end (its page count is wrong, or it
+    keeps returning the same page): rather than return a result that looks complete but may
+    be truncated, the session refuses it. Its own class -- not a
+    :class:`DataGoKrNetworkError` -- so a bulk caller can tell "the data is suspect" apart
+    from a transport failure it could simply retry.
+    """
+
+
 class DataGoKrRateLimitError(DataGoKrError):
     """The portal rejected the call volume (HTTP 429, or reason code 22/23).
 
@@ -78,6 +89,9 @@ class DataGoKrRateLimitError(DataGoKrError):
     limit, resets at midnight KST) from 23 (per-second throttle); an HTTP-429 rejection
     that carries no envelope code uses ``"429"``.
     """
+
+    code: str
+    message: str
 
     def __init__(self, code: str, message: str) -> None:
         self.code = code
@@ -95,6 +109,9 @@ class DataGoKrResponseError(DataGoKrError):
     :class:`DataGoKrAuthError`); there ``code`` is the HTTP status and ``message`` is
     synthesized by the package.
     """
+
+    code: str
+    message: str
 
     def __init__(self, code: str, message: str) -> None:
         self.code = code

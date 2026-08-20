@@ -15,7 +15,7 @@ item (`category`) per time. Clean columns: `base_date`, `base_time`, `category`,
 | TMP / T1H | 기온 (℃) | POP | 강수확률 (%) |
 | SKY | 하늘상태 (1 맑음·3 구름많음·4 흐림) | PTY | 강수형태 (0 없음·1 비·2 비/눈·3 눈) |
 | REH | 습도 (%) | WSD | 풍속 (m/s) |
-| PCP / RN1 | 강수량 | POP | 강수확률 |
+| PCP / RN1 | 강수량 (mm) | SNO | 적설 (cm) |
 
 | operation | 예보 |
 |---|---|

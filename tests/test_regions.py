@@ -36,6 +36,13 @@ def test_lawd_ilban_gu_by_parent_city():
     assert lawd_code("장안구") == "41111"
 
 
+def test_lawd_fully_qualified_three_token_query():
+    # 시도 + parent 시 + 일반구: each leading token narrows independently, so the fully
+    # qualified form resolves like the bare parent-시 form rather than mashing the two hints
+    # into one unmatchable string.
+    assert lawd_code("경기도 수원시 장안구") == "41111"
+
+
 def test_lawd_suffix_requires_ilban_gu_seam():
     # A bare suffix must not match a 자치구 that merely ends with it: 천안 has no 남구 (only
     # 동남구/서북구), so "천안 남구" must fail loudly rather than return 천안시동남구's code.

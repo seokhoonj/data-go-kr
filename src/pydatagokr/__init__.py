@@ -20,13 +20,14 @@ from __future__ import annotations
 from importlib.metadata import PackageNotFoundError, version
 
 from . import catalog
-from ._spec import Field, Table, clean
+from ._spec import CleanRow, CleanValue, Field, FieldKind, Table, clean
 from .client import DataGoKr
 from .errors import (
     DataGoKrAuthError,
     DataGoKrConfigError,
     DataGoKrError,
     DataGoKrNetworkError,
+    DataGoKrPagingError,
     DataGoKrRateLimitError,
     DataGoKrResponseError,
 )
@@ -52,16 +53,20 @@ except PackageNotFoundError:              # running from source without an insta
 
 __all__ = [
     "AirQuality",
+    "CleanRow",
+    "CleanValue",
     "Customs",
     "DataGoKr",
     "DataGoKrAuthError",
     "DataGoKrConfigError",
     "DataGoKrError",
     "DataGoKrNetworkError",
+    "DataGoKrPagingError",
     "DataGoKrRateLimitError",
     "DataGoKrResponseError",
     "DataGoKrSession",
     "Field",
+    "FieldKind",
     "Grid",
     "Holidays",
     "KOFIA",

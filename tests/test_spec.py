@@ -34,6 +34,14 @@ def test_fractional_amount_is_none_not_rounded():
     assert cleaned[0]["investor_deposit"] is None    # a contract breach, not a round
 
 
+def test_integer_above_float_precision_stays_exact():
+    # 2**53 + 1 is the first integer a float cannot represent; the direct int() path must
+    # keep won amounts exact rather than routing through a lossy float.
+    big = 9007199254740993                           # 2**53 + 1
+    rows = [{"basDt": "20240105", "invrDpsgAmt": str(big)}]
+    assert clean(rows, MARKET_FUNDS)[0]["investor_deposit"] == big
+
+
 def test_non_finite_numbers_become_none():
     # Vendor "NaN"/"inf"/"Infinity" must not become a real nan/inf (int or ratio) -> None.
     rows = [{"basDt": "20240105", "invrDpsgAmt": "inf",
@@ -176,4 +184,8 @@ def test_parser_matrix(table, raw, expected):
     if expected is _DROP:
         assert rows == []
     else:
-        assert rows == [{"value": expected}]
+        [row] = rows
+        if isinstance(expected, float):
+            assert row["value"] == pytest.approx(expected)   # never == on a parsed float
+        else:
+            assert row == {"value": expected}

@@ -43,6 +43,7 @@ from .errors import (
     DataGoKrAuthError,
     DataGoKrError,
     DataGoKrNetworkError,
+    DataGoKrPagingError,
     DataGoKrRateLimitError,
     _error_for,
 )
@@ -171,7 +172,7 @@ class DataGoKrSession:
         # The cap was reached without any last-page signal: rather than silently return a
         # truncated result that looks complete, refuse it. The message carries the
         # operation path only (never the key-bearing query string).
-        raise DataGoKrError(
+        raise DataGoKrPagingError(
             f"data.go.kr paging for {operation} exceeded {_PAGE_CAP} pages without a "
             f"last-page signal; refusing to return a possibly truncated result")
 

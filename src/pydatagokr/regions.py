@@ -30,7 +30,7 @@ def lawd_code(query: str) -> str:
     if not tokens:
         raise ValueError(f"no 시군구 matches {query!r}")
     name = tokens[-1]
-    hint = "".join(tokens[:-1])
+    hints = tokens[:-1]
     # A 일반구 is stored as "<시>구" (e.g. "수원시장안구"), so a suffix match must land on that
     # 시-seam -- otherwise "천안 남구" would silently match "천안시동남구" (천안 has no 남구).
     cands = [
@@ -38,7 +38,10 @@ def lawd_code(query: str) -> str:
         for (sido, sg, code) in SIGUNGU
         if sg == name or (sg.endswith(name) and sg[: -len(name)].endswith("시"))
     ]
-    if hint:
+    # Each leading token narrows independently -- a 시도 ("경기도") or the parent 시 name as a
+    # prefix ("수원시") -- so a fully qualified "경기도 수원시 장안구" resolves as well as the
+    # bare "수원시 장안구", instead of the two being mashed into one unmatchable hint.
+    for hint in hints:
         cands = [c for c in cands if _sido_matches(hint, c[0]) or c[1].startswith(hint)]
     if not cands:
         raise ValueError(f"no 시군구 matches {query!r}")

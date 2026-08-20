@@ -6,6 +6,7 @@ import json
 import traceback
 import urllib.error
 import urllib.parse
+import urllib.request
 from email.message import Message
 
 import pytest
@@ -14,10 +15,11 @@ from pydatagokr.errors import (
     DataGoKrAuthError,
     DataGoKrError,
     DataGoKrNetworkError,
+    DataGoKrPagingError,
     DataGoKrRateLimitError,
     DataGoKrResponseError,
 )
-from pydatagokr.session import _PAGE_CAP, DataGoKrSession
+from pydatagokr.session import _PAGE_CAP, DataGoKrSession, _NoRedirect
 
 _BASE = "https://apis.data.go.kr/0000000/service/TestService"
 # A key with reserved characters, so single- vs double-encoding is observable.
@@ -248,7 +250,7 @@ def test_countless_run_raises_at_the_page_cap():
     # refuses to return a silently truncated result.
     opener = _InfiniteOpener(_envelope([{"n": "1"}]))       # full page (1 == num_of_rows)
     session = DataGoKrSession(_BASE, _KEY, opener=opener)
-    with pytest.raises(DataGoKrError) as exc:
+    with pytest.raises(DataGoKrPagingError) as exc:         # its own class, not the bare base
         session.fetch("getThing", num_of_rows=1)
     assert len(opener.requests) == _PAGE_CAP
     assert "getThing" in str(exc.value)
@@ -520,6 +522,7 @@ def test_key_never_appears_in_any_error():
         for form in forms:
             assert form not in str(exc.value)
             assert form not in tb
+            assert form not in repr(exc.value.args)          # not hiding in an extra arg
         assert exc.value.__cause__ is None                   # the chain is broken
         assert exc.value.__context__ is None
 
@@ -531,6 +534,20 @@ def test_over_nested_body_becomes_a_network_error_not_a_recursion_error():
         session, _ = _session(_DEEP_XML, response_format=mode)
         with pytest.raises(DataGoKrNetworkError):
             session.fetch("getThing")
+
+
+def test_redirect_handler_refuses_and_never_follows_the_target():
+    # The redirect handler itself must refuse rather than reissue the key-bearing request to
+    # a server-named target: refusing turns a 3xx into an HTTPError (surfaced as a network
+    # error) so the key never leaves the original host. Exercised directly, so removing the
+    # handler cannot leave this green.
+    req = urllib.request.Request(f"https://apis.data.go.kr/svc/op?serviceKey={_KEY}")
+    with pytest.raises(urllib.error.HTTPError) as exc:
+        _NoRedirect().redirect_request(
+            req, io.BytesIO(b""), 302, "Found",
+            http.client.HTTPMessage(), "http://evil.example/steal")
+    assert exc.value.code == 302
+    assert "evil.example" not in str(exc.value)              # never points at the target
 
 
 def test_vendor_message_echoing_the_key_is_redacted():
