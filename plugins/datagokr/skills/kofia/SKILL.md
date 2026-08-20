@@ -9,7 +9,7 @@ Fetch one 금융투자협회 (KOFIA) statistics operation over a date range. Dai
 operations (`market_funds`, `credit_balance`, `fund_net_asset`, `cma_status`) take
 YYYYMMDD bounds; monthly ones (`trust_scale`, `dls_dlb`, `els_elb`,
 `overseas_derivatives`) take YYYYMM. The output is typed snake_case columns
-(`bas_dt`, `investor_deposit`, `margin_loan_total`, ...). Data starts 2021-11-16 and
+(`base_date`, `investor_deposit`, `margin_loan_total`, ...). Data starts 2021-11-16 and
 updates once a day.
 
 ## Prerequisite
@@ -18,7 +18,7 @@ updates once a day.
 pipx install pydatagokr      # or: pip install pydatagokr
 ```
 
-A data.go.kr **decoding** key must be configured (env `DATA_GO_KR_API_KEY` or
+A data.go.kr **decoding** key must be configured (env `DATAGOKR_API_KEY` or
 `~/.config/pydatagokr/credentials.json`), and the KOFIA dataset applied for
 (활용신청) on that account.
 

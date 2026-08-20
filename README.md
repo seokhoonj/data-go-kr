@@ -114,7 +114,8 @@ pl.DataFrame(rows)
   타입으로 정리하고(`region_code`, `exclusive_area=84.97`, `deal_amount=82000`),
   `clean=False`는 원문 그대로 둡니다.
 - **탐색.** 어떤 서비스·오퍼레이션이 있는지는 `datagokr list`(또는 `catalog.services()`),
-  각 오퍼레이션이 받는 옵션은 `datagokr <서비스> <오퍼레이션> --help`로 봅니다.
+  각 오퍼레이션이 받는 옵션은 `datagokr <서비스> <오퍼레이션> --help`, 정제 열 스키마는
+  `datagokr fields <서비스> <오퍼레이션>`으로 봅니다.
 - **에러·운영.** reason 코드, 활용신청 승인 방식, 트래픽 한도는 [docs/errors.md](docs/errors.md)에
   정리돼 있습니다.
 

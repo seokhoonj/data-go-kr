@@ -209,6 +209,18 @@ def test_paging_follows_total_count():
     assert "pageNo=2" in opener.requests[1].full_url
 
 
+def test_total_count_beats_a_short_intermediate_page():
+    # A service that caps its own page below num_of_rows but reports totalCount: page 1 is
+    # SHORT (1 < 1000) yet the count says more, so paging must continue. The old short-page
+    # rule would have stopped here and silently truncated to one row.
+    session, opener = _session(
+        _envelope([{"n": "1"}], total=2),
+        _envelope([{"n": "2"}], total=2),
+    )
+    assert session.fetch("getThing", num_of_rows=1000) == [{"n": "1"}, {"n": "2"}]
+    assert len(opener.requests) == 2                         # short page did not end it
+
+
 def test_missing_total_count_stops_on_the_empty_page():
     session, opener = _session(
         _envelope([{"n": "1"}]),                             # no totalCount at all

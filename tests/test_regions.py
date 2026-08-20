@@ -59,3 +59,12 @@ def test_temp_region():
 def test_temp_region_unknown():
     with pytest.raises(ValueError):
         temp_region("없는도시")
+
+
+def test_land_region_ambiguous_lists_candidates():
+    # "전라" is a substring of several 육상예보구역, so the substring resolver must fail
+    # loud with the candidates rather than silently pick the first.
+    with pytest.raises(ValueError) as exc:
+        land_region("전라")
+    msg = str(exc.value)
+    assert "전라남도" in msg and "전라도" in msg

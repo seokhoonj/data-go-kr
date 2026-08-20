@@ -69,8 +69,7 @@ def _make_parser() -> argparse.ArgumentParser:
     parser.add_argument("--version", action="version", version=f"{_PROG} {__version__}")
     commands = parser.add_subparsers(required=True)
 
-    # Registered list -> fields -> kofia -> customs: discovery first, then the key-gated
-    # fetches.
+    # Offline discovery and code resolvers register first, then the key-gated fetches.
     list_cmd = commands.add_parser("list", help="list services and operations (offline)")
     list_cmd.add_argument("--json", action="store_true", help="emit JSON instead of text")
     list_cmd.set_defaults(run=_run_list)

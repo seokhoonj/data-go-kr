@@ -24,7 +24,7 @@ starts at day 5, the 0600 one reaches day 4).
 pipx install pydatagokr      # or: pip install pydatagokr
 ```
 
-A data.go.kr **decoding** key must be configured (env `DATA_GO_KR_API_KEY` or
+A data.go.kr **decoding** key must be configured (env `DATAGOKR_API_KEY` or
 `~/.config/pydatagokr/credentials.json`), and the 중기예보 dataset (service 1360000,
 MidFcstInfoService) applied for (활용신청) on that account.
 

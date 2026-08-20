@@ -16,7 +16,7 @@ returns the full typed rows.
 pipx install pydatagokr      # or: pip install pydatagokr
 ```
 
-A data.go.kr **decoding** key must be configured (env `DATA_GO_KR_API_KEY` or
+A data.go.kr **decoding** key must be configured (env `DATAGOKR_API_KEY` or
 `~/.config/pydatagokr/credentials.json`), and the 수출입 무역통계 dataset (service
 1220000) applied for (활용신청) on that account.
 

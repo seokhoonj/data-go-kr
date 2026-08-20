@@ -1,13 +1,13 @@
 {
   "name": "pydatagokr",
   "owner": { "name": "seokhoonj" },
-  "description": "Read Korean government open data from data.go.kr: KOFIA market statistics and customs item trade",
+  "description": "Read Korean government open data from data.go.kr -- weather, air quality, holidays, apartment transactions, mid-range forecasts, procurement bids, customs trade, and KOFIA market statistics",
   "plugins": [
     {
       "name": "datagokr",
       "displayName": "datagokr",
       "source": "./plugins/datagokr",
-      "description": "Read Korean government open data from data.go.kr: KOFIA market statistics and customs item trade",
+      "description": "Read Korean government open data from data.go.kr -- weather, air quality, holidays, apartment transactions, mid-range forecasts, procurement bids, customs trade, and KOFIA market statistics",
       "author": { "name": "seokhoonj" },
       "homepage": "https://github.com/seokhoonj/pydatagokr",
       "category": "Productivity",

@@ -1,7 +1,7 @@
 {
   "name": "datagokr",
   "version": "0.1.0",
-  "description": "Read Korean government open data from data.go.kr -- KOFIA market statistics (deposits, margin loans, funds, CMA, ELS/DLS) and customs item trade by HS code -- powered by the datagokr CLI",
+  "description": "Read Korean government open data from data.go.kr -- weather, air quality, holidays, apartment transactions, mid-range forecasts, procurement bids, customs trade, and KOFIA market statistics -- powered by the datagokr CLI",
   "author": { "name": "seokhoonj", "url": "https://github.com/seokhoonj" },
   "homepage": "https://github.com/seokhoonj/pydatagokr",
   "repository": "https://github.com/seokhoonj/pydatagokr",
@@ -11,10 +11,10 @@
   "interface": {
     "displayName": "datagokr",
     "shortDescription": "Read Korean government open data from data.go.kr",
-    "longDescription": "List the wrapped data.go.kr services offline (list), fetch KOFIA market statistics -- investor deposits, margin loans, funds, CMA, ELS/DLS, trusts, overseas derivatives (kofia) -- and fetch Korea Customs Service monthly item trade by HS code (customs), via the datagokr CLI.",
+    "longDescription": "Fetch Korean government open data from data.go.kr via the datagokr CLI -- 기상청 동네예보 (weather), 에어코리아 대기오염 (airquality), 특일 정보 (holidays), 아파트 실거래가 (realestate), 중기예보 (midforecast), 나라장터 입찰공고 (procurement), 관세청 수출입실적 (customs), and 금융투자협회 종합통계 (kofia) -- and list the wrapped services offline (list).",
     "developerName": "seokhoonj",
     "category": "Productivity",
     "capabilities": [],
-    "defaultPrompt": ["What data.go.kr operations are available?", "Get the KOFIA investor deposit series for January 2024", "Get the margin loan balance for 2024", "Fetch semiconductor (HS 8542) exports for 2024"]
+    "defaultPrompt": ["What data.go.kr operations are available?", "Show Seoul's real-time air quality", "Get 종로구 apartment sale transactions for January 2024", "Fetch semiconductor (HS 8542) exports for 2024"]
   }
 }

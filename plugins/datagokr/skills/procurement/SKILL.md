@@ -26,7 +26,7 @@ subset of the vendor's ~100 fields): `notice_no`, `notice_ord`, `notice_name`,
 pipx install pydatagokr      # or: pip install pydatagokr
 ```
 
-A data.go.kr **decoding** key must be configured (env `DATA_GO_KR_API_KEY` or
+A data.go.kr **decoding** key must be configured (env `DATAGOKR_API_KEY` or
 `~/.config/pydatagokr/credentials.json`), and the 나라장터 입찰공고정보서비스 dataset (service
 1230000) applied for (활용신청). It is 자동승인 for a development account.
 

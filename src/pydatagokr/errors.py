@@ -86,11 +86,14 @@ class DataGoKrRateLimitError(DataGoKrError):
 
 
 class DataGoKrResponseError(DataGoKrError):
-    """data.go.kr returned a well-formed envelope carrying an error code.
+    """data.go.kr rejected the call with an error code.
 
-    ``code`` and ``message`` are the vendor's own (``resultCode``/``resultMsg`` or
-    ``returnReasonCode``/``errMsg``), so a caller can branch on the code without parsing
-    the message text.
+    When the failure came from an envelope, ``code`` and ``message`` are the vendor's own
+    (``resultCode``/``resultMsg`` or ``returnReasonCode``/``errMsg``), so a caller can
+    branch on the code without parsing the message text. The gateway can also reject a
+    bad key with a bare HTTP 401/403 before any envelope exists (see
+    :class:`DataGoKrAuthError`); there ``code`` is the HTTP status and ``message`` is
+    synthesized by the package.
     """
 
     def __init__(self, code: str, message: str) -> None:
@@ -100,7 +103,7 @@ class DataGoKrResponseError(DataGoKrError):
 
 
 class DataGoKrAuthError(DataGoKrResponseError):
-    """The portal rejected the service key (reason code 20, 30, or 31).
+    """The portal rejected the service key (HTTP 401/403, or reason code 20, 30, or 31).
 
     Each data.go.kr dataset is applied for (활용신청) separately on the account; a call
     to one not yet approved fails exactly as a bad key does. It subclasses

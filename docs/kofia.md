@@ -35,4 +35,4 @@ els   = client.kofia.fetch("els_elb", begin="20240101", end="20240131")
 ```
 
 `market_funds`와 `credit_balance`는 편의 메서드로, 나머지 오퍼레이션은 `fetch(name, ...)`로
-조회합니다. 전체 목록은 `datagokr list` / `Kofia.operations()`.
+조회합니다. 전체 목록은 `datagokr list` / `KOFIA.operations()`.

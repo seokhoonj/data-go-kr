@@ -23,7 +23,7 @@ and, by operation: `deal_amount` (거래금액, **만원**) for sale/presale, or
 pipx install pydatagokr      # or: pip install pydatagokr
 ```
 
-A data.go.kr **decoding** key must be configured (env `DATA_GO_KR_API_KEY` or
+A data.go.kr **decoding** key must be configured (env `DATAGOKR_API_KEY` or
 `~/.config/pydatagokr/credentials.json`), and each apartment dataset (service 1613000)
 applied for (활용신청) on that account -- the four are separate 활용신청.
 

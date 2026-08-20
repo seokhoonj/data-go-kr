@@ -141,6 +141,15 @@ def test_kofia_fetch_json(capsys, keyed_env, monkeypatch):
     assert rows[0]["base_date"] == "2024-01-05"
 
 
+def test_kofia_monthly_operation_uses_year_month_bounds(capsys, keyed_env, monkeypatch):
+    # A monthly (basYm) operation maps the bounds to beginBasYm/endBasYm, truncated to
+    # YYYYMM -- not the daily beginBasDt that market_funds uses.
+    urls = _fake_opener(monkeypatch, _envelope([{"basYm": "202401"}], total=1))
+    assert main(["kofia", "trust_scale", "--begin", "20240131", "--end", "20240315"]) == 0
+    assert "beginBasYm=202401" in urls[0] and "endBasYm=202403" in urls[0]
+    assert "beginBasDt" not in urls[0]
+
+
 # --- customs -----------------------------------------------------------------
 
 def test_customs_item_trade_sends_range_and_cleans(capsys, keyed_env, monkeypatch):
