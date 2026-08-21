@@ -47,13 +47,15 @@ class Field:
 @dataclass(frozen=True, slots=True)
 class Table:
     """One operation's clean table: its name, the vendor operation path, its fields, and
-    whether the natural key is too wide for a composite PK (so a store uses a surrogate id
-    + per-period replace)."""
+    whether it uses no composite natural primary key -- because the key would be too wide, or
+    the rows are wide/product-level -- so a store keys on a surrogate id + per-period replace.
+    Under that flag :func:`clean` keeps a row whose key dimension is missing (as ``None``)
+    rather than dropping it, since the surrogate id, not the key, identifies the row."""
 
     name:        str
     operation:   str
     fields:      tuple[Field, ...]
-    is_wide_key: bool = False   # True -> surrogate id + delete-by-date, not a composite PK
+    is_wide_key: bool = False   # True -> surrogate id + per-period replace, not a composite PK
 
     @property
     def columns(self) -> tuple[str, ...]:

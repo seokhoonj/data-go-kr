@@ -19,7 +19,7 @@ from .._spec import CleanRow, Field, Table
 from ..session import DataGoKrSession
 from ..types import Row
 
-__all__ = ["AGENCY", "BASE_URL", "Customs", "ITEM_TRADE", "SERVICE", "TABLES"]
+__all__ = ["AGENCY", "BASE_URL", "Customs", "SERVICE", "TABLES"]
 
 SERVICE = "customs"
 AGENCY = "관세청 (Korea Customs Service)"

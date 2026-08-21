@@ -97,6 +97,8 @@ class Holidays:
             table = TABLES[name]
         except KeyError:
             raise ValueError(f"unknown operation {name!r}; valid: {list(TABLES)}") from None
+        # num_of_rows is a page size, not a cap: a year has well under 100 special days, so one
+        # page fetches them all, and the session's totalCount paging would collect more anyway.
         rows = self._session.fetch(
             table.operation, num_of_rows=100,
             solYear=str(year), solMonth=(f"{month:02d}" if month is not None else None))
