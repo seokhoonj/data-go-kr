@@ -2,7 +2,7 @@
 
 import pytest
 
-from pydatagokr._spec import Field, Table, clean
+from pydatagokr._spec import Field, Table, _integer, clean
 from pydatagokr.services.kofia import CMA_STATUS, DLS_DLB, MARKET_FUNDS, OVERSEAS_DERIVATIVES
 from pydatagokr.services.procurement import SERVICES
 
@@ -42,6 +42,14 @@ def test_integer_above_float_precision_stays_exact():
     for raw in (str(big), f"{big}.0"):
         rows = [{"basDt": "20240105", "invrDpsgAmt": raw}]
         assert clean(rows, MARKET_FUNDS)[0]["investor_deposit"] == big
+
+
+def test_integer_does_not_expand_a_scientific_exponent_bomb():
+    # A malicious huge-exponent value must NOT materialize a billion-digit int (a DoS); it is
+    # not a plain integer won/count, so it becomes None -- like float's inf overflow.
+    assert _integer("1E999999999") is None
+    assert _integer("9.9E1000000") is None
+    assert _integer("1234.0") == 1234                # the real decimal-integer case still works
 
 
 def test_non_finite_numbers_become_none():

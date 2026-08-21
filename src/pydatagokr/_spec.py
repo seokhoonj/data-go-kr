@@ -22,7 +22,6 @@ import math
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 from datetime import date, datetime
-from decimal import Decimal, InvalidOperation
 from typing import Literal
 
 from .types import Row
@@ -149,14 +148,25 @@ def _integer(raw: object) -> int | None:
         return int(text)                       # exact for any size (the common path)
     except ValueError:
         pass
+    # A decimal-formatted integer ('1234.0', or '9007199254740993.0' above 2^53): take the
+    # whole part as an exact int when the fraction is all zeros. Doing it on the STRING keeps
+    # it exact (float would round away integers above 2^53) and -- because scientific notation
+    # like '1E999999999' has no '.' and falls through to float below -- avoids materializing a
+    # billion-digit int from a malicious exponent.
+    whole, dot, frac = text.partition(".")
+    if dot and frac.strip("0") == "":
+        try:
+            return int(whole)
+        except ValueError:
+            pass
+    # Anything else -- a genuine fraction ('3.8') or scientific/inf notation -- goes through
+    # float, which overflows a huge exponent to inf (-> None) rather than expanding it.
     try:
-        number = Decimal(text)                 # a decimal-formatted integer like '1234.0'?
-    except InvalidOperation:
+        number = float(text)
+    except ValueError:
         return None
-    # Decimal (not float) keeps '9007199254740993.0' exact, where float would round away
-    # integers above 2^53. A non-finite ("NaN"/"Infinity") or fractional ("3.8") value --
-    # a contract breach, these are integer won/counts -- becomes None, not a lossy round.
-    return int(number) if number.is_finite() and number == number.to_integral_value() else None
+    # A non-finite float ("NaN"/"inf"/"Infinity") is not an integer won/count -> None.
+    return int(number) if math.isfinite(number) and number.is_integer() else None
 
 
 def _ratio(raw: object) -> float | None:
