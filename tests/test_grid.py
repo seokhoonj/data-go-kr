@@ -28,10 +28,12 @@ def test_known_points_pin_the_projection_output():
     assert latlon_to_grid(36.3620, 127.3563) == Grid(67, 101)  # 대전 유성
 
 
-@pytest.mark.parametrize("lat", [-90.0, 90.0, 91.0, -100.0])
-def test_pole_latitude_is_a_clear_error_not_a_zero_division(lat):
-    # The projection is singular at the poles; an out-of-range latitude must raise a clear
-    # ValueError rather than a bare ZeroDivisionError from the formula.
+@pytest.mark.parametrize("lat", [-90.0, 90.0, 91.0, -100.0,
+                                 float("nan"), float("inf"), float("-inf")])
+def test_pole_or_non_finite_latitude_is_a_clear_error_not_a_zero_division(lat):
+    # The projection is singular at the poles; an out-of-range or non-finite latitude must
+    # raise a clear ValueError rather than a bare ZeroDivisionError from the formula (a
+    # non-finite lat fails the open-interval guard, symmetric with the lon finite check).
     with pytest.raises(ValueError, match="lat must be between"):
         latlon_to_grid(lat, 126.0)
 

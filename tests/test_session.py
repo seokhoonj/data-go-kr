@@ -508,6 +508,7 @@ def _failing_sessions():
         _session(_fault("30", auth_msg="SERVICE_KEY_IS_NOT_REGISTERED_ERROR"))[0],
         _session(_envelope(None, code="99", message="UNKNOWN_ERROR"))[0],
         _session(_body({"unexpected": "shape"}))[0],          # dict, but no response/fault key
+        _session(_body(["unexpected", "shape"]))[0],          # top-level JSON is not an object
         _session(_envelope(["not-a-dict-row"], total=1))[0],  # items.item is not an object
         _session(_xml_fault("30", auth_msg="BAD"), response_format="xml")[0],
         _session(b"<response><header>", response_format="xml")[0],
