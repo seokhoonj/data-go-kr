@@ -47,9 +47,10 @@ datagokr weather <operation> --nx NX --ny NY [--base-date YYYYMMDD --base-time H
 
 ## Procedure
 
-1. **Map the place to a grid.** Convert the user's location to `nx`/`ny` (ask if unsure;
-   do not guess). Omit `base_date`/`base_time` for the latest announcement, or pick a valid
-   pair for the operation.
+1. **Resolve the grid cell.** Convert the location to `nx`/`ny` with the offline resolver --
+   `datagokr grid 37.5714 126.9658` -> `60 127`. (It takes decimal-degree lat/lon; if you only
+   have a place name, get its lat/lon first.) Omit `base_date`/`base_time` for the latest
+   announcement, or pick a valid pair for the operation.
 2. **Run.**
    ```bash
    datagokr weather forecast --nx 60 --ny 127          # latest announcement
@@ -65,4 +66,5 @@ datagokr weather <operation> --nx NX --ny NY [--base-date YYYYMMDD --base-time H
 ## What this skill does not do
 
 - It does not re-implement fetching or parsing (the package does); it always calls the CLI.
-- It does not convert place names to grid coordinates; the caller supplies `nx`/`ny`.
+- It converts a lat/lon to the KMA grid via `datagokr grid`; it does not geocode a place name
+  to lat/lon -- supply the coordinates.

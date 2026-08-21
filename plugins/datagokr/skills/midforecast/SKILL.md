@@ -42,8 +42,10 @@ datagokr midforecast temperature --region REGID --base-time YYYYMMDDHHMM [--json
 
 ## Procedure
 
-1. **Map the place to a region code** for the operation (육상 광역 vs 기온 도시). Pick a recent
-   `base-time` (today or yesterday at 0600/1800).
+1. **Resolve the region code** for the operation with the offline resolver -- the 육상 광역 and
+   기온 도시 code sets differ, so use `datagokr land-region 서울` -> `11B00000` for `land`, or
+   `datagokr temp-region 서울` -> `11B10101` for `temperature`. Pick a recent `base-time`
+   (today or yesterday at 0600/1800).
 2. **Run.**
    ```bash
    datagokr midforecast land --region 11B00000 --base-time 202608111800
@@ -59,5 +61,6 @@ datagokr midforecast temperature --region REGID --base-time YYYYMMDDHHMM [--json
 ## What this skill does not do
 
 - It does not re-implement fetching or parsing (the package does); it always calls the CLI.
-- It does not convert place names to region codes; the caller supplies `--region`.
+- It resolves a place name to a REGID via `datagokr land-region` / `datagokr temp-region`; it
+  does not geocode a vague or free-form location.
 - It does not cover 초단기/단기 (next ~3 days) -- that is the `weather` skill.

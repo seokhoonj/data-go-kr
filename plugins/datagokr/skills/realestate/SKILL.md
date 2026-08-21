@@ -5,7 +5,7 @@ description: "Fetch 국토교통부 아파트 실거래가 (apartment real-trans
 
 # datagokr — 국토교통부 아파트 실거래가
 
-Fetch a 법정동's apartment transactions for one 계약년월. Clean columns include `deal_date`,
+Fetch a 시군구's apartment transactions for one 계약년월. Clean columns include `deal_date`,
 `apt_name`, `exclusive_area` (m²), `floor`, `region_code`, `dong`, `jibun`, `build_year` --
 and, by operation: `deal_amount` (거래금액, **만원**) for sale/presale, or `deposit`/
 `monthly_rent` (보증금·월세, **만원**) for rent.
@@ -40,8 +40,9 @@ datagokr realestate <operation> <LAWD_CD> --deal-ym YYYYMM [--json]
 
 ## Procedure
 
-1. **Get the region and month.** Map the user's district to its 5-digit LAWD_CD (ask if
-   unsure; do not guess a code). Take the 계약년월.
+1. **Resolve the region code.** Turn the 시군구 name into its LAWD_CD with the offline
+   resolver -- `datagokr lawd 종로구` -> `11110` (add a 시도 when the name is ambiguous, e.g.
+   `datagokr lawd "서울 중구"` -> `11140`). Take the 계약년월.
 2. **Pick the operation.** 매매 -> `apt_trade`; 전월세 -> `apt_rent`; 분양권 -> `apt_presale`;
    need the road address -> `apt_trade_detail`.
 3. **Run.**
@@ -59,4 +60,5 @@ datagokr realestate <operation> <LAWD_CD> --deal-ym YYYYMM [--json]
 ## What this skill does not do
 
 - It does not re-implement fetching or parsing (the package does); it always calls the CLI.
-- It does not look up 법정동 codes; the caller supplies the 5-digit LAWD_CD.
+- It resolves a 시군구 name to a LAWD_CD via `datagokr lawd`; it does not geocode a vague or
+  free-form location.

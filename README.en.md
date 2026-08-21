@@ -119,9 +119,10 @@ codes it needs.
 - **Readable names and real types (`clean`).** The agency's rows are hard to read by field name
   alone (`sggCd`, `excluUseAr`) and every value is a string. By default `clean=True` **renames
   fields to readable names and parses string values into real types** (`region_code`,
-  `exclusive_area=84.97`, `deal_amount=82000`); an unparsable value becomes `None`, and a row
-  missing its date or key is dropped from the result. `clean=False` leaves the agency's raw rows
-  as they are.
+  `exclusive_area=84.97`, `deal_amount=82000`); an unparsable value becomes `None`. A row missing
+  its date is dropped, and a composite-key table also drops a row missing a key dimension, but a
+  wide-key table keeps the row with that value as `None`. `clean=False` leaves the agency's raw
+  rows as they are.
 - **Discovery.** `datagokr list` (or `catalog.services()`) shows the services and operations;
   `datagokr <service> <operation> --help` shows each operation's options; `datagokr fields
   <service> <operation>` shows the tidied column schema.
