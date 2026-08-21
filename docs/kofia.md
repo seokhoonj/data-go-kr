@@ -31,7 +31,7 @@ from pydatagokr import DataGoKr
 
 client = DataGoKr()
 예탁금 = client.kofia.market_funds(begin="20240101", end="20240131")
-els   = client.kofia.fetch("els_elb", begin="20240101", end="20240131")
+els   = client.kofia.fetch("els_elb", begin="202401", end="202406")   # 월간 = YYYYMM
 ```
 
 `market_funds`와 `credit_balance`는 편의 메서드로, 나머지 오퍼레이션은 `fetch(name, ...)`로

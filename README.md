@@ -35,6 +35,11 @@ data.go.kr 인증키가 필요합니다. [data.go.kr](https://www.data.go.kr)에
 **③ 환경변수**: macOS·Linux는 `export DATAGOKR_API_KEY=발급받은-디코딩-키`, Windows
 PowerShell은 `setx DATAGOKR_API_KEY "발급받은-디코딩-키"`.
 
+①은 Python 전용입니다 -- `datagokr` **CLI에는 키 인자가 없으니** ②(파일) 또는 ③(환경변수)로
+넣으세요. 파일 경로는 `$XDG_CONFIG_HOME`이 설정돼 있으면 그 아래
+(`$XDG_CONFIG_HOME/pydatagokr/credentials.json`), 아니면 `~/.config/pydatagokr/credentials.json`
+입니다.
+
 데이터마다 data.go.kr에서 따로 **활용신청**(사용 신청)을 해야 불러올 수 있습니다. 그
 데이터의 안내 페이지에서 "활용신청"을 누르고, 마이페이지 > 데이터 활용 > Open API에서
 승인됐는지 봅니다.
@@ -120,9 +125,14 @@ pl.DataFrame(rows)
   `deal_amount=82000`), 파싱되지 않는 값은 `None`으로 둡니다. 날짜가 빠진 행은 결과에서 빼고,
   복합키 테이블은 키 차원이 빠진 행도 빼지만, 넓은 키 테이블은 그 값을 `None`으로 두고 행을
   유지합니다. `clean=False`는 기관 원문 그대로 둡니다.
-- **탐색.** 어떤 서비스·오퍼레이션이 있는지는 `datagokr list`(또는 `catalog.services()`),
-  각 오퍼레이션이 받는 옵션은 `datagokr <서비스> <오퍼레이션> --help`, 정리된 열 스키마는
-  `datagokr fields <서비스> <오퍼레이션>`으로 봅니다.
+- **단위 주의.** 금액 컬럼의 단위는 서비스마다 다릅니다 -- 아파트 실거래가(`deal_amount`·
+  `deposit`·`monthly_rent`)는 **만원**, 조달청 `estimated_price`·`budget_amount`는 **원**,
+  관세청 `export_usd` 등은 **USD**입니다(각 서비스 문서에 표기). 여러 서비스를 한 표로 합쳐
+  더할 때 특히 주의하세요.
+- **탐색.** 어떤 서비스·오퍼레이션이 있는지는 `datagokr list`로 봅니다. Python에선 서비스
+  목록은 `catalog.services()`, 한 서비스의 오퍼레이션은 `catalog.operations("weather")`,
+  정리된 열 스키마는 `catalog.fields("weather", "forecast")`(CLI는 `datagokr fields`)로 봅니다.
+  각 오퍼레이션이 받는 옵션은 `datagokr <서비스> <오퍼레이션> --help`.
 - **에러·운영.** reason 코드, 활용신청 승인 방식, 트래픽 한도는 [docs/errors.md](docs/errors.md)에
   정리돼 있습니다.
 

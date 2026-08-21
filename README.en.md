@@ -36,6 +36,10 @@ A data.go.kr API key is required. Copy the **Decoding** key issued at
 **③ Environment variable**: on macOS/Linux `export DATAGOKR_API_KEY=your-decoding-key`; on
 Windows PowerShell `setx DATAGOKR_API_KEY "your-decoding-key"`.
 
+① is Python-only -- the `datagokr` **CLI has no key argument**, so configure it through ② (the
+file) or ③ (the environment variable). The file path follows `$XDG_CONFIG_HOME` when set
+(`$XDG_CONFIG_HOME/pydatagokr/credentials.json`), else `~/.config/pydatagokr/credentials.json`.
+
 Each dataset must be applied for separately (활용신청) on your data.go.kr account before it can
 be called. Click "활용신청" on the dataset's page, then check the approval status under My Page
 > 데이터 활용 > Open API.
@@ -114,6 +118,12 @@ codes it needs.
 | `client.customs` | KCS import/export by item (monthly, by HS code) | XML | [docs/customs.md](docs/customs.md) |
 | `client.kofia` | KOFIA aggregate statistics (deposits, funds, ELS/DLS, etc.) | JSON | [docs/kofia.md](docs/kofia.md) |
 
+> The linked per-service docs and `docs/errors.md` are currently written in Korean.
+
+- **Amount units differ by service.** Apartment prices (`deal_amount`, `deposit`,
+  `monthly_rent`) are in **10,000 KRW (만원)**; procurement `estimated_price` / `budget_amount`
+  are in **KRW**; customs `export_usd` etc. are in **USD** (noted in each service doc). Take
+  care when summing amounts from several services in one table.
 - **Apply first.** Each service must be applied for separately (활용신청) on your data.go.kr
   account before it can be called.
 - **Readable names and real types (`clean`).** The agency's rows are hard to read by field name
@@ -123,9 +133,10 @@ codes it needs.
   its date is dropped, and a composite-key table also drops a row missing a key dimension, but a
   wide-key table keeps the row with that value as `None`. `clean=False` leaves the agency's raw
   rows as they are.
-- **Discovery.** `datagokr list` (or `catalog.services()`) shows the services and operations;
-  `datagokr <service> <operation> --help` shows each operation's options; `datagokr fields
-  <service> <operation>` shows the tidied column schema.
+- **Discovery.** `datagokr list` shows the services and operations. In Python, `catalog.services()`
+  lists the services, `catalog.operations("weather")` a service's operations, and
+  `catalog.fields("weather", "forecast")` (CLI: `datagokr fields`) its tidied column schema.
+  `datagokr <service> <operation> --help` shows each operation's options.
 - **Errors & operations.** Reason codes, how approval works, and traffic limits are in
   [docs/errors.md](docs/errors.md).
 
