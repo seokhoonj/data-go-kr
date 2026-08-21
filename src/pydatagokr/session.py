@@ -301,7 +301,7 @@ class DataGoKrSession:
         header: dict[str, Any] = raw_header if isinstance(raw_header, dict) else {}
         code = str(header.get("resultCode", "?")).strip()
         # Agencies zero-pad the result code differently -- the standard is two digits
-        # ("00" ok, "03" no-data) but some (국토부 RTMS) send three ("000"/"030"). Compare on
+        # ("00" ok, "03" no-data) but some (국토부 RTMS) send three ("000"/"003"). Compare on
         # the significant digits so both conventions read the same; the original code is
         # kept for the error message.
         digits = code.lstrip("0") or "0"

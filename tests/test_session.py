@@ -492,7 +492,9 @@ def _failing_sessions():
     # exception would surface the key here. Covers: HTTP status errors (incl. redirect and
     # rate-limit), URLError, a mid-read HTTPException/OSError, a body that is neither JSON
     # nor XML, invalid UTF-8, a body that over-nests the XML walk, both fault envelopes
-    # (JSON and XML), and the error-A resultCode path.
+    # (JSON and XML), the error-A resultCode path, and the package-built failures that carry
+    # no vendor text (an unexpected response shape, a non-object row). The paging-cap error
+    # takes a different call and has its own secret test below.
     return [
         _session(_http_error(500))[0],
         _session(_http_error(429))[0],
@@ -505,6 +507,8 @@ def _failing_sessions():
         _session(_DEEP_XML)[0],
         _session(_fault("30", auth_msg="SERVICE_KEY_IS_NOT_REGISTERED_ERROR"))[0],
         _session(_envelope(None, code="99", message="UNKNOWN_ERROR"))[0],
+        _session(_body({"unexpected": "shape"}))[0],          # dict, but no response/fault key
+        _session(_envelope(["not-a-dict-row"], total=1))[0],  # items.item is not an object
         _session(_xml_fault("30", auth_msg="BAD"), response_format="xml")[0],
         _session(b"<response><header>", response_format="xml")[0],
         _session(_DEEP_XML, response_format="xml")[0],
@@ -527,6 +531,24 @@ def test_key_never_appears_in_any_error():
             assert form not in repr(exc.value.args)          # not hiding in an extra arg
         assert exc.value.__cause__ is None                   # the chain is broken
         assert exc.value.__context__ is None
+
+
+def test_paging_cap_error_never_shows_the_key():
+    # The paging-cap failure is package-built (never from vendor text or the URL), but it is
+    # still raised on a key-bearing request, so hold it to the same secret invariant. It takes
+    # a paging call rather than the single fetch the matrix above uses.
+    opener = _InfiniteOpener(_envelope([{"n": "1"}]))       # a full page forever -> hits the cap
+    session = DataGoKrSession(_BASE, _KEY, opener=opener)
+    with pytest.raises(DataGoKrPagingError) as exc:
+        session.fetch("getThing", num_of_rows=1)
+    tb = "".join(traceback.format_exception(
+        type(exc.value), exc.value, exc.value.__traceback__))
+    for form in (_KEY, urllib.parse.quote_plus(_KEY), urllib.parse.quote(_KEY)):
+        assert form not in str(exc.value)
+        assert form not in tb
+        assert form not in repr(exc.value.args)
+    assert exc.value.__cause__ is None
+    assert exc.value.__context__ is None
 
 
 def test_over_nested_body_becomes_a_network_error_not_a_recursion_error():
