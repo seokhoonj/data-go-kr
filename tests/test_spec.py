@@ -35,11 +35,13 @@ def test_fractional_amount_is_none_not_rounded():
 
 
 def test_integer_above_float_precision_stays_exact():
-    # 2**53 + 1 is the first integer a float cannot represent; the direct int() path must
-    # keep won amounts exact rather than routing through a lossy float.
+    # 2**53 + 1 is the first integer a float cannot represent. Both the plain form (the int()
+    # path) and the decimal-formatted form (which goes through Decimal, not a lossy float)
+    # must keep the won amount exact.
     big = 9007199254740993                           # 2**53 + 1
-    rows = [{"basDt": "20240105", "invrDpsgAmt": str(big)}]
-    assert clean(rows, MARKET_FUNDS)[0]["investor_deposit"] == big
+    for raw in (str(big), f"{big}.0"):
+        rows = [{"basDt": "20240105", "invrDpsgAmt": raw}]
+        assert clean(rows, MARKET_FUNDS)[0]["investor_deposit"] == big
 
 
 def test_non_finite_numbers_become_none():

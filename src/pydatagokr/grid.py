@@ -53,12 +53,9 @@ def latlon_to_grid(lat: float, lon: float) -> Grid:
         raise ValueError(f"lon must be a finite number of degrees, got {lon}")
     ra = math.tan(math.pi * 0.25 + lat * _DEGRAD * 0.5)
     ra = _RE_GRID * _SF / (ra ** _SN)
-    theta = lon * _DEGRAD - _OLON_RAD
-    if theta > math.pi:
-        theta -= 2.0 * math.pi
-    if theta < -math.pi:
-        theta += 2.0 * math.pi
-    theta *= _SN
+    # Normalize the longitude difference into (-pi, pi] -- math.remainder folds ANY longitude
+    # (identical to a single +/-2pi wrap for real coordinates, correct for out-of-range ones).
+    theta = math.remainder(lon * _DEGRAD - _OLON_RAD, 2.0 * math.pi) * _SN
 
     nx = int(ra * math.sin(theta) + _XO + 0.5)
     ny = int(_RO - ra * math.cos(theta) + _YO + 0.5)

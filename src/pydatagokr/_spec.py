@@ -22,6 +22,7 @@ import math
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 from datetime import date, datetime
+from decimal import Decimal, InvalidOperation
 from typing import Literal
 
 from .types import Row
@@ -149,11 +150,13 @@ def _integer(raw: object) -> int | None:
     except ValueError:
         pass
     try:
-        number = float(text)                   # a decimal-formatted integer like '1234.0'?
-    except ValueError:
+        number = Decimal(text)                 # a decimal-formatted integer like '1234.0'?
+    except InvalidOperation:
         return None
-    # A non-finite float ("NaN"/"inf"/"Infinity") is not an integer won/count -> None.
-    return int(number) if math.isfinite(number) and number.is_integer() else None
+    # Decimal (not float) keeps '9007199254740993.0' exact, where float would round away
+    # integers above 2^53. A non-finite ("NaN"/"Infinity") or fractional ("3.8") value --
+    # a contract breach, these are integer won/counts -- becomes None, not a lossy round.
+    return int(number) if number.is_finite() and number == number.to_integral_value() else None
 
 
 def _ratio(raw: object) -> float | None:
