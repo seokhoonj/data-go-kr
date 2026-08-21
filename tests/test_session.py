@@ -19,7 +19,7 @@ from pydatagokr.errors import (
     DataGoKrRateLimitError,
     DataGoKrResponseError,
 )
-from pydatagokr.session import _PAGE_CAP, DataGoKrSession, _NoRedirect
+from pydatagokr.session import _PAGE_CAP, DataGoKrSession, _NoRedirect, _retry_after_seconds
 
 _BASE = "https://apis.data.go.kr/0000000/service/TestService"
 # A key with reserved characters, so single- vs double-encoding is observable.
@@ -254,6 +254,40 @@ def test_countless_run_raises_at_the_page_cap():
         session.fetch("getThing", num_of_rows=1)
     assert len(opener.requests) == _PAGE_CAP
     assert "getThing" in str(exc.value)
+
+
+def test_empty_page_before_totalcount_refuses_to_truncate():
+    # totalCount declares 3 rows, but the 2nd page comes back empty before we reach it. Rather
+    # than silently return 2 rows as a complete result, the session refuses.
+    session, _ = _session(
+        _envelope([{"n": "1"}, {"n": "2"}], total=3),
+        _envelope([], total=3),
+    )
+    with pytest.raises(DataGoKrPagingError) as exc:
+        session.fetch("getThing", num_of_rows=2)
+    assert "before its declared totalCount" in str(exc.value)
+
+
+@pytest.mark.parametrize("reserved", ["pageNo", "numOfRows", "serviceKey", "resultType"])
+def test_reserved_filter_name_is_rejected(reserved):
+    # A filter whose name collides with a transport-managed query param (e.g. pageNo would pin
+    # every request to one page and accumulate duplicates) must be rejected, not forwarded.
+    session, _ = _session(_envelope([], total=0))
+    with pytest.raises(ValueError, match="transport-managed"):
+        session.fetch("getThing", **{reserved: "1"})
+
+
+def test_rate_limit_error_carries_retry_after_seconds():
+    headers = Message()
+    headers["Retry-After"] = "12"
+    err = urllib.error.HTTPError(
+        f"{_BASE}/getThing?serviceKey={urllib.parse.quote_plus(_KEY)}", 429, "msg",
+        headers, io.BytesIO(b""))
+    session, _ = _session(err)
+    with pytest.raises(DataGoKrRateLimitError) as exc:
+        session.fetch("getThing")
+    assert exc.value.retry_after == 12
+    assert _retry_after_seconds(None) is None and _retry_after_seconds("in a while") is None
 
 
 def test_non_object_row_raises():

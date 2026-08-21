@@ -89,14 +89,20 @@ class DataGoKrRateLimitError(DataGoKrError):
     ``.code`` (and the message on ``.message``), so a caller can tell 22 (daily traffic
     limit, resets at midnight KST) from 23 (per-second throttle); an HTTP-429 rejection
     that carries no envelope code uses ``"429"``.
+
+    ``retry_after`` is the server's ``Retry-After`` delay in seconds when an HTTP 429 carried
+    that header (its delta-seconds form), else ``None``; the caller decides whether to honor
+    it. An envelope 22/23 rejection carries no such header, so ``retry_after`` is ``None``.
     """
 
     code: str
     message: str
+    retry_after: int | None
 
-    def __init__(self, code: str, message: str) -> None:
+    def __init__(self, code: str, message: str, retry_after: int | None = None) -> None:
         self.code = code
         self.message = message
+        self.retry_after = retry_after
         super().__init__(f"[{code}] {message}")
 
 

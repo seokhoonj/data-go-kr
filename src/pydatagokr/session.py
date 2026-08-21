@@ -155,6 +155,14 @@ class DataGoKrSession:
         """
         if isinstance(num_of_rows, bool) or not isinstance(num_of_rows, int) or num_of_rows <= 0:
             raise ValueError("num_of_rows must be a positive integer")
+        # serviceKey / numOfRows / pageNo (and the JSON flag) are set by the transport itself;
+        # a filter of the same name would overwrite them -- e.g. pageNo would pin every request
+        # to one page and silently accumulate duplicate rows -- so reject the collision loudly.
+        reserved = {"serviceKey", "numOfRows", "pageNo", self.json_param} & filters.keys()
+        if reserved:
+            raise ValueError(
+                f"filter {sorted(reserved)} collides with a transport-managed query parameter "
+                f"(serviceKey/numOfRows/pageNo and the JSON flag are set by the session)")
         rows: list[Row] = []
         for page in range(1, _PAGE_CAP + 1):
             page_rows, total = self._fetch_page(operation, page, num_of_rows, filters)
@@ -164,11 +172,18 @@ class DataGoKrSession:
             # page size, so a short page must not end paging while the count says rows
             # remain. Without a count, a short (or empty) page is the only last-page signal.
             if total is not None:
-                last_page = not page_rows or len(rows) >= total
-            else:
-                last_page = not page_rows or len(page_rows) < num_of_rows
-            if last_page:
-                return rows
+                if len(rows) >= total:
+                    return rows                    # collected the count the service declared
+                if not page_rows:
+                    # An empty page BEFORE the declared count is reached is a broken vendor
+                    # sequence, not the end -- returning here would silently truncate to a
+                    # complete-looking partial result, so refuse it (like the page cap below).
+                    raise DataGoKrPagingError(
+                        f"data.go.kr returned an empty page for {operation} before its "
+                        f"declared totalCount ({len(rows)} of {total} rows); refusing a "
+                        f"possibly truncated result")
+            elif not page_rows or len(page_rows) < num_of_rows:
+                return rows                        # no count: a short/empty page is the end
         # The cap was reached without any last-page signal: rather than silently return a
         # truncated result that looks complete, refuse it. The message carries the
         # operation path only (never the key-bearing query string).
@@ -206,7 +221,8 @@ class DataGoKrSession:
             with err:
                 if err.code == _RATE_LIMIT_STATUS:
                     failure = DataGoKrRateLimitError(
-                        "429", f"data.go.kr rate-limited {operation} (HTTP 429)")
+                        "429", f"data.go.kr rate-limited {operation} (HTTP 429)",
+                        retry_after=_retry_after_seconds(err.headers.get("Retry-After")))
                 elif err.code in _AUTH_STATUSES:
                     # The gateway rejects a bad/unregistered key with 401/403 before the
                     # reason-code body is ever produced; that is an auth failure, not a
@@ -250,7 +266,11 @@ class DataGoKrSession:
         ``__cause__`` (``from None``) nor ``__context__`` carries the decode exception."""
         failure: DataGoKrError
         try:
-            return json.loads(raw.decode("utf-8"))
+            # parse_int/parse_float=str keep every JSON number as its original text, so a big
+            # integer or a scientific-notation amount is not routed through a lossy float
+            # before _integer sees it (every vendor value is a string anyway -- the XML path
+            # already yields only strings, so this keeps the two encodings symmetric).
+            return json.loads(raw.decode("utf-8"), parse_int=str, parse_float=str)
         except (ValueError, UnicodeDecodeError, RecursionError):
             # A 200 whose body is not JSON is usually the portal's XML fault envelope --
             # the gateway can fault (unregistered key, traffic limit) before it applies
@@ -380,6 +400,19 @@ def _xml_to_dict(elem: ET.Element) -> dict[str, Any] | str:
         else:
             result[child.tag] = value
     return result
+
+
+def _retry_after_seconds(value: str | None) -> int | None:
+    """The ``Retry-After`` header as a non-negative integer of seconds, or ``None``. Only the
+    delta-seconds form is read; the HTTP-date form (rare for a rate limit) is ignored rather
+    than parsed, so a caller that gets ``None`` simply falls back to its own backoff."""
+    if value is None:
+        return None
+    try:
+        seconds = int(value.strip())
+    except ValueError:
+        return None
+    return seconds if seconds >= 0 else None
 
 
 def _total_count(body: dict[str, Any]) -> int | None:
