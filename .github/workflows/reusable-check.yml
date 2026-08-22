@@ -52,6 +52,16 @@ jobs:
       - name: Types
         run: .venv/bin/mypy
 
+      - name: Confirm the plugin manifests track the package version
+        # The two plugin.json files hardcode a version; a package bump must update them too,
+        # or the marketplace advertises a stale one. This fails the moment they drift.
+        run: |
+          pkg=$(.venv/bin/python -c "import tomllib; print(tomllib.load(open('pyproject.toml','rb'))['project']['version'])")
+          for f in plugins/datagokr/.claude-plugin/plugin.json plugins/datagokr/.codex-plugin/plugin.json; do
+            pv=$(.venv/bin/python -c "import json; print(json.load(open('$f'))['version'])")
+            test "$pv" = "$pkg" || { echo "$f version $pv != package version $pkg"; exit 1; }
+          done
+
       - name: Confirm the package has zero runtime dependencies
         # The zero-dependency claim is documented in the pyproject comment; a claim
         # nothing checks quietly stops being true. Installed into a bare

@@ -4,7 +4,10 @@ Derived from the in-code registries: each service module exposes ``SERVICE``, ``
 ``BASE_URL``, and a ``TABLES`` mapping, and this module reads those uniformly off the
 :data:`_SERVICES` tuple. Adding a service to the catalog is adding its module to that
 tuple -- nothing here enumerates operations by hand, so the catalog cannot drift from what
-the client actually calls, and there is no bundled data file. :func:`services` names the
+the client actually calls, and there is no bundled data file. (A new service is fully wired
+only when it also has a :class:`~pydatagokr.client.DataGoKr` accessor and a CLI subcommand;
+``tests/test_fleet.py`` fails if the catalog, the client accessors, and the CLI subcommands
+drift apart.) :func:`services` names the
 wrapped services, :func:`operations` lists what each one's surface accepts (exactly the
 names ``KOFIA.fetch`` and the CLI take), and :func:`fields` gives one operation's clean
 column schema.

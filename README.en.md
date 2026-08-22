@@ -109,14 +109,14 @@ codes it needs.
 
 | Accessor | Agency · statistics | Format | Docs |
 |---|---|---|---|
-| `client.weather` | KMA village forecast (short-term, ultra-short-term, nowcast) | XML | [docs/weather.md](docs/weather.md) |
-| `client.airquality` | Korea Environment Corp. AirKorea air-pollution data | XML | [docs/airquality.md](docs/airquality.md) |
-| `client.holidays` | KASI special-day info (public holidays, 24 solar terms, etc.) | XML | [docs/holidays.md](docs/holidays.md) |
-| `client.realestate` | MOLIT apartment transaction prices (sale, rent, presale) | XML | [docs/realestate.md](docs/realestate.md) |
-| `client.midforecast` | KMA mid-range forecast (days 4-10: land, temperature) | XML | [docs/midforecast.md](docs/midforecast.md) |
-| `client.procurement` | PPS Nara-marketplace bid notices (goods, services, construction, foreign) | XML | [docs/procurement.md](docs/procurement.md) |
-| `client.customs` | KCS import/export by item (monthly, by HS code) | XML | [docs/customs.md](docs/customs.md) |
-| `client.kofia` | KOFIA aggregate statistics (deposits, funds, ELS/DLS, etc.) | JSON | [docs/kofia.md](docs/kofia.md) |
+| `client.weather` | KMA village forecast (short-term, ultra-short-term, nowcast) | XML | [docs/weather.md](https://github.com/seokhoonj/pydatagokr/blob/main/docs/weather.md) |
+| `client.airquality` | Korea Environment Corp. AirKorea air-pollution data | XML | [docs/airquality.md](https://github.com/seokhoonj/pydatagokr/blob/main/docs/airquality.md) |
+| `client.holidays` | KASI special-day info (public holidays, 24 solar terms, etc.) | XML | [docs/holidays.md](https://github.com/seokhoonj/pydatagokr/blob/main/docs/holidays.md) |
+| `client.realestate` | MOLIT apartment transaction prices (sale, rent, presale) | XML | [docs/realestate.md](https://github.com/seokhoonj/pydatagokr/blob/main/docs/realestate.md) |
+| `client.midforecast` | KMA mid-range forecast (days 4-10: land, temperature) | XML | [docs/midforecast.md](https://github.com/seokhoonj/pydatagokr/blob/main/docs/midforecast.md) |
+| `client.procurement` | PPS Nara-marketplace bid notices (goods, services, construction, foreign) | XML | [docs/procurement.md](https://github.com/seokhoonj/pydatagokr/blob/main/docs/procurement.md) |
+| `client.customs` | KCS import/export by item (monthly, by HS code) | XML | [docs/customs.md](https://github.com/seokhoonj/pydatagokr/blob/main/docs/customs.md) |
+| `client.kofia` | KOFIA aggregate statistics (deposits, funds, ELS/DLS, etc.) | JSON | [docs/kofia.md](https://github.com/seokhoonj/pydatagokr/blob/main/docs/kofia.md) |
 
 > The linked per-service docs and `docs/errors.md` are currently written in Korean.
 
@@ -138,7 +138,7 @@ codes it needs.
   `catalog.fields("weather", "forecast")` (CLI: `datagokr fields`) its tidied column schema.
   `datagokr <service> <operation> --help` shows each operation's options.
 - **Errors & operations.** Reason codes, how approval works, and traffic limits are in
-  [docs/errors.md](docs/errors.md).
+  [docs/errors.md](https://github.com/seokhoonj/pydatagokr/blob/main/docs/errors.md).
 
 ## 4. Command line
 

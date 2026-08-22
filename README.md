@@ -108,14 +108,14 @@ pl.DataFrame(rows)
 
 | 접근자 | 기관 · 통계 | 포맷 | 문서 |
 |---|---|---|---|
-| `client.weather` | 기상청 동네예보 (단기·초단기·실황) | XML | [docs/weather.md](docs/weather.md) |
-| `client.airquality` | 한국환경공단 에어코리아 대기오염정보 | XML | [docs/airquality.md](docs/airquality.md) |
-| `client.holidays` | 한국천문연구원 특일 정보 (공휴일·24절기 등) | XML | [docs/holidays.md](docs/holidays.md) |
-| `client.realestate` | 국토교통부 아파트 실거래가 (매매·전월세·분양권) | XML | [docs/realestate.md](docs/realestate.md) |
-| `client.midforecast` | 기상청 중기예보 (4~10일 육상·기온) | XML | [docs/midforecast.md](docs/midforecast.md) |
-| `client.procurement` | 조달청 나라장터 입찰공고 (물품·용역·공사·외자) | XML | [docs/procurement.md](docs/procurement.md) |
-| `client.customs` | 관세청 품목별 수출입실적 (HS 부호별 월간) | XML | [docs/customs.md](docs/customs.md) |
-| `client.kofia` | 금융투자협회 종합통계 (예탁금·펀드·ELS/DLS 등) | JSON | [docs/kofia.md](docs/kofia.md) |
+| `client.weather` | 기상청 동네예보 (단기·초단기·실황) | XML | [docs/weather.md](https://github.com/seokhoonj/pydatagokr/blob/main/docs/weather.md) |
+| `client.airquality` | 한국환경공단 에어코리아 대기오염정보 | XML | [docs/airquality.md](https://github.com/seokhoonj/pydatagokr/blob/main/docs/airquality.md) |
+| `client.holidays` | 한국천문연구원 특일 정보 (공휴일·24절기 등) | XML | [docs/holidays.md](https://github.com/seokhoonj/pydatagokr/blob/main/docs/holidays.md) |
+| `client.realestate` | 국토교통부 아파트 실거래가 (매매·전월세·분양권) | XML | [docs/realestate.md](https://github.com/seokhoonj/pydatagokr/blob/main/docs/realestate.md) |
+| `client.midforecast` | 기상청 중기예보 (4~10일 육상·기온) | XML | [docs/midforecast.md](https://github.com/seokhoonj/pydatagokr/blob/main/docs/midforecast.md) |
+| `client.procurement` | 조달청 나라장터 입찰공고 (물품·용역·공사·외자) | XML | [docs/procurement.md](https://github.com/seokhoonj/pydatagokr/blob/main/docs/procurement.md) |
+| `client.customs` | 관세청 품목별 수출입실적 (HS 부호별 월간) | XML | [docs/customs.md](https://github.com/seokhoonj/pydatagokr/blob/main/docs/customs.md) |
+| `client.kofia` | 금융투자협회 종합통계 (예탁금·펀드·ELS/DLS 등) | JSON | [docs/kofia.md](https://github.com/seokhoonj/pydatagokr/blob/main/docs/kofia.md) |
 
 - **활용신청이 먼저.** 서비스마다 data.go.kr 계정에서 해당 데이터셋을 따로 신청해야
   호출됩니다.
@@ -133,7 +133,7 @@ pl.DataFrame(rows)
   목록은 `catalog.services()`, 한 서비스의 오퍼레이션은 `catalog.operations("weather")`,
   정리된 열 스키마는 `catalog.fields("weather", "forecast")`(CLI는 `datagokr fields`)로 봅니다.
   각 오퍼레이션이 받는 옵션은 `datagokr <서비스> <오퍼레이션> --help`.
-- **에러·운영.** reason 코드, 활용신청 승인 방식, 트래픽 한도는 [docs/errors.md](docs/errors.md)에
+- **에러·운영.** reason 코드, 활용신청 승인 방식, 트래픽 한도는 [docs/errors.md](https://github.com/seokhoonj/pydatagokr/blob/main/docs/errors.md)에
   정리돼 있습니다.
 
 ## 4. 커맨드라인

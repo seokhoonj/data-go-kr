@@ -34,6 +34,13 @@ class DataGoKr:
 
     One data.go.kr account key serves every dataset it has applied for (활용신청); a call
     to one not yet approved raises :class:`~pydatagokr.errors.DataGoKrAuthError`.
+
+    **Thread safety.** A ``DataGoKr``, its service surfaces, and their sessions hold no
+    per-request mutable state (the key and config are set once at construction, each request
+    uses only locals, and the shared opener makes a fresh connection per call), so one client
+    may be shared across threads for concurrent fetches. The one caveat: on Python 3.12+ the
+    first concurrent access to a service accessor may build it twice, harmlessly (both are
+    equivalent); touch the accessors once before fanning out if that matters.
     """
 
     _api_key: str | None
