@@ -4,6 +4,8 @@
   "plugins": [
     {
       "name": "datagokr",
+      "description": "Read Korean government open data from data.go.kr -- weather, air quality, holidays, apartment transactions, mid-range forecasts, procurement bids, customs trade, and KOFIA market statistics",
+      "homepage": "https://github.com/seokhoonj/pydatagokr",
       "source": { "source": "local", "path": "./plugins/datagokr" },
       "policy": { "installation": "AVAILABLE", "authentication": "ON_INSTALL" },
       "category": "Productivity"

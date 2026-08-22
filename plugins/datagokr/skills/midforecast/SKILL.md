@@ -11,8 +11,8 @@ next ~3 days on a 5km grid, this covers days 4-10 for a coarser 예보구역 nam
 
 | operation | 예보 | clean columns |
 |---|---|---|
-| `land` | 중기육상예보 | `region`, `precip_prob_4am`..`precip_prob_10` (강수확률 %, int), `sky_4am`..`sky_10` (날씨 문구) |
-| `temperature` | 중기기온예보 | `region`, `temp_min_4`..`temp_min_10`, `temp_max_4`..`temp_max_10` (℃, int) |
+| `land` | 중기육상예보 | `region_code`, `precip_prob_4am`..`precip_prob_10` (강수확률 %, int), `sky_4am`..`sky_10` (날씨 문구) |
+| `temperature` | 중기기온예보 | `region_code`, `temp_min_4`..`temp_min_10`, `temp_max_4`..`temp_max_10` (℃, int) |
 
 Days 4-7 split into morning/afternoon (`_4am`/`_4pm` .. `_7am`/`_7pm`); days 8-10 are
 single (`_8`..`_10`). A day the announcement does not cover is `None` (the 1800 announcement
@@ -23,6 +23,8 @@ starts at day 5, the 0600 one reaches day 4).
 ```
 pipx install pydatagokr      # or: pip install pydatagokr
 ```
+
+**Never print the key value** (the `DATAGOKR_API_KEY` env var or `credentials.json`) to output, logs, or a summary -- if you need to check which form it is (encoding vs decoding), ask the user.
 
 A data.go.kr **decoding** key must be configured (env `DATAGOKR_API_KEY` or
 `~/.config/pydatagokr/credentials.json`), and the 중기예보 dataset (service 1360000,

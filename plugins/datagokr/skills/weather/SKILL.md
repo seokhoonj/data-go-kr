@@ -29,6 +29,8 @@ item (`category`) per time. Clean columns: `base_date`, `base_time`, `category`,
 pipx install pydatagokr      # or: pip install pydatagokr
 ```
 
+**Never print the key value** (the `DATAGOKR_API_KEY` env var or `credentials.json`) to output, logs, or a summary -- if you need to check which form it is (encoding vs decoding), ask the user.
+
 A data.go.kr **decoding** key must be configured (env `DATAGOKR_API_KEY` or
 `~/.config/pydatagokr/credentials.json`), and the 단기예보 dataset (service 1360000,
 VilageFcstInfoService_2.0) applied for (활용신청) on that account.

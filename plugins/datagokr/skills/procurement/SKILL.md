@@ -9,15 +9,15 @@ Fetch 나라장터 bid announcements over a time window. The vendor requires the
 match the announcement's 업무구분, so there is one per kind. Clean columns (a curated header
 subset of the vendor's ~100 fields): `notice_no`, `notice_ord`, `notice_name`,
 `notice_kind`, `notice_agency` (공고기관), `demand_agency` (수요기관), `bid_method`,
-`contract_method`, `notice_at`/`bid_close_at`/`opening_at` (times, text), `estimated_price`
-(추정가격, 원 int), `budget_amount` (배정예산, 원 int), `officer_name`, `notice_url`,
+`contract_method`, `notice_at`/`bid_close_at`/`opening_at` (times, text), `estimated_price_krw`
+(추정가격, 원 int), `budget_amount_krw` (배정예산, 원 int), `officer_name`, `notice_url`,
 `registered_at`.
 
 | operation | 업무구분 |
 |---|---|
 | `goods` | 물품 |
 | `services` | 용역 |
-| `construction` | 공사 (배정예산 미제공 -- `budget_amount` is `None`) |
+| `construction` | 공사 (배정예산 미제공 -- `budget_amount_krw` is `None`) |
 | `foreign` | 외자 |
 
 ## Prerequisite
@@ -25,6 +25,8 @@ subset of the vendor's ~100 fields): `notice_no`, `notice_ord`, `notice_name`,
 ```
 pipx install pydatagokr      # or: pip install pydatagokr
 ```
+
+**Never print the key value** (the `DATAGOKR_API_KEY` env var or `credentials.json`) to output, logs, or a summary -- if you need to check which form it is (encoding vs decoding), ask the user.
 
 A data.go.kr **decoding** key must be configured (env `DATAGOKR_API_KEY` or
 `~/.config/pydatagokr/credentials.json`), and the 나라장터 입찰공고정보서비스 dataset (service

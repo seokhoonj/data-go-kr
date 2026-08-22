@@ -21,6 +21,8 @@ Fetch real-time air quality. Clean columns: `station`, `measured_at`, `khai`/`kh
 pipx install pydatagokr      # or: pip install pydatagokr
 ```
 
+**Never print the key value** (the `DATAGOKR_API_KEY` env var or `credentials.json`) to output, logs, or a summary -- if you need to check which form it is (encoding vs decoding), ask the user.
+
 A data.go.kr **decoding** key must be configured (env `DATAGOKR_API_KEY` or
 `~/.config/pydatagokr/credentials.json`), and the 대기오염정보 dataset (service B552584)
 applied for (활용신청). It is 자동승인 for a development account.

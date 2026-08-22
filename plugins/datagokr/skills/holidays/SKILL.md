@@ -22,6 +22,8 @@ Fetch a solar year's special days -- the clean columns are `date`, `name`, `is_h
 pipx install pydatagokr      # or: pip install pydatagokr
 ```
 
+**Never print the key value** (the `DATAGOKR_API_KEY` env var or `credentials.json`) to output, logs, or a summary -- if you need to check which form it is (encoding vs decoding), ask the user.
+
 A data.go.kr **decoding** key must be configured (env `DATAGOKR_API_KEY` or
 `~/.config/pydatagokr/credentials.json`), and the 특일 정보 dataset (service B090041)
 applied for (활용신청) on that account.

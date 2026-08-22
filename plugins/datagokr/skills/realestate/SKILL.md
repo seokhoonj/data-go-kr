@@ -7,8 +7,8 @@ description: "Fetch 국토교통부 아파트 실거래가 (apartment real-trans
 
 Fetch a 시군구's apartment transactions for one 계약년월. Clean columns include `deal_date`,
 `apt_name`, `exclusive_area` (m²), `floor`, `region_code`, `dong`, `jibun`, `build_year` --
-and, by operation: `deal_amount` (거래금액, **만원**) for sale/presale, or `deposit`/
-`monthly_rent` (보증금·월세, **만원**) for rent.
+and, by operation: `deal_amount_manwon` (거래금액, **만원**) for sale/presale, or
+`deposit_manwon`/`monthly_rent_manwon` (보증금·월세, **만원**) for rent.
 
 | operation | 데이터 |
 |---|---|
@@ -22,6 +22,8 @@ and, by operation: `deal_amount` (거래금액, **만원**) for sale/presale, or
 ```
 pipx install pydatagokr      # or: pip install pydatagokr
 ```
+
+**Never print the key value** (the `DATAGOKR_API_KEY` env var or `credentials.json`) to output, logs, or a summary -- if you need to check which form it is (encoding vs decoding), ask the user.
 
 A data.go.kr **decoding** key must be configured (env `DATAGOKR_API_KEY` or
 `~/.config/pydatagokr/credentials.json`), and each apartment dataset (service 1613000)
