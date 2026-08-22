@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 import unicodedata
 from collections.abc import Callable, Mapping, Sequence
@@ -50,6 +51,12 @@ def main(argv: Sequence[str] | None = None) -> int:
     caught here (an unknown operation, a ``ValueError`` from the client) returns 2;
     argparse's own usage errors (a bad flag or subcommand) raise ``SystemExit(2)``.
     """
+    # Print Korean (agency names, values) on any console: force UTF-8 so a non-UTF-8 stdout
+    # -- a Windows cp949 console, an ascii-encoded pipe -- does not die with UnicodeEncodeError.
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if reconfigure is not None:
+            reconfigure(encoding="utf-8", errors="backslashreplace")
     args = _make_parser().parse_args(argv)
     run: Callable[[argparse.Namespace], int] = args.run
     try:
@@ -60,6 +67,11 @@ def main(argv: Sequence[str] | None = None) -> int:
     except ValueError as err:
         print(f"{_ERROR_PREFIX}{err}", file=sys.stderr)
         return 2
+    except BrokenPipeError:
+        # A downstream reader closed the pipe early (`datagokr ... | head`). Redirect stdout to
+        # devnull so Python's shutdown flush does not re-raise, then exit conventionally.
+        os.dup2(os.open(os.devnull, os.O_WRONLY), sys.stdout.fileno())
+        return 1
 
 
 def _make_parser() -> argparse.ArgumentParser:

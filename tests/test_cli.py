@@ -2,6 +2,9 @@
 with the session's opener faked so no key file or network is needed."""
 
 import json
+import os
+import subprocess
+import sys
 
 import pytest
 
@@ -114,6 +117,31 @@ def test_bad_command_is_usage_error():
     with pytest.raises(SystemExit) as exc:
         main(["frobnicate"])
     assert exc.value.code == 2
+
+
+def test_prints_korean_on_a_non_utf8_stdout():
+    # A Windows cp949 console / an ascii-encoded pipe must not crash when the CLI prints
+    # Korean agency names -- main() forces stdout to UTF-8. Run it as a real subprocess with
+    # an ascii IO encoding, the way the crash actually reproduces.
+    result = subprocess.run(
+        [sys.executable, "-m", "pydatagokr", "list"],
+        capture_output=True, env={**os.environ, "PYTHONIOENCODING": "ascii"})
+    assert result.returncode == 0
+    assert "기상청".encode() in result.stdout        # Korean survived as UTF-8, no crash
+
+
+def _raise_broken_pipe(args):
+    raise BrokenPipeError
+
+
+def test_handles_a_broken_downstream_pipe(monkeypatch):
+    # `datagokr ... | head` closes the pipe early; main() must swallow the BrokenPipeError and
+    # exit 1 rather than dump a traceback. (os.dup2/open are stubbed so the handler does not
+    # redirect the test runner's own stdout.)
+    monkeypatch.setattr("pydatagokr.cli._run_list", _raise_broken_pipe)
+    monkeypatch.setattr("pydatagokr.cli.os.dup2", lambda *a: None)
+    monkeypatch.setattr("pydatagokr.cli.os.open", lambda *a: 0)
+    assert main(["list"]) == 1
 
 
 # --- kofia -------------------------------------------------------------------
