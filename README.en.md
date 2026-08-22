@@ -120,19 +120,19 @@ codes it needs.
 
 > The linked per-service docs and `docs/errors.md` are currently written in Korean.
 
-- **Amount units differ by service.** Apartment prices (`deal_amount`, `deposit`,
-  `monthly_rent`) are in **10,000 KRW (만원)**; procurement `estimated_price` / `budget_amount`
-  are in **KRW**; customs `export_usd` etc. are in **USD** (noted in each service doc). Take
-  care when summing amounts from several services in one table.
 - **Apply first.** Each service must be applied for separately (활용신청) on your data.go.kr
   account before it can be called.
 - **Readable names and real types (`clean`).** The agency's rows are hard to read by field name
   alone (`sggCd`, `excluUseAr`) and every value is a string. By default `clean=True` **renames
   fields to readable names and parses string values into real types** (`region_code`,
-  `exclusive_area=84.97`, `deal_amount=82000`); an unparsable value becomes `None`. A row missing
-  its date is dropped, and a composite-key table also drops a row missing a key dimension, but a
-  wide-key table keeps the row with that value as `None`. `clean=False` leaves the agency's raw
-  rows as they are.
+  `exclusive_area=84.97`, `deal_amount_manwon=82000`); an unparsable value becomes `None`. A row
+  missing its date is dropped, and a composite-key table also drops a row missing a key dimension,
+  but a wide-key table keeps the row with that value as `None`. `clean=False` leaves the agency's
+  raw rows as they are.
+- **Amount units are in the column name.** Apartment prices are in **10,000 KRW (만원)**
+  (`deal_amount_manwon`, `deposit_manwon`, `monthly_rent_manwon`); procurement is in **KRW**
+  (`estimated_price_krw`, `budget_amount_krw`); customs `export_usd` etc. are in **USD**. Still
+  match units when summing amounts from several services in one table.
 - **Discovery.** `datagokr list` shows the services and operations. In Python, `catalog.services()`
   lists the services, `catalog.operations("weather")` a service's operations, and
   `catalog.fields("weather", "forecast")` (CLI: `datagokr fields`) its tidied column schema.
@@ -145,8 +145,15 @@ codes it needs.
 ```bash
 datagokr --version                                    # print the version
 datagokr list                                         # services & operations (offline, no key)
+datagokr fields weather forecast                      # one operation's tidied column schema (offline)
 datagokr holidays --year 2026                         # public holidays
 datagokr realestate apt_trade 11110 --deal-ym 202401  # apartment sale transactions
+
+# Find codes (offline, no key) -- turn a lat/lon or place name into the code a service takes
+datagokr grid 37.5714 126.9658                        # lat/lon -> KMA grid nx ny (60 127)
+datagokr lawd 종로구                                   # place name -> 법정동코드 LAWD_CD (11110)
+datagokr land-region 서울                              # place name -> mid-forecast land REGID (11B00000)
+datagokr temp-region 서울                              # place name -> mid-forecast temp REGID (11B10101)
 ```
 
 The call form is `datagokr <service> <operation> [options]`. The default output is a readable

@@ -122,13 +122,13 @@ pl.DataFrame(rows)
 - **이름·타입 정리(`clean`).** 기관이 주는 행은 필드명만으로는 의미를 알기 어렵고(`sggCd`,
   `excluUseAr`) 값이 전부 문자열입니다. 기본값 `clean=True`는 **필드명을 알아보기 쉬운 이름으로
   바꾸고 문자열 값을 실제 타입으로 변환**하며(`region_code`, `exclusive_area=84.97`,
-  `deal_amount=82000`), 파싱되지 않는 값은 `None`으로 둡니다. 날짜가 빠진 행은 결과에서 빼고,
+  `deal_amount_manwon=82000`), 파싱되지 않는 값은 `None`으로 둡니다. 날짜가 빠진 행은 결과에서 빼고,
   복합키 테이블은 키 차원이 빠진 행도 빼지만, 넓은 키 테이블은 그 값을 `None`으로 두고 행을
   유지합니다. `clean=False`는 기관 원문 그대로 둡니다.
-- **단위 주의.** 금액 컬럼의 단위는 서비스마다 다릅니다 -- 아파트 실거래가(`deal_amount`·
-  `deposit`·`monthly_rent`)는 **만원**, 조달청 `estimated_price`·`budget_amount`는 **원**,
-  관세청 `export_usd` 등은 **USD**입니다(각 서비스 문서에 표기). 여러 서비스를 한 표로 합쳐
-  더할 때 특히 주의하세요.
+- **단위 주의.** 금액 컬럼은 단위를 이름에 담았습니다 -- 아파트 실거래가는 **만원**
+  (`deal_amount_manwon`·`deposit_manwon`·`monthly_rent_manwon`), 조달청은 **원**
+  (`estimated_price_krw`·`budget_amount_krw`), 관세청 `export_usd` 등은 **USD**입니다. 그래도
+  여러 서비스를 한 표로 합쳐 더할 때는 단위를 맞추세요.
 - **탐색.** 어떤 서비스·오퍼레이션이 있는지는 `datagokr list`로 봅니다. Python에선 서비스
   목록은 `catalog.services()`, 한 서비스의 오퍼레이션은 `catalog.operations("weather")`,
   정리된 열 스키마는 `catalog.fields("weather", "forecast")`(CLI는 `datagokr fields`)로 봅니다.
@@ -141,8 +141,15 @@ pl.DataFrame(rows)
 ```bash
 datagokr --version                                    # 버전 출력
 datagokr list                                         # 서비스·오퍼레이션 (오프라인, 키 불필요)
+datagokr fields weather forecast                      # 한 오퍼레이션의 정리된 열 스키마 (오프라인)
 datagokr holidays --year 2026                         # 공휴일
 datagokr realestate apt_trade 11110 --deal-ym 202401  # 아파트 매매 실거래가
+
+# 코드 찾기 (오프라인, 키 불필요) -- 위·경도/지역명을 서비스가 받는 코드로
+datagokr grid 37.5714 126.9658                        # 위/경도 -> 기상청 격자 nx ny (60 127)
+datagokr lawd 종로구                                   # 지역명 -> 법정동코드 LAWD_CD (11110)
+datagokr land-region 서울                              # 지역명 -> 중기육상예보 REGID (11B00000)
+datagokr temp-region 서울                              # 지역명 -> 중기기온예보 REGID (11B10101)
 ```
 
 호출 형태는 `datagokr <서비스> <오퍼레이션> [옵션]`입니다. 기본 출력은 읽기 좋은

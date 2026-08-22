@@ -39,7 +39,7 @@ _SALE_CORE = (
     Field("excluUseAr",      "exclusive_area",  "decimal", is_key=True),    # 전용면적(m^2)
     Field("floor",           "floor",           "int", is_key=True),        # 층
     Field("buildYear",       "build_year",      "int"),                     # 건축년도
-    Field("dealAmount",      "deal_amount",     "int"),                     # 거래금액(만원)
+    Field("dealAmount",      "deal_amount_manwon", "int"),                  # 거래금액(만원)
     Field("dealingGbn",      "dealing_type",    "text"),                    # 거래유형(중개/직거래)
     Field("buyerGbn",        "buyer_type",      "text"),                    # 매수자 구분
     Field("slerGbn",         "seller_type",     "text"),                    # 매도자 구분
@@ -91,12 +91,12 @@ APT_RENT = Table("apt_rent", "RTMSDataSvcAptRent/getRTMSDataSvcAptRent",
     Field("excluUseAr",      "exclusive_area",  "decimal", is_key=True),
     Field("floor",           "floor",           "int", is_key=True),
     Field("buildYear",       "build_year",      "int"),
-    Field("deposit",         "deposit",         "int"),                     # 보증금(만원)
-    Field("monthlyRent",     "monthly_rent",    "int"),                     # 월세(만원)
+    Field("deposit",         "deposit_manwon",  "int"),                     # 보증금(만원)
+    Field("monthlyRent",     "monthly_rent_manwon", "int"),                 # 월세(만원)
     Field("contractType",    "contract_type",   "text"),                    # 신규/갱신
     Field("contractTerm",    "contract_term",   "text"),                    # 계약기간
-    Field("preDeposit",      "prev_deposit",    "int"),                     # 종전 보증금
-    Field("preMonthlyRent",  "prev_monthly_rent", "int"),                   # 종전 월세
+    Field("preDeposit",      "prev_deposit_manwon", "int"),                 # 종전 보증금(만원)
+    Field("preMonthlyRent",  "prev_monthly_rent_manwon", "int"),           # 종전 월세(만원)
     Field("useRRRight",      "renewal_right_used", "text"),                 # 갱신요구권 사용
     Field("aptSeq",          "apt_seq",         "text"),
     Field("roadnm",          "road_name",       "text"),
@@ -120,12 +120,18 @@ def _deal_date(row: Row) -> str:
     if not (year and month and day):
         return ""
     try:
-        return f"{int(year):04d}{int(month):02d}{int(day):02d}"
+        y, m, d = int(year), int(month), int(day)
     except (TypeError, ValueError):
         # A non-numeric part (a malformed vendor value) yields no date, so _spec.clean
         # drops just this row on its date_ymd required-check -- one poisoned row does not
         # crash the whole fetch.
         return ""
+    if y < 1000:
+        # A 2-digit dealYear ("24") would format to "0024..." and strptime to a silently
+        # wrong ISO date; RTMS sends a 4-digit year, so treat a short year as malformed and
+        # let the row drop on its required date check rather than emit a wrong date.
+        return ""
+    return f"{y:04d}{m:02d}{d:02d}"
 
 
 class RealEstate:
@@ -214,7 +220,9 @@ class RealEstate:
     def fetch(self, name: str, *, region_code: str, deal_ym: str,
               clean: bool = True) -> list[Row] | list[CleanRow]:
         """Any of the four operations by name (see :meth:`operations`) for one 법정동 and
-        계약년월. ``clean=True`` (the default) returns typed rows; ``clean=False`` raw."""
+        계약년월. Raises ``ValueError`` for an unknown ``name``;
+        :class:`~pydatagokr.errors.DataGoKrError` (and subclasses) on a transport or vendor
+        failure. ``clean=True`` (the default) returns typed rows; ``clean=False`` raw."""
         try:
             table = TABLES[name]
         except KeyError:

@@ -29,8 +29,8 @@ datagokr midforecast temperature --region 11B10101 --base-time 202608110600
 from pydatagokr import DataGoKr, land_region, temp_region
 
 client = DataGoKr()
-land = client.midforecast.land(region=land_region("서울"), base_time="202608110600")
-temp = client.midforecast.temperature(region=temp_region("서울"), base_time="202608110600")
+land = client.midforecast.land(region_code=land_region("서울"), base_time="202608110600")
+temp = client.midforecast.temperature(region_code=temp_region("서울"), base_time="202608110600")
 ```
 
 ## 예보구역코드 찾기

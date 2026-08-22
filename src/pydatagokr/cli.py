@@ -329,7 +329,7 @@ def _run_airquality_by_station(args: argparse.Namespace) -> int:
 
 
 def _run_midforecast(args: argparse.Namespace) -> int:
-    rows = MidForecast().fetch(args.operation, region=args.region, base_time=args.base_time)
+    rows = MidForecast().fetch(args.operation, region_code=args.region, base_time=args.base_time)
     _emit(rows, args.json)
     return 0
 
