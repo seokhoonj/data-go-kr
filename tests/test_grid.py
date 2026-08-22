@@ -26,6 +26,10 @@ def test_known_points_pin_the_projection_output():
     # projection constant is caught. Seoul/부산 above are the real published anchors.
     assert latlon_to_grid(33.4996, 126.5312) == Grid(53, 38)   # 제주
     assert latlon_to_grid(36.3620, 127.3563) == Grid(67, 101)  # 대전 유성
+    # Southern points whose cell shifts if a standard latitude drifts (_SLAT1 30->31 moves the
+    # first, _SLAT2 60->61 the second), which the anchors above do not detect.
+    assert latlon_to_grid(33.20, 126.57) == Grid(53, 31)
+    assert latlon_to_grid(33.20, 126.70) == Grid(56, 31)
 
 
 @pytest.mark.parametrize("lat", [-90.0, 90.0, 91.0, -100.0,

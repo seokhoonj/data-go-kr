@@ -67,9 +67,11 @@ class _FakeOpener:
     def __init__(self, *outcomes):
         self._outcomes = list(outcomes)
         self.requests = []
+        self.timeouts = []
 
     def open(self, request, timeout=None):
         self.requests.append(request)
+        self.timeouts.append(timeout)
         outcome = self._outcomes.pop(0)
         if isinstance(outcome, Exception):
             raise outcome
@@ -468,6 +470,21 @@ def test_xml_single_item_is_normalized_to_a_list():
     session, _ = _session(
         _xml_envelope([{"hsCode": "8542"}], total=1), response_format="xml")
     assert session.fetch("getThing") == [{"hsCode": "8542"}]
+
+
+def test_xml_three_items_keep_all_rows_in_order():
+    # The _xml_to_dict list-accumulation `.append` branch only runs from the 3rd repeated
+    # <item> onward; a 2-row page never exercises it. All three must survive, in order.
+    session, _ = _session(
+        _xml_envelope([{"n": "1"}, {"n": "2"}, {"n": "3"}], total=3), response_format="xml")
+    assert session.fetch("getThing") == [{"n": "1"}, {"n": "2"}, {"n": "3"}]
+
+
+def test_custom_timeout_reaches_the_opener():
+    # The configured timeout must actually be passed to opener.open (not silently dropped).
+    session, opener = _session(_envelope([], total=0), timeout=12.5)
+    session.fetch("getThing")
+    assert opener.timeouts == [12.5]
 
 
 def test_json_body_with_a_utf8_bom_is_parsed():

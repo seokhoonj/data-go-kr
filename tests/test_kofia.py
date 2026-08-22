@@ -2,6 +2,7 @@
 (daily basDt vs monthly basYm, bounds truncated to YYYYMM), over the JSON session, offline."""
 
 import json
+import urllib.parse
 
 import pytest
 
@@ -137,7 +138,9 @@ def test_every_operation_types_its_row_and_wires_the_bounds(
     kofia, opener = _kofia(_json([raw_row], 1))
     rows = kofia.fetch(name, begin="20240131", end="20240315")
     assert rows == [clean_row]                       # exact typed row, all columns
-    query = opener.requests[0].full_url
-    assert operation in query                        # the operation's own vendor path
-    assert begin_param in query                      # basDt (daily) or basYm/basDt (monthly)
-    assert end_param in query                        # monthly bounds truncated to YYYYMM
+    url = opener.requests[0].full_url
+    assert operation in url                           # the operation's own vendor path
+    params = urllib.parse.parse_qs(urllib.parse.urlsplit(url).query)
+    for expected in (begin_param, end_param):         # exact value: a dropped YYYYMM
+        key, value = expected.split("=")              # truncation ("...202401" vs "20240131")
+        assert params[key] == [value]                 # would fail here, not pass on substring

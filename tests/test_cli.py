@@ -137,6 +137,12 @@ def test_cell_collapses_control_chars_and_normalizes_nfc():
     assert _cell(None) == ""
 
 
+def test_display_width_counts_hangul_as_two_cells():
+    from pydatagokr.cli import _display_width, _pad
+    assert _display_width("서울") == 4 and _display_width("ab") == 2   # not len(); Hangul is wide
+    assert _pad("서울", 5) == "서울 "                                   # aligned to 5 cells
+
+
 def _raise_broken_pipe(args):
     raise BrokenPipeError
 
