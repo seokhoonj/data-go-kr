@@ -610,6 +610,35 @@ def test_paging_cap_error_never_shows_the_key():
     assert exc.value.__context__ is None
 
 
+def test_scheme_less_or_http_base_url_is_rejected_without_leaking_the_key():
+    # A scheme-less base_url makes urllib build the key-bearing Request OUTSIDE the transport's
+    # try/except, surfacing the full URL (serviceKey=...) in a bare ValueError; an http:// root
+    # would ship the key in cleartext. Both must be refused at construction -- before any
+    # request -- and the error must carry no form of the key. README Sec.2.2 tells users to
+    # paste the portal's request URL into DataGoKrSession(...), so a missing scheme is expected.
+    forms = [_KEY, urllib.parse.quote_plus(_KEY), urllib.parse.quote(_KEY)]
+    for bad in ("apis.data.go.kr/0000000/service", "http://apis.data.go.kr/0000000/service"):
+        with pytest.raises(ValueError) as exc:
+            DataGoKrSession(bad, _KEY)
+        for form in forms:
+            assert form not in str(exc.value)
+
+
+def test_https_base_url_is_accepted():
+    # The valid case still constructs (a plain https root), so the guard rejects only bad schemes.
+    assert DataGoKrSession("https://apis.data.go.kr/x", _KEY).base_url == "https://apis.data.go.kr/x"
+
+
+def test_over_collected_paging_refuses_to_return_duplicates():
+    # A vendor that declares a totalCount but ignores pageNo re-serves the same full page every
+    # request; collecting past the count would silently return duplicates, so refuse it -- the
+    # mirror of the empty-page-before-total refusal.
+    opener = _InfiniteOpener(_envelope([{"n": "1"}, {"n": "2"}], total=3))
+    session = DataGoKrSession(_BASE, _KEY, opener=opener)
+    with pytest.raises(DataGoKrPagingError):
+        session.fetch("getThing", num_of_rows=2)
+
+
 def test_over_nested_body_becomes_a_network_error_not_a_recursion_error():
     # A pathological deeply-nested body must surface as our network error, not leak a bare
     # RecursionError from the XML walk.

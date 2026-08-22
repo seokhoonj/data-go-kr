@@ -75,6 +75,32 @@ def test_present_but_invalid_utf8_raises(tmp_path, monkeypatch):
         resolve_api_key(None)
 
 
+def test_broken_credentials_file_never_leaks_the_key_it_holds(tmp_path, monkeypatch):
+    # A credentials file can hold the service key, and both JSONDecodeError (.doc) and
+    # UnicodeDecodeError carry the offending bytes -- so the broken-file errors are raised
+    # `from None` with the message built from the path only. A malformed file whose bytes
+    # embed a distinctive secret must not surface it in the message, the full traceback
+    # (which would include a chained cause), or the args; and the chain must be detached.
+    import traceback
+    secret = "SECRETKEYINFILE9999"
+    for content in (f'{{"DATAGOKR_API_KEY": "{secret}"', (secret + " \xff").encode("latin-1")):
+        path = _point_config_at(tmp_path, monkeypatch)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        if isinstance(content, bytes):
+            path.write_bytes(content)         # invalid UTF-8 carrying the secret
+        else:
+            path.write_text(content, encoding="utf-8")   # invalid JSON carrying the secret
+        with pytest.raises(DataGoKrConfigError) as exc:
+            resolve_api_key(None)
+        tb = "".join(traceback.format_exception(
+            type(exc.value), exc.value, exc.value.__traceback__))
+        assert secret not in str(exc.value)
+        assert secret not in tb
+        assert secret not in repr(exc.value.args)
+        assert exc.value.__cause__ is None       # chain detached (from None)
+        assert exc.value.__context__ is None
+
+
 def test_key_with_control_char_raises_and_never_echoes_the_key():
     # A stray newline inside a pasted key can only be a broken key; reject it as a
     # config error without echoing the value.

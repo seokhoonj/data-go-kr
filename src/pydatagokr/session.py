@@ -125,6 +125,18 @@ class DataGoKrSession:
             raise ValueError("timeout must be a finite positive number")
         if not math.isfinite(timeout) or timeout <= 0:
             raise ValueError("timeout must be a finite positive number")
+        # The key travels in the query string, so base_url MUST be https and carry a scheme
+        # BEFORE it is ever embedded in a request URL. A scheme-less value makes urllib's
+        # Request(f"{base_url}/...?serviceKey=<KEY>&...") raise ValueError("unknown url type:
+        # '<the full key-bearing URL>'") -- built outside _fetch_page's try/except, so it
+        # escapes the transport's from-None discipline and surfaces the key. An http:// value
+        # would ship the key in cleartext, the exact leak _NoRedirect exists to prevent. All
+        # data.go.kr roots are https, so reject anything else at construction, before the key
+        # can reach a string.
+        if urllib.parse.urlsplit(base_url).scheme != "https":
+            raise ValueError(
+                "base_url must be an https:// data.go.kr service root "
+                "(e.g. 'https://apis.data.go.kr/...')")
         self.base_url = base_url.rstrip("/")
         self.timeout = float(timeout)
         self.json_param: JSONParam = json_param
@@ -173,7 +185,16 @@ class DataGoKrSession:
             # remain. Without a count, a short (or empty) page is the only last-page signal.
             if total is not None:
                 if len(rows) >= total:
-                    return rows                    # collected the count the service declared
+                    if len(rows) > total:
+                        # More rows than the service declared: a vendor that ignores pageNo and
+                        # re-serves a full page every request inflates the result with duplicates.
+                        # Symmetric to the empty-page-before-total refusal below -- refuse a
+                        # possibly duplicated result rather than return one that looks complete.
+                        raise DataGoKrPagingError(
+                            f"data.go.kr returned more rows than its declared totalCount "
+                            f"({len(rows)} > {total}) for {operation}; refusing a possibly "
+                            f"duplicated result")
+                    return rows                    # collected exactly the declared count
                 if not page_rows:
                     # An empty page BEFORE the declared count is reached is a broken vendor
                     # sequence, not the end -- returning here would silently truncate to a
@@ -251,8 +272,9 @@ class DataGoKrSession:
         """Apply the portal envelope contract to a raw 200 body (JSON or XML). Both
         encodings decode into the same nested dict, so the envelope logic below runs once
         regardless of the wire format."""
+        payload: object
         if self.response_format == "xml":
-            payload: Any = self._payload_from_xml(raw, operation)
+            payload = self._payload_from_xml(raw, operation)
         else:
             payload = self._payload_from_json(raw, operation)
         if isinstance(payload, dict):
@@ -260,7 +282,7 @@ class DataGoKrSession:
         raise DataGoKrNetworkError(
             f"unexpected data.go.kr response shape for {operation}") from None
 
-    def _payload_from_json(self, raw: bytes, operation: str) -> Any:
+    def _payload_from_json(self, raw: bytes, operation: str) -> object:
         """The JSON body as a nested object, or our network error (cause detached). The
         failure is built inside the handler and raised after leaving it, so neither
         ``__cause__`` (``from None``) nor ``__context__`` carries the decode exception."""
@@ -337,7 +359,7 @@ class DataGoKrSession:
         body: dict[str, Any] = raw_body if isinstance(raw_body, dict) else {}
         return self._rows_from_items(body.get("items"), operation), _total_count(body)
 
-    def _rows_from_items(self, items: Any, operation: str) -> list[Row]:
+    def _rows_from_items(self, items: object, operation: str) -> list[Row]:
         """Normalize ``body.items.item`` -- a list of objects, a single object (a one-row
         page), or an empty marker (absent, ``""``, a whitespace-only string, or ``{}``) --
         into a list of string rows."""
