@@ -186,8 +186,10 @@ class Weather:
         """Any of the three operations by name (see :meth:`operations`) for one grid cell.
         ``base_date`` = YYYYMMDD, ``base_time`` = HHMM (the announcement time), ``nx``/``ny``
         the 기상청 5km grid. Omit both ``base_date`` and ``base_time`` (or pass neither) to use
-        the latest published announcement for this operation. ``clean=True`` (the default)
-        returns typed rows; ``clean=False`` raw."""
+        the latest published announcement for this operation. Raises ``ValueError`` for an
+        unknown ``name`` (or a lone ``base_date``/``base_time``);
+        :class:`~pydatagokr.errors.DataGoKrError` (and subclasses) on a transport or vendor
+        failure. ``clean=True`` (the default) returns typed rows; ``clean=False`` raw."""
         try:
             table = TABLES[name]
         except KeyError:

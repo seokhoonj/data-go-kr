@@ -73,11 +73,11 @@ def test_list_needs_no_key(capsys, tmp_path, monkeypatch):
 
 def test_list_json(capsys):
     assert main(["list", "--json"]) == 0
-    data = json.loads(capsys.readouterr().out)
-    assert set(data) == {"kofia", "customs", "holidays", "realestate", "weather", "airquality",
-                          "midforecast", "procurement"}
-    assert "market_funds" in data["kofia"]
-    assert data["customs"] == ["item_trade"]
+    operations_by_service = json.loads(capsys.readouterr().out)
+    assert set(operations_by_service) == {"kofia", "customs", "holidays", "realestate", "weather",
+                                          "airquality", "midforecast", "procurement"}
+    assert "market_funds" in operations_by_service["kofia"]
+    assert operations_by_service["customs"] == ["item_trade"]
 
 
 # --- fields (offline, keyless) -----------------------------------------------

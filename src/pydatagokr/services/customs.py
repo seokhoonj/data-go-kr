@@ -76,6 +76,26 @@ class Customs:
                                    strtYymm=begin, endYymm=end, hsSgn=hs_code)
         return _spec.clean(rows, ITEM_TRADE) if clean else rows
 
+    @overload
+    def fetch(self, name: str, hs_code: str, *, begin: str, end: str,
+              clean: Literal[True] = ...) -> list[CleanRow]: ...
+    @overload
+    def fetch(self, name: str, hs_code: str, *, begin: str, end: str,
+              clean: Literal[False]) -> list[Row]: ...
+    @overload
+    def fetch(self, name: str, hs_code: str, *, begin: str, end: str,
+              clean: bool) -> list[Row] | list[CleanRow]: ...
+    def fetch(self, name: str, hs_code: str, *, begin: str, end: str,
+              clean: bool = True) -> list[Row] | list[CleanRow]:
+        """The operation by name (``"item_trade"``; see :meth:`operations`) for one HS code
+        over ``begin``/``end`` = YYYYMM -- the fleet's generic entry point, mirroring the typed
+        :meth:`item_trade`. Raises ``ValueError`` for an unknown ``name``;
+        :class:`~pydatagokr.errors.DataGoKrError` (and subclasses) on a transport or vendor
+        failure. ``clean=True`` (the default) returns typed rows; ``clean=False`` raw."""
+        if name != ITEM_TRADE.name:
+            raise ValueError(f"unknown operation {name!r}; valid: {list(TABLES)}")
+        return self.item_trade(hs_code, begin=begin, end=end, clean=clean)
+
     @staticmethod
     def operations() -> tuple[str, ...]:
         """The operation names this surface exposes."""

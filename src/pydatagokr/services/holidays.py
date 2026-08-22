@@ -91,8 +91,10 @@ class Holidays:
     def fetch(self, name: str, *, year: int, month: int | None = None,
               clean: bool = True) -> list[Row] | list[CleanRow]:
         """Any of the five operations by name (see :meth:`operations`) for one solar year,
-        optionally one month. ``clean=True`` (the default) returns typed rows; ``clean=False``
-        the raw vendor rows."""
+        optionally one month. Raises ``ValueError`` for an unknown ``name``;
+        :class:`~pydatagokr.errors.DataGoKrError` (and subclasses) on a transport or vendor
+        failure. ``clean=True`` (the default) returns typed rows; ``clean=False`` the raw
+        vendor rows."""
         try:
             table = TABLES[name]
         except KeyError:

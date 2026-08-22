@@ -19,6 +19,7 @@ are worth keeping.
 from __future__ import annotations
 
 import math
+from collections import Counter
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 from datetime import date, datetime
@@ -62,7 +63,7 @@ class Table:
         # be silently overwritten by clean(), a duplicate vendor token double-maps one field.
         for label, names in (("clean column", self.columns),
                              ("vendor token", tuple(f.token for f in self.fields))):
-            dup = next((n for n in names if names.count(n) > 1), None)
+            dup = next((n for n, count in Counter(names).items() if count > 1), None)
             if dup is not None:
                 raise ValueError(f"Table {self.name!r} has a duplicate {label}: {dup!r}")
 

@@ -43,8 +43,10 @@ from .services import (
     RealEstate,
     Weather,
 )
+from .services.airquality import DataTerm
+from .services.procurement import QueryBasis
 from .session import DataGoKrSession
-from .types import Row
+from .types import JSONParam, ResponseFormat, Row
 
 try:
     __version__ = version("pydatagokr")   # single source of truth: pyproject.toml
@@ -65,14 +67,18 @@ __all__ = [
     "DataGoKrRateLimitError",
     "DataGoKrResponseError",
     "DataGoKrSession",
+    "DataTerm",
     "Field",
     "FieldKind",
     "Grid",
     "Holidays",
+    "JSONParam",
     "KOFIA",
     "MidForecast",
     "Procurement",
+    "QueryBasis",
     "RealEstate",
+    "ResponseFormat",
     "Row",
     "Table",
     "Weather",

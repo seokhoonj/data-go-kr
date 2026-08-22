@@ -9,6 +9,7 @@ fail the moment the four drift, so the drift is caught in CI, not by a user.
 
 import argparse
 import pkgutil
+from functools import cached_property
 
 import pydatagokr
 import pydatagokr.services as services_pkg
@@ -38,6 +39,15 @@ def test_every_catalog_service_has_a_cli_subcommand():
     choices = set(subparsers.choices)
     for name in _SERVICE_NAMES:
         assert name in choices, f"service {name!r} has no CLI subcommand"
+
+
+def test_client_has_no_service_accessor_beyond_the_catalog():
+    # The reverse of the forward parity check: every service-valued cached_property on
+    # DataGoKr must correspond to a catalog service, so a stale accessor left behind after a
+    # service is renamed or removed (in the client but not the catalog) is caught, not shipped.
+    accessors = {name for name, attr in vars(pydatagokr.DataGoKr).items()
+                 if isinstance(attr, cached_property)}
+    assert accessors == _SERVICE_NAMES
 
 
 def test_no_service_module_is_left_out_of_the_registry():

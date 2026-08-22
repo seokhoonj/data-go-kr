@@ -88,6 +88,11 @@ def fields(service: str, operation: str) -> list[FieldSpec]:
 
     Reads the in-code table spec -- no network, no key. Raises ``ValueError`` for an
     unknown service or operation.
+
+    Most ``token`` values are the vendor's own wire field; realestate's date token
+    ``dealDate`` is the exception -- the surface synthesizes it from the vendor's
+    dealYear/dealMonth/dealDay before cleaning, so it is not a field on a raw ``clean=False``
+    row.
     """
     tables = _module(service).TABLES
     try:

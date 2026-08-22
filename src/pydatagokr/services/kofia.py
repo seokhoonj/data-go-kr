@@ -200,8 +200,10 @@ class KOFIA:
               num_of_rows: int = 1000,
               clean: bool = True) -> list[Row] | list[CleanRow]:
         """Any operation by name (see :meth:`operations`) over an optional date range --
-        the path for the six operations without a typed method. ``clean=True`` (the
-        default) returns typed snake_case rows; ``clean=False`` the raw vendor rows."""
+        the path for the six operations without a typed method. Raises ``ValueError`` for an
+        unknown ``name``; :class:`~pydatagokr.errors.DataGoKrError` (and subclasses) on a
+        transport or vendor failure. ``clean=True`` (the default) returns typed snake_case
+        rows; ``clean=False`` the raw vendor rows."""
         try:
             table = TABLES[name]
         except KeyError:
