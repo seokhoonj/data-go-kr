@@ -36,6 +36,15 @@ def test_lawd_ilban_gu_by_parent_city():
     assert lawd_code("장안구") == "41111"
 
 
+def test_lawd_code_accepts_nfd_hangul():
+    # A decomposed-Hangul query (NFD, as macOS clipboards produce) is visually identical to the
+    # composed table name but compares unequal without normalization.
+    import unicodedata
+    nfd = unicodedata.normalize("NFD", "종로구")
+    assert nfd != "종로구"                         # genuinely decomposed
+    assert lawd_code(nfd) == "11110"
+
+
 def test_lawd_fully_qualified_three_token_query():
     # 시도 + parent 시 + 일반구: each leading token narrows independently, so the fully
     # qualified form resolves like the bare parent-시 form rather than mashing the two hints

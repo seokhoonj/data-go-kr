@@ -9,7 +9,7 @@ import sys
 import pytest
 
 from pydatagokr import session as session_mod
-from pydatagokr.cli import main
+from pydatagokr.cli import _cell, main
 
 
 def _body(payload) -> bytes:
@@ -130,6 +130,13 @@ def test_prints_korean_on_a_non_utf8_stdout():
     assert "기상청".encode() in result.stdout        # Korean survived as UTF-8, no crash
 
 
+def test_cell_collapses_control_chars_and_normalizes_nfc():
+    import unicodedata
+    assert _cell("a\nb\tc\rd") == "a b c d"          # newlines/tabs never break the table
+    assert _cell(unicodedata.normalize("NFD", "서울")) == "서울"   # composed for true width
+    assert _cell(None) == ""
+
+
 def _raise_broken_pipe(args):
     raise BrokenPipeError
 
@@ -139,8 +146,8 @@ def test_handles_a_broken_downstream_pipe(monkeypatch):
     # exit 1 rather than dump a traceback. (os.dup2/open are stubbed so the handler does not
     # redirect the test runner's own stdout.)
     monkeypatch.setattr("pydatagokr.cli._run_list", _raise_broken_pipe)
-    monkeypatch.setattr("pydatagokr.cli.os.dup2", lambda *a: None)
-    monkeypatch.setattr("pydatagokr.cli.os.open", lambda *a: 0)
+    monkeypatch.setattr(os, "dup2", lambda *a: None)   # don't redirect the test runner's stdout
+    monkeypatch.setattr(os, "open", lambda *a, **k: 0)
     assert main(["list"]) == 1
 
 

@@ -2,7 +2,7 @@
 
 import pytest
 
-from pydatagokr._spec import Field, Table, _integer, clean
+from pydatagokr._spec import Field, Table, _date_ym, _date_ymd, _integer, clean
 from pydatagokr.services.kofia import CMA_STATUS, DLS_DLB, MARKET_FUNDS, OVERSEAS_DERIVATIVES
 from pydatagokr.services.procurement import SERVICES
 
@@ -42,6 +42,23 @@ def test_integer_above_float_precision_stays_exact():
     for raw in (str(big), f"{big}.0"):
         rows = [{"basDt": "20240105", "invrDpsgAmt": raw}]
         assert clean(rows, MARKET_FUNDS)[0]["investor_deposit"] == big
+
+
+def test_parsers_reject_non_ascii_digits():
+    # int() and str.isdigit() accept full-width / Arabic-Indic digits, but a won/count/date is
+    # always ASCII -- accepting them would let _date_ym emit a mixed-width "２０２４-０１", so every
+    # parser rejects them consistently. The real ASCII forms still parse.
+    assert _integer("１２３４") is None and _integer("٠١٢٣") is None
+    assert _date_ym("２０２４０１") is None
+    assert _date_ymd("２０２４０１０５") is None
+    assert _integer("1234") == 1234 and _date_ym("2026.01") == "2026-01"
+
+
+def test_table_rejects_duplicate_columns_and_tokens():
+    with pytest.raises(ValueError, match="duplicate clean column"):
+        Table("t", "op", (Field("a", "dup", "text"), Field("b", "dup", "text")))
+    with pytest.raises(ValueError, match="duplicate vendor token"):
+        Table("t", "op", (Field("dup", "a", "text"), Field("dup", "b", "text")))
 
 
 def test_integer_does_not_expand_a_scientific_exponent_bomb():

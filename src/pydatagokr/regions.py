@@ -6,6 +6,8 @@ with a 시도 ("서울 중구") or the parent 시 ("수원시 장안구") to pin
 
 from __future__ import annotations
 
+import unicodedata
+
 from ._regions_data import LAND_ZONES, SIGUNGU, TEMP_CITIES
 
 __all__ = ["lawd_code", "land_region", "temp_region"]
@@ -26,7 +28,9 @@ def lawd_code(query: str) -> str:
     the 시군구 (a 일반구 name may be a suffix, e.g. "장안구" of "수원시장안구"); any leading
     token qualifies it by 시도 or parent 시. Raises ``ValueError`` if nothing matches or the
     name is ambiguous (the message lists the candidates)."""
-    tokens = query.split()
+    # NFC-normalize so a decomposed-Hangul query (NFD, as macOS clipboards produce) matches
+    # the composed names in the table.
+    tokens = unicodedata.normalize("NFC", query).split()
     if not tokens:
         raise ValueError(f"no 시군구 matches {query!r}")
     name = tokens[-1]
@@ -73,7 +77,7 @@ def temp_region(query: str) -> str:
 def _resolve_named(query: str, table: tuple[tuple[str, str], ...], label: str) -> str:
     """Match ``query`` against ``table`` of (name, code): an exact name wins outright,
     otherwise fall back to a substring match. Raises ``ValueError`` on no/ambiguous match."""
-    normalized = query.strip()
+    normalized = unicodedata.normalize("NFC", query).strip()
     exact = [(name, code) for (name, code) in table if name == normalized]
     candidates = exact or [(name, code) for (name, code) in table if normalized in name]
     if not candidates:

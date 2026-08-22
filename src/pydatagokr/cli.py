@@ -374,7 +374,14 @@ def _render_rows(rows: Sequence[Mapping[str, object]]) -> str:
 
 
 def _cell(value: object) -> str:
-    return "" if value is None else str(value)
+    if value is None:
+        return ""
+    # NFC so composed Hangul measures at its true width; collapse newlines/tabs to a space so
+    # a multi-line vendor value cannot break the table's row/column structure.
+    text = unicodedata.normalize("NFC", str(value))
+    for control in "\r\n\t":
+        text = text.replace(control, " ")
+    return text
 
 
 def _display_width(text: str) -> int:

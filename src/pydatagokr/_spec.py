@@ -57,6 +57,15 @@ class Table:
     fields:      tuple[Field, ...]
     is_wide_key: bool = False   # True -> surrogate id + per-period replace, not a composite PK
 
+    def __post_init__(self) -> None:
+        # Catch a copy-paste maintainer error at import time: a duplicate clean column would
+        # be silently overwritten by clean(), a duplicate vendor token double-maps one field.
+        for label, names in (("clean column", self.columns),
+                             ("vendor token", tuple(f.token for f in self.fields))):
+            dup = next((n for n in names if names.count(n) > 1), None)
+            if dup is not None:
+                raise ValueError(f"Table {self.name!r} has a duplicate {label}: {dup!r}")
+
     @property
     def columns(self) -> tuple[str, ...]:
         return tuple(field.column for field in self.fields)
@@ -104,7 +113,7 @@ def clean(rows: Iterable[Row], table: Table) -> list[CleanRow]:
 def _date_ymd(raw: object) -> str | None:
     """An 8-digit YYYYMMDD to an ISO date string (``"2024-01-05"``); anything else -> None."""
     text = str(raw).strip()
-    if len(text) != 8 or not text.isdigit():
+    if len(text) != 8 or not (text.isascii() and text.isdigit()):
         return None
     try:
         parsed = datetime.strptime(text, "%Y%m%d").date()
@@ -117,7 +126,7 @@ def _date_ym(raw: object) -> str | None:
     """A YYYYMM year-month to an ISO string (``"2024-01"``). Non-digit separators are
     stripped first, so both ``"202601"`` and the customs dotted form ``"2026.01"`` parse;
     anything not yielding a valid 6-digit YYYYMM -> None."""
-    text = "".join(ch for ch in str(raw) if ch.isdigit())
+    text = "".join(ch for ch in str(raw) if ch.isascii() and ch.isdigit())
     if len(text) != 6:
         return None
     try:
@@ -145,6 +154,10 @@ def _integer(raw: object) -> int | None:
     than a lossy round."""
     text = str(raw).replace(",", "").strip()
     if not text or text in ("-", "None", "nan"):
+        return None
+    if not text.isascii():
+        # int() accepts non-ASCII decimal digits (Arabic-Indic, full-width); a won/count is
+        # always ASCII, and accepting them would disagree with the date parsers -> None.
         return None
     try:
         return int(text)                       # exact for any size (the common path)

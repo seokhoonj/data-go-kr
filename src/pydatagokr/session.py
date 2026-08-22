@@ -270,7 +270,9 @@ class DataGoKrSession:
             # integer or a scientific-notation amount is not routed through a lossy float
             # before _integer sees it (every vendor value is a string anyway -- the XML path
             # already yields only strings, so this keeps the two encodings symmetric).
-            return json.loads(raw.decode("utf-8"), parse_int=str, parse_float=str)
+            # utf-8-sig strips a leading BOM (some endpoints prepend one) which plain json
+            # would reject; a BOM-less body decodes identically.
+            return json.loads(raw.decode("utf-8-sig"), parse_int=str, parse_float=str)
         except (ValueError, UnicodeDecodeError, RecursionError):
             # A 200 whose body is not JSON is usually the portal's XML fault envelope --
             # the gateway can fault (unregistered key, traffic limit) before it applies

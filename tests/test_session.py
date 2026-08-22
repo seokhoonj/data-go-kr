@@ -470,6 +470,13 @@ def test_xml_single_item_is_normalized_to_a_list():
     assert session.fetch("getThing") == [{"hsCode": "8542"}]
 
 
+def test_json_body_with_a_utf8_bom_is_parsed():
+    # Some endpoints prepend a UTF-8 BOM; utf-8-sig strips it so json.loads does not choke.
+    body = b"\xef\xbb\xbf" + _envelope([{"basDt": "20240105"}], total=1)
+    session, _ = _session(body)
+    assert session.fetch("getThing") == [{"basDt": "20240105"}]
+
+
 def test_xml_empty_items_is_empty_list():
     session, _ = _session(_xml_envelope([], total=0), response_format="xml")
     assert session.fetch("getThing") == []
